@@ -1,0 +1,233 @@
+[
+  {
+    "name": "SynWeb_Gateway",
+    "nodes": [
+      {
+        "id": "21657c7b-da65-4c84-96a8-83930b57de1e",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          300
+        ],
+        "webhookId": "f7d6ece8-72da-423c-962b-a46cd5f6ade5",
+        "parameters": {
+          "path": "synweb/inbound",
+          "httpMethod": "POST",
+          "responseMode": "responseNode",
+          "options": {}
+        }
+      },
+      {
+        "id": "eb0e7862-d8c2-4d5a-8ac9-1184bd10a1c9",
+        "name": "Extract Body",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          400,
+          300
+        ],
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "a1",
+                "name": "sessionId",
+                "value": "={{ $json.body.sessionId }}",
+                "type": "string"
+              },
+              {
+                "id": "a2",
+                "name": "userId",
+                "value": "={{ $json.body.userId }}",
+                "type": "string"
+              },
+              {
+                "id": "a3",
+                "name": "cleanMessage",
+                "value": "={{ $json.body.cleanMessage }}",
+                "type": "string"
+              },
+              {
+                "id": "a4",
+                "name": "targetPersona",
+                "value": "={{ $json.body.targetPersona || '' }}",
+                "type": "string"
+              },
+              {
+                "id": "a5",
+                "name": "hasFiles",
+                "value": "={{ $json.body.hasFiles || false }}",
+                "type": "boolean"
+              },
+              {
+                "id": "a6",
+                "name": "channelId",
+                "value": "web",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "b5f9795c-1e91-4612-b6e0-ffa0f7a69c48",
+        "name": "Respond OK",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          400,
+          450
+        ],
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify({ok: true, sessionId: $json.body.sessionId}) }}"
+        }
+      },
+      {
+        "id": "213664f2-877c-441d-93d0-d1c504c71898",
+        "name": "Route by Target",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          600,
+          300
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "typeValidation": "strict",
+              "version": 2,
+              "leftValue": ""
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.targetPersona }}",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "be2c3213-3660-4e61-8107-67144b25b1df",
+        "name": "Execute Coordinator",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          850,
+          400
+        ],
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "A3jxDuimyDE2G6uO"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "sessionId": "={{ $json.sessionId }}",
+              "userId": "={{ $json.userId }}",
+              "channelId": "={{ $json.channelId }}",
+              "cleanMessage": "={{ $json.cleanMessage }}",
+              "hasFiles": "={{ $json.hasFiles }}"
+            }
+          }
+        }
+      },
+      {
+        "id": "b32c2481-2b0a-4512-a611-c111d8050ecb",
+        "name": "Execute Audience",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          850,
+          200
+        ],
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "M04sAqjOhZRVGlXb"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "sessionId": "={{ $json.sessionId }}",
+              "slotNumber": "={{ parseInt($json.targetPersona) }}",
+              "cleanMessage": "={{ $json.cleanMessage }}",
+              "channelId": "={{ $json.channelId }}",
+              "userId": "={{ $json.userId }}"
+            }
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Extract Body",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract Body": {
+        "main": [
+          [
+            {
+              "node": "Route by Target",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Respond OK",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Route by Target": {
+        "main": [
+          [
+            {
+              "node": "Execute Audience",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Execute Coordinator",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true,
+      "callerPolicy": "workflowsFromSameOwner"
+    },
+    "id": "V0CpwraeTYxQh6BM"
+  }
+]
