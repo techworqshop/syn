@@ -1,0 +1,527 @@
+[
+  {
+    "updatedAt": "2026-03-20T21:46:59.513Z",
+    "createdAt": "2026-03-09T18:25:41.886Z",
+    "id": "xWD3pS29jBB2op3g",
+    "name": "Syn_RunPersona",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "session_id"
+              },
+              {
+                "name": "persona_id"
+              },
+              {
+                "name": "persona_profile"
+              },
+              {
+                "name": "problem_brief"
+              },
+              {
+                "name": "round_number",
+                "type": "number"
+              },
+              {
+                "name": "file_context"
+              },
+              {
+                "name": "previous_synthesis"
+              },
+              {
+                "name": "rigidity_instruction"
+              },
+              {
+                "name": "unresolved_tension"
+              },
+              {
+                "name": "file_url"
+              }
+            ]
+          }
+        },
+        "id": "trigger",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -96,
+          288
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "upsert",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_personas"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.session_id }}"
+              },
+              {
+                "keyName": "persona_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.persona_id }}"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "session_id": "={{ $('Execute Workflow Trigger').item.json.session_id }}",
+              "persona_id": "={{ $('Execute Workflow Trigger').item.json.persona_id }}",
+              "round_1_response": "={{ $('Execute Workflow Trigger').item.json.round_number == 1 ? ($json.content ? $json.content[0].text : $json.output) : undefined }}",
+              "round_2_response": "={{ $('Execute Workflow Trigger').item.json.round_number == 2 ? ($json.content ? $json.content[0].text : $json.output) : undefined }}",
+              "round_3_response": "={{ $('Execute Workflow Trigger').item.json.round_number == 3 ? ($json.content ? $json.content[0].text : $json.output) : undefined }}",
+              "position_summary": "={{ ($json.content ? $json.content[0].text : ($json.output || '')).substring(0, 500) }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "session_id",
+                "displayName": "session_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "persona_id",
+                "displayName": "persona_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "name",
+                "displayName": "name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "type",
+                "displayName": "type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "core_perspective",
+                "displayName": "core_perspective",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "profile",
+                "displayName": "profile",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "round_1_response",
+                "displayName": "round_1_response",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "round_2_response",
+                "displayName": "round_2_response",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "round_3_response",
+                "displayName": "round_3_response",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "position_summary",
+                "displayName": "position_summary",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "save-response",
+        "name": "Save Response",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1360,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.file_url }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "slackApi",
+          "options": {}
+        },
+        "id": "c8b80eae-f8db-4949-9e15-03bbf7d67da3",
+        "name": "Download File",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          592,
+          176
+        ],
+        "credentials": {
+          "slackApi": {
+            "id": "LGc2ErEQ4dgP1qnJ",
+            "name": "Syn"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_files"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.session_id }}"
+              }
+            ]
+          },
+          "limit": 10
+        },
+        "id": "4e71aeba-4cf2-425f-882f-63648d4ffc42",
+        "name": "Get Session Files",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          160,
+          288
+        ],
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "jsCode": "// Merge all downloaded file binaries into a single item\nconst triggerData = $('Execute Workflow Trigger').first().json;\nconst downloadedItems = $input.all();\n\nconst mergedBinary = {};\nconst keys = [];\nlet fileCount = 0;\n\nfor (const item of downloadedItems) {\n  if (item.binary) {\n    for (const [key, value] of Object.entries(item.binary)) {\n      const newKey = `file_${fileCount}`;\n      mergedBinary[newKey] = value;\n      keys.push(newKey);\n      fileCount++;\n    }\n  }\n}\n\nreturn [{\n  json: {\n    ...triggerData,\n    fileCount,\n    binaryKeys: keys.join(',')\n  },\n  binary: fileCount > 0 ? mergedBinary : undefined\n}];"
+        },
+        "id": "1489e8a4-3988-4b92-ab05-85effff79c11",
+        "name": "Merge Files",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          800,
+          176
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-opus-4-6",
+            "mode": "list",
+            "cachedResultName": "claude-opus-4-6"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Du bist {{ $json.persona_id }} mit folgendem Profil:\n\n{{ $json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\n{{ $json.file_context ? 'FILE CONTEXT:\\n' + $json.file_context : '' }}\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\n{{ $json.rigidity_instruction ? 'RIGIDITY INSTRUCTION:\\n' + $json.rigidity_instruction : '' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nDies ist Runde {{ $json.round_number }}.\n\nWenn Dateien angehaengt sind, analysiere sie gruendlich und beziehe sie in deine Antwort ein.\n\nFORMATTING: Kein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt.\n\nAnalysiere das Problem aus deiner spezifischen Perspektive. Sei direkt und substanziell. Max 400 Woerter."
+              }
+            ]
+          },
+          "addAttachments": true,
+          "attachmentsInputType": "binary",
+          "binaryPropertyName": "={{ $json.binaryKeys || 'data' }}",
+          "options": {
+            "temperature": 0.7
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          976,
+          176
+        ],
+        "id": "94ce06c4-71a3-4d67-bc70-5ba206fd867b",
+        "name": "Run Persona Analysis",
+        "credentials": {
+          "anthropicApi": {
+            "id": "xryPDagnAi6vifng",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "claude-sonnet-4-20250514"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Du bist {{ $('Execute Workflow Trigger').item.json.persona_id }} mit folgendem Profil:\n\n{{ $('Execute Workflow Trigger').item.json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $('Execute Workflow Trigger').item.json.problem_brief }}\n\n{{ $json.file_context ? 'FILE CONTEXT:\\n' + $json.file_context : '' }}\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\n{{ $json.rigidity_instruction ? 'RIGIDITY INSTRUCTION:\\n' + $json.rigidity_instruction : '' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nDies ist Runde {{ $('Execute Workflow Trigger').item.json.round_number }}.\n\nFORMATTING: Kein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt.\n\nAnalysiere das Problem aus deiner spezifischen Perspektive. Sei direkt und substanziell. Max 400 Woerter."
+              }
+            ]
+          },
+          "options": {
+            "temperature": 0.7
+          }
+        },
+        "id": "7191703a-6b33-4400-8d1b-a689e8286032",
+        "name": "Run Persona No Files",
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          976,
+          400
+        ],
+        "credentials": {
+          "anthropicApi": {
+            "id": "xryPDagnAi6vifng",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "2e5a7815-62c5-4137-b161-3f4eed768539",
+                "leftValue": "={{ $json.file_url }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "exists",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          368,
+          288
+        ],
+        "id": "bacd6889-e11b-41bd-9cf2-2aba7ad52551",
+        "name": "If"
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Get Session Files",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download File": {
+        "main": [
+          [
+            {
+              "node": "Merge Files",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Run Persona Analysis": {
+        "main": [
+          [
+            {
+              "node": "Save Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Session Files": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge Files": {
+        "main": [
+          [
+            {
+              "node": "Run Persona Analysis",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Run Persona No Files": {
+        "main": [
+          [
+            {
+              "node": "Save Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Download File",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Run Persona No Files",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true,
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false,
+      "binaryMode": "separate",
+      "timeSavedMode": "fixed",
+      "errorWorkflow": "k_1wGROZ77CNjRE1INOwj"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": {
+      "Execute Workflow Trigger": [
+        {
+          "json": {
+            "session_id": "1774037599.067329",
+            "persona_id": "alpha",
+            "persona_profile": "Alpha ist Meteorologin und Klimawissenschaftlerin mit Fokus auf mitteleuropaeische Wetterlagen. Sie argumentiert datenbasiert, bezieht sich auf Messwerte, Modelle und historische Vergleiche. Sie ist praezise, nuechtern und korrigiert subjektive Wahrnehmungen mit Fakten.",
+            "problem_brief": "Wie ist das Wetter heute in Berlin und wie beeinflusst es den Alltag der Menschen? Keine besonderen Einschraenkungen. Reiner Workflow-Test.",
+            "round_number": 1,
+            "file_context": "",
+            "previous_synthesis": "",
+            "rigidity_instruction": "",
+            "unresolved_tension": "",
+            "file_url": ""
+          },
+          "pairedItem": {
+            "item": 0
+          }
+        }
+      ]
+    },
+    "versionId": "86512473-7ed7-4bbc-bfd8-322b3f41aee8",
+    "activeVersionId": "72210236-2b34-4d18-a33a-97de435bc4ad",
+    "versionCounter": 213,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-03-09T18:25:41.886Z",
+        "createdAt": "2026-03-09T18:25:41.886Z",
+        "role": "workflow:owner",
+        "workflowId": "xWD3pS29jBB2op3g",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

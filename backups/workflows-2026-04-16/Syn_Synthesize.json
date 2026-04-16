@@ -1,0 +1,274 @@
+[
+  {
+    "updatedAt": "2026-03-20T20:55:45.178Z",
+    "createdAt": "2026-03-09T18:26:08.134Z",
+    "id": "Uo7vCRAPp3nrwMVf",
+    "name": "Syn_Synthesize",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "session_id"
+              },
+              {
+                "name": "round_number",
+                "type": "number"
+              },
+              {
+                "name": "problem_brief"
+              }
+            ]
+          }
+        },
+        "id": "trigger",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          368,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_personas"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $json.session_id }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "id": "get-responses",
+        "name": "Get All Persona Responses",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          624,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\nconst trigger = $('Execute Workflow Trigger').first().json;\nconst roundNumber = trigger.round_number;\n\nconst responseField = `round_${roundNumber}_response`;\n\nconst allResponses = items.map(item => {\n  return `--- ${item.json.name} (${item.json.type}) ---\\nPerspective: ${item.json.core_perspective}\\n\\n${item.json[responseField] || 'No response yet'}`;\n}).join('\\n\\n');\n\nreturn [{\n  json: {\n    session_id: trigger.session_id,\n    round_number: roundNumber,\n    all_responses: allResponses,\n    persona_count: items.length,\n    problem_brief: trigger.problem_brief\n  }\n}];"
+        },
+        "id": "aggregate",
+        "name": "Aggregate Responses",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          864,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=ROUND {{ $json.round_number }} SYNTHESIS\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\nALL PERSONA RESPONSES ({{ $json.persona_count }} panelists):\n{{ $json.all_responses }}\n\nCreate a synthesis report with these sections:\n\n1. {{ $json.round_number == 1 ? 'CONSENSUS POINTS - Ideas where multiple personas converge' : 'EVOLUTION OF THINKING - How the panels thinking evolved' }}\n\n2. {{ $json.round_number == 1 ? 'KEY TENSIONS AND DISAGREEMENTS - Where personas diverge, who disagrees with whom and why' : 'CONSOLIDATED AGREEMENTS - Where the panel now converges' }}\n\n3. {{ $json.round_number == 1 ? 'SURPRISE INSIGHTS - Unexpected angles or novel ideas' : 'REMAINING DISAGREEMENTS - Irreducible tensions where alignment was not reached' }}\n\n4. {{ $json.round_number == 1 ? 'IDENTIFIED GAPS - Important aspects no persona addressed' : 'STRONGEST ARGUMENTS - Most compelling arguments from both rounds' }}\n\n5. {{ $json.round_number == 1 ? 'EMERGING QUESTIONS - New questions from the combined analysis' : 'CONVERGENCE ASSESSMENT - Can we finalize, or is Round 3 needed?' }}\n\nAttribute ideas clearly. Never flatten disagreements into false consensus. Highlight surprises.",
+          "options": {
+            "systemMessage": "You are the Syn synthesis engine. Your job is to create honest, structured synthesis reports from multiple expert perspectives.\n\nCRITICAL RULES:\n- NEVER flatten disagreements into false consensus\n- Attribute ideas clearly (e.g. Dalios framing of X contrasts with Talebs emphasis on Y)\n- Identify the strongest version of each argument, even if you might favor one side\n- Highlight surprises - unexpected connections are often the most valuable\n- Be direct and concise\n\nFORMATTING: Plain text only. No Markdown (no **, *, _, `). Use numbered sections. Simple - for sub-lists. Emojis sparingly."
+          }
+        },
+        "id": "synthesize-agent",
+        "name": "Synthesize",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          1056,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "claude-opus-4-6",
+            "mode": "list",
+            "cachedResultName": "Claude Opus 4.6"
+          },
+          "options": {
+            "temperature": 0.5
+          }
+        },
+        "id": "llm-synth",
+        "name": "Anthropic Chat Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+        "typeVersion": 1.3,
+        "position": [
+          1056,
+          512
+        ],
+        "credentials": {
+          "anthropicApi": {
+            "id": "xryPDagnAi6vifng",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {},
+        "id": "think",
+        "name": "Think",
+        "type": "@n8n/n8n-nodes-langchain.toolThink",
+        "typeVersion": 1.1,
+        "position": [
+          1200,
+          512
+        ]
+      },
+      {
+        "parameters": {
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_syntheses"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "session_id": "={{ $('Execute Workflow Trigger').item.json.session_id }}",
+              "round_number": "={{ $('Execute Workflow Trigger').item.json.round_number }}",
+              "synthesis_text": "={{ $json.output }}"
+            }
+          },
+          "options": {}
+        },
+        "id": "save-synth",
+        "name": "Save Synthesis",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1360,
+          304
+        ]
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Get All Persona Responses",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get All Persona Responses": {
+        "main": [
+          [
+            {
+              "node": "Aggregate Responses",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Aggregate Responses": {
+        "main": [
+          [
+            {
+              "node": "Synthesize",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Anthropic Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Synthesize",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Think": {
+        "ai_tool": [
+          [
+            {
+              "node": "Synthesize",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Synthesize": {
+        "main": [
+          [
+            {
+              "node": "Save Synthesis",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true,
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false,
+      "binaryMode": "separate",
+      "timeSavedMode": "fixed",
+      "errorWorkflow": "k_1wGROZ77CNjRE1INOwj"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "d63071b5-9c55-4335-a86f-faddf22514df",
+    "activeVersionId": "d63071b5-9c55-4335-a86f-faddf22514df",
+    "versionCounter": 29,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-03-09T18:26:08.134Z",
+        "createdAt": "2026-03-09T18:26:08.134Z",
+        "role": "workflow:owner",
+        "workflowId": "Uo7vCRAPp3nrwMVf",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": "Version d63071b5",
+      "description": ""
+    }
+  }
+]

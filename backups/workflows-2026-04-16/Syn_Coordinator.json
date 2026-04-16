@@ -1,0 +1,1172 @@
+[
+  {
+    "updatedAt": "2026-03-20T20:55:57.551Z",
+    "createdAt": "2026-03-09T18:25:09.497Z",
+    "id": "qSaRQCdzMsqHU1El",
+    "name": "Syn_Coordinator",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "jsCode": "// Phase Detection: Data comes pre-processed from Syn_Gateway\nconst items = $input.all();\nconst item = items[0].json;\n\nconst threadTs = item.sessionId;\nconst channelId = item.channelId;\nconst userId = item.userId;\nconst cleanMessage = item.cleanMessage || '';\nconst hasFiles = item.hasFiles || false;\n\n// Detect intent patterns\nconst isPersonaQuery = /^(frage an|ask|@|befrag)\\s+/i.test(cleanMessage);\nconst isRigidityChange = /rigidity|rigidität|offener|härter|flexibler|standhafter/i.test(cleanMessage);\nconst isShowAnalysis = /^(zeig|show|was sagt|analyse von)\\s+/i.test(cleanMessage);\nconst isRound3Trigger = /^(runde 3|round 3|weiter|nächste runde|convergence)/i.test(cleanMessage);\nconst isConfirmation = /^(ja|yes|ok|bestätigt|confirmed|go|los|start|passt|gut)/i.test(cleanMessage);\nconst isCancel = /^(abbruch|cancel|stop|nein|no)/i.test(cleanMessage);\n\nlet targetPersona = '';\nif (isPersonaQuery) {\n  const match = cleanMessage.match(/^(?:frage an|ask|@|befrag)\\s+([\\w\\s]+?)(?::|,|\\s+(?:was|wie|ob|whether|how|what))/i);\n  if (match) targetPersona = match[1].trim();\n}\n\nlet newRigidity = null;\nif (isRigidityChange) {\n  const scoreMatch = cleanMessage.match(/(\\d+)/);\n  if (scoreMatch) newRigidity = Math.min(10, Math.max(0, parseInt(scoreMatch[1])));\n}\n\nreturn [{\n  json: {\n    threadTs,\n    channelId,\n    userId,\n    cleanMessage,\n    hasFiles,\n    isPersonaQuery,\n    isRigidityChange,\n    isShowAnalysis,\n    isRound3Trigger,\n    isConfirmation,\n    isCancel,\n    targetPersona,\n    newRigidity,\n    sessionId: threadTs\n  }\n}];"
+        },
+        "id": "phase-detect",
+        "name": "Phase Detection",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2864,
+          -336
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_sessions"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $json.sessionId }}"
+              }
+            ]
+          },
+          "limit": 1
+        },
+        "id": "get-session",
+        "name": "Get Session",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          3072,
+          -336
+        ],
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $json.cleanMessage || 'Neue Fokusgruppe starten. Bitte fuehre mich durch den Prozess.' }}",
+          "options": {
+            "systemMessage": "You are Syn - a sharp, structured Focus Group Coordinator that orchestrates multi-persona discussions in Slack.\n\nYou are speaking in a Slack thread. Each thread is one focus group session.\n\nFORMATTING RULES (CRITICAL - SLACK PLAIN TEXT ONLY):\n- NEVER use Markdown: no **, no *, no _, no __, no `, no ```\n- Use plain text only\n- Line breaks for structure\n- Simple - for lists\n- Emojis are allowed\n- Keep responses concise for Slack readability\n\nYOUR ROLE:\nYou guide users through a structured multi-persona discussion process:\n\nPhase 0 - Discovery & Framing:\nAsk the user three things (can be bundled or sequential based on conversation flow):\n1. What is the question, problem, or topic for the panel?\n2. Any existing context, constraints, documents, or exclusions?\n3. What does a successful outcome look like?\n\nThen create a Problem Brief (max 300 words) and present it for confirmation.\n\nPhase 1 - Persona Selection:\nBased on the Problem Brief, propose 3-5 personas. For each, state:\n- Core Perspective\n- Background / Expertise\n- Why this persona adds value to the panel\n\nCRITICAL - PERSONA NAMING:\nPersonas are ALWAYS named after their Slack bot slot:\n- Persona 1 = Alpha\n- Persona 2 = Beta\n- Persona 3 = Gamma\n- Persona 4 = Sigma\n- Persona 5 = Omega\n\nNEVER invent custom names like \"Dr. Katrin Wendt\" or \"Marco Bellini\". The personas ARE Alpha, Beta, Gamma, Sigma, Omega. Their identity is defined by their role description, not by a fictional name.\n\nExample of CORRECT persona proposal:\n\nAlpha - Zahnaerztin / Praeventionsmedizinerin\nPerspektive: Klinische Evidenz, Mundgesundheit, Patientenverhalten\nWarum: Bringt die medizinische Realitaet ein\n\nBeta - Konsumpsychologe / Behavioral Economist\nPerspektive: Kaufentscheidungen, Preiswahrnehmung\nWarum: Erklaert das Warum hinter dem Verbraucherverhalten\n\nExample of WRONG persona proposal:\nDr. Katrin Wendt - Zahnaerztin  <-- WRONG, do not use custom names\n\nOptimize for: perspective diversity, productive tension (at least one pair should disagree), relevance, communication style variety, blind spot coverage.\n\nPresent the panel for approval. User can swap personas or adjust count.\n\nSLACK AUDIENCE SLOTS:\nWhen the user confirms the panel, save each persona to panel_personas with:\n- name: Alpha / Beta / Gamma / Sigma / Omega\n- slack_slot: 1 / 2 / 3 / 4 / 5\n- type, core_perspective, profile filled accordingly\n\nAfter saving, present the slot mapping clearly to the user, e.g.:\n\n@Alpha - Zahnaerztin, Praeventionsmedizin\n@Beta - Konsumpsychologe, Behavioral Economics\n@Gamma - Nachhaltigkeitsberaterin, Circular Economy\n@Sigma - Durchschnittsverbraucher, Familienvater\n\nTell the user: \"Du kannst die Panelisten jederzeit direkt im Thread taggen, z.B. @Alpha, um eine Frage zu stellen. Die Antworten beeinflussen nicht die laufende Diskussion.\"\n\nIf the panel has fewer than 5 personas, only assign slots 1 through N. Unused slots remain unassigned.\n\nPhase 2+ - After personas are confirmed and slots assigned, you will orchestrate the rounds automatically.\n\nFILE HANDLING:\n- When a user uploads files with their first message, acknowledge the files and incorporate them into the problem framing\n- Files are automatically processed and stored in the panel_files table\n- Use Read File List to see available files (metadata only)\n- Use Read File Content to load one specific file at a time - NEVER load all files at once\n- Images are passed through automatically to your context\n\nRIGIDITY SCORE:\nThe user can control how much personas update their positions between rounds.\n- Default: 5 (balanced)\n- The user can say things like \"Rigidity 8\" or \"die Personas sollen offener sein\"\n- Score 0-3: Personas are very open to changing their position\n- Score 4-6: Personas update only if counter-arguments are substantially stronger\n- Score 7-10: Personas defend their position stubbornly\n- Acknowledge the change and confirm the new score\n\nIMPORTANT BEHAVIORS:\n- If the session already exists (you receive session context), continue from the current phase\n- For persona queries via the Audience apps (@Alpha, @Beta, @Gamma, @Sigma, @Omega), the personas answer directly - you do not need to handle those\n- Be direct, no filler. German or English based on user language.\n- You think in systems, tensions, and trade-offs - not consensus for its own sake\n- Surfacing contradictions is more valuable than forcing alignment\n- When running rounds, call Run Persona for each persona sequentially, then call Synthesize Round\n- After synthesis, post the result in the thread and ask if the user wants to continue to the next round",
+            "maxIterations": 25,
+            "passthroughBinaryImages": false
+          }
+        },
+        "id": "coordinator-agent",
+        "name": "Syn Coordinator Agent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          3456,
+          -336
+        ]
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "claude-opus-4-6",
+            "mode": "list",
+            "cachedResultName": "Claude Opus 4.6"
+          },
+          "options": {
+            "temperature": 0.7
+          }
+        },
+        "id": "llm-coordinator",
+        "name": "Anthropic Chat Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+        "typeVersion": 1.3,
+        "position": [
+          2944,
+          -112
+        ],
+        "credentials": {
+          "anthropicApi": {
+            "id": "xryPDagnAi6vifng",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sessionIdType": "customKey",
+          "sessionKey": "=syn_{{ $('Execute Workflow Trigger').item.json.sessionId }}"
+        },
+        "id": "memory-coordinator",
+        "name": "Postgres Chat Memory",
+        "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+        "typeVersion": 1.3,
+        "position": [
+          3072,
+          -112
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $json.channelId }}"
+          },
+          "text": "={{ $json.output }}",
+          "otherOptions": {
+            "includeLinkToWorkflow": false,
+            "thread_ts": {
+              "replyValues": {
+                "thread_ts": "={{ $json.sessionId }}"
+              }
+            },
+            "unfurl_links": false,
+            "unfurl_media": false
+          }
+        },
+        "id": "slack-reply",
+        "name": "Reply in Thread",
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.4,
+        "position": [
+          4016,
+          -464
+        ],
+        "webhookId": "9f271b84-2d05-48d4-bfd4-952b7a126df5",
+        "credentials": {
+          "slackApi": {
+            "id": "LGc2ErEQ4dgP1qnJ",
+            "name": "Syn"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "upsert",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_sessions"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $json.sessionId }}"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "session_id": "={{ $json.sessionId }}",
+              "channel_id": "={{ $json.channelId }}",
+              "user_id": "={{ $json.userId }}",
+              "status": "setup",
+              "rigidity_score": 0,
+              "persona_count": 0,
+              "current_round": 0
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "session_id",
+                "displayName": "session_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "problem_brief",
+                "displayName": "problem_brief",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "rigidity_score",
+                "displayName": "rigidity_score",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "file_context",
+                "displayName": "file_context",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "persona_count",
+                "displayName": "persona_count",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "current_round",
+                "displayName": "current_round",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "coordinator_context",
+                "displayName": "coordinator_context",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "channel_id",
+                "displayName": "channel_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "user_id",
+                "displayName": "user_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "upsert-session",
+        "name": "Upsert Session",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          4016,
+          -272
+        ]
+      },
+      {
+        "parameters": {
+          "description": "Run a single persona analysis for the current round. Input must include: session_id, persona_id, persona_profile, problem_brief, round_number, file_context (optional), previous_synthesis (optional for round 2+), rigidity_instruction (optional for round 2+).",
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "xWD3pS29jBB2op3g"
+          },
+          "workflowInputs": {
+            "schema": [
+              {
+                "id": "session_id",
+                "displayName": "session_id",
+                "type": "string",
+                "required": true,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              },
+              {
+                "id": "persona_id",
+                "displayName": "persona_id",
+                "type": "string",
+                "required": true,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              },
+              {
+                "id": "persona_profile",
+                "displayName": "persona_profile",
+                "type": "string",
+                "required": true,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              },
+              {
+                "id": "problem_brief",
+                "displayName": "problem_brief",
+                "type": "string",
+                "required": true,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              },
+              {
+                "id": "round_number",
+                "displayName": "round_number",
+                "type": "number",
+                "required": true,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              },
+              {
+                "id": "file_context",
+                "displayName": "file_context",
+                "type": "string",
+                "required": false,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              },
+              {
+                "id": "previous_synthesis",
+                "displayName": "previous_synthesis",
+                "type": "string",
+                "required": false,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              },
+              {
+                "id": "rigidity_instruction",
+                "displayName": "rigidity_instruction",
+                "type": "string",
+                "required": false,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              },
+              {
+                "id": "unresolved_tension",
+                "displayName": "unresolved_tension",
+                "type": "string",
+                "required": false,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              },
+              {
+                "id": "file_url",
+                "displayName": "file_url",
+                "type": "string",
+                "required": false,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              }
+            ],
+            "mappingMode": "defineBelow",
+            "value": {
+              "session_id": "={{ $('Execute Workflow Trigger').item.json.sessionId }}",
+              "persona_id": "={{ $fromAI('persona_id', 'Unique persona identifier e.g. alpha, beta') }}",
+              "persona_profile": "={{ $fromAI('persona_profile', 'Full persona profile text') }}",
+              "problem_brief": "={{ $fromAI('problem_brief', 'The problem brief for this session') }}",
+              "round_number": "={{ $fromAI('round_number', 'Current round: 1, 2, or 3') }}",
+              "file_context": "={{ $fromAI('file_context', 'Optional: text summary of uploaded files') }}",
+              "previous_synthesis": "={{ $fromAI('previous_synthesis', 'Optional: synthesis from previous round') }}",
+              "rigidity_instruction": "={{ $fromAI('rigidity_instruction', 'Optional: how rigid the persona should be') }}",
+              "unresolved_tension": "={{ $fromAI('unresolved_tension', 'Optional: tension to address in round 3') }}",
+              "file_url": "={{ $fromAI('file_url', 'Optional: Slack url_private of uploaded file') }}"
+            }
+          }
+        },
+        "id": "daa6852f-49c0-4fb7-89e1-9b95d544cd73",
+        "name": "Run Persona",
+        "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+        "typeVersion": 2.2,
+        "position": [
+          3856,
+          80
+        ]
+      },
+      {
+        "parameters": {
+          "description": "Create a synthesis of all persona responses for a given round. Input must include: session_id, round_number, problem_brief.",
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "Uo7vCRAPp3nrwMVf"
+          },
+          "workflowInputs": {
+            "schema": [
+              {
+                "id": "session_id",
+                "displayName": "session_id",
+                "type": "string",
+                "required": true,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              },
+              {
+                "id": "round_number",
+                "displayName": "round_number",
+                "type": "number",
+                "required": true,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              },
+              {
+                "id": "problem_brief",
+                "displayName": "problem_brief",
+                "type": "string",
+                "required": true,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              }
+            ],
+            "mappingMode": "defineBelow",
+            "value": {
+              "session_id": "={{ $('Execute Workflow Trigger').item.json.sessionId }}",
+              "round_number": "={{ $fromAI('round_number', 'The round number to synthesize') }}",
+              "problem_brief": "={{ $fromAI('problem_brief', 'The problem brief for context') }}"
+            }
+          }
+        },
+        "id": "ca7d408f-ae39-456c-b981-4cc3a9ad4cee",
+        "name": "Synthesize Round",
+        "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+        "typeVersion": 2.2,
+        "position": [
+          3856,
+          -64
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_personas"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "id": "05ec35be-4fe3-442a-956c-2a3a29cd55dd",
+        "name": "Read Personas",
+        "type": "n8n-nodes-base.dataTableTool",
+        "typeVersion": 1.1,
+        "position": [
+          3472,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_sessions"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "id": "e3776abc-306a-4481-ac13-f0d98e28a6b2",
+        "name": "Read Sessions",
+        "type": "n8n-nodes-base.dataTableTool",
+        "typeVersion": 1.1,
+        "position": [
+          3472,
+          80
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_syntheses"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "id": "0f7c04dc-bf1f-4720-aa1a-624778a77528",
+        "name": "Read Syntheses",
+        "type": "n8n-nodes-base.dataTableTool",
+        "typeVersion": 1.1,
+        "position": [
+          3616,
+          80
+        ]
+      },
+      {
+        "parameters": {},
+        "id": "b6b5ba76-6b54-479d-9dd9-dfa663b95c31",
+        "name": "Think",
+        "type": "@n8n/n8n-nodes-langchain.toolThink",
+        "typeVersion": 1.1,
+        "position": [
+          3072,
+          64
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_files"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "id": "ff186274-97ce-4115-be33-e8c9a8610c29",
+        "name": "Read File List",
+        "type": "n8n-nodes-base.dataTableTool",
+        "typeVersion": 1.1,
+        "position": [
+          3616,
+          -64
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_files"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "id": "08187863-96b9-4d2a-a1ce-167b2ab084eb",
+        "name": "Read File Content",
+        "type": "n8n-nodes-base.dataTableTool",
+        "typeVersion": 1.1,
+        "position": [
+          3472,
+          -64
+        ]
+      },
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "sessionId"
+              },
+              {
+                "name": "channelId"
+              },
+              {
+                "name": "userId"
+              },
+              {
+                "name": "cleanMessage"
+              },
+              {
+                "name": "hasFiles",
+                "type": "boolean"
+              },
+              {
+                "name": "fileStatus"
+              },
+              {
+                "name": "botName"
+              },
+              {
+                "name": "slotNumber",
+                "type": "number"
+              },
+              {
+                "name": "targetWorkflow"
+              },
+              {
+                "name": "fileUrl"
+              }
+            ]
+          }
+        },
+        "id": "78990ef5-c503-4abd-8943-9a2f70ab726f",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          2656,
+          -336
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\nconst phaseData = $('Phase Detection').first().json;\n\n// If DataTable returned 0 rows (no session exists yet), create a placeholder\n// so the Route switch can evaluate the 'id notExists' condition\nif (items.length === 0 || !items[0].json || Object.keys(items[0].json).length === 0) {\n  return [{\n    json: {\n      _noSessionFound: true,\n      ...phaseData\n    }\n  }];\n}\n\n// Session found - pass through with phase data merged\nreturn [{\n  json: {\n    ...items[0].json,\n    ...phaseData\n  }\n}];"
+        },
+        "id": "8e93e385-d299-4937-bdcf-a089f61a1374",
+        "name": "Ensure Session Item",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3264,
+          -336
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "upsert",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_personas"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              },
+              {
+                "keyName": "name",
+                "keyValue": "={{ $fromAI('name') }}"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "session_id": "={{ $('Execute Workflow Trigger').item.json.sessionId }}",
+              "persona_id": "={{ $fromAI('persona_id') }}",
+              "name": "={{ $fromAI('name') }}",
+              "type": "={{ $fromAI('type') }}",
+              "core_perspective": "={{ $fromAI('core_perspective') }}",
+              "profile": "={{ $fromAI('profile') }}",
+              "slack_slot": "={{ $fromAI('slack_slot') }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "session_id",
+                "displayName": "session_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "persona_id",
+                "displayName": "persona_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "name",
+                "displayName": "name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "type",
+                "displayName": "type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "core_perspective",
+                "displayName": "core_perspective",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "profile",
+                "displayName": "profile",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "round_1_response",
+                "displayName": "round_1_response",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "round_2_response",
+                "displayName": "round_2_response",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "round_3_response",
+                "displayName": "round_3_response",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "position_summary",
+                "displayName": "position_summary",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "slack_slot",
+                "displayName": "slack_slot",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "bd9f3281-a3b3-4d21-b205-8bb6506a9c32",
+        "name": "Write Personas",
+        "type": "n8n-nodes-base.dataTableTool",
+        "typeVersion": 1.1,
+        "position": [
+          3616,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\nconst trigger = $('Execute Workflow Trigger').first().json;\n\nreturn items.map(item => ({\n  json: {\n    ...item.json,\n    sessionId: trigger.sessionId,\n    channelId: trigger.channelId,\n    userId: trigger.userId\n  }\n}));"
+        },
+        "id": "3b3e2ea8-9a3d-4fa9-8a79-50a740e69355",
+        "name": "Prep Reply",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          3776,
+          -336
+        ]
+      }
+    ],
+    "connections": {
+      "Phase Detection": {
+        "main": [
+          [
+            {
+              "node": "Get Session",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Anthropic Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Syn Coordinator Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Postgres Chat Memory": {
+        "ai_memory": [
+          [
+            {
+              "node": "Syn Coordinator Agent",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Run Persona": {
+        "ai_tool": [
+          [
+            {
+              "node": "Syn Coordinator Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Synthesize Round": {
+        "ai_tool": [
+          [
+            {
+              "node": "Syn Coordinator Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read Personas": {
+        "ai_tool": [
+          [
+            {
+              "node": "Syn Coordinator Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read Sessions": {
+        "ai_tool": [
+          [
+            {
+              "node": "Syn Coordinator Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read Syntheses": {
+        "ai_tool": [
+          [
+            {
+              "node": "Syn Coordinator Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Think": {
+        "ai_tool": [
+          [
+            {
+              "node": "Syn Coordinator Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read File List": {
+        "ai_tool": [
+          [
+            {
+              "node": "Syn Coordinator Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read File Content": {
+        "ai_tool": [
+          [
+            {
+              "node": "Syn Coordinator Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Phase Detection",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Session": {
+        "main": [
+          [
+            {
+              "node": "Ensure Session Item",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Write Personas": {
+        "ai_tool": [
+          [
+            {
+              "node": "Syn Coordinator Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Syn Coordinator Agent": {
+        "main": [
+          [
+            {
+              "node": "Prep Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prep Reply": {
+        "main": [
+          [
+            {
+              "node": "Reply in Thread",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Upsert Session",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ensure Session Item": {
+        "main": [
+          [
+            {
+              "node": "Syn Coordinator Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true,
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false,
+      "binaryMode": "separate",
+      "timeSavedMode": "fixed",
+      "errorWorkflow": "k_1wGROZ77CNjRE1INOwj"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": {
+      "Slack Trigger": [
+        {
+          "json": {
+            "type": "message",
+            "user": "U08339R2BST",
+            "ts": "1773345092.764199",
+            "client_msg_id": "f4bcd97a-cb8f-4793-a4b0-9facecdea407",
+            "text": "<@U0AKTCAEUH1>",
+            "team": "T083HN9V83D",
+            "blocks": [
+              {
+                "type": "rich_text",
+                "block_id": "I0AMK",
+                "elements": [
+                  {
+                    "type": "rich_text_section",
+                    "elements": [
+                      {
+                        "type": "user",
+                        "user_id": "U0AKTCAEUH1"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "channel": "C0AL3D16Z7W",
+            "event_ts": "1773345092.764199",
+            "channel_type": "channel",
+            "user_resolved": "lukasz",
+            "channel_resolved": "agent_syn"
+          },
+          "pairedItem": {
+            "item": 0
+          }
+        }
+      ],
+      "Execute Workflow Trigger": [
+        {
+          "json": {
+            "sessionId": "1773410813.424189",
+            "channelId": "C0AL3D16Z7W",
+            "userId": "U08339R2BST",
+            "cleanMessage": "",
+            "hasFiles": false,
+            "fileStatus": "no_files",
+            "botName": "Syn",
+            "slotNumber": 0,
+            "targetWorkflow": "coordinator"
+          },
+          "pairedItem": {
+            "item": 0
+          }
+        }
+      ]
+    },
+    "versionId": "f7106bb5-d6db-4027-a3f4-edc4299fc29f",
+    "activeVersionId": "f7106bb5-d6db-4027-a3f4-edc4299fc29f",
+    "versionCounter": 387,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-03-09T18:25:09.497Z",
+        "createdAt": "2026-03-09T18:25:09.497Z",
+        "role": "workflow:owner",
+        "workflowId": "qSaRQCdzMsqHU1El",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": "Version f7106bb5",
+      "description": ""
+    }
+  }
+]

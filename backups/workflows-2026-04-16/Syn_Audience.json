@@ -1,0 +1,1071 @@
+[
+  {
+    "updatedAt": "2026-03-20T20:53:15.762Z",
+    "createdAt": "2026-03-12T13:23:44.932Z",
+    "id": "2HjacLxh0Y5KV7Dh",
+    "name": "Syn_Audience",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_personas"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $json.sessionId }}"
+              },
+              {
+                "keyName": "slack_slot",
+                "keyValue": "={{ $json.slotNumber }}"
+              }
+            ]
+          },
+          "limit": 1
+        },
+        "id": "get-persona",
+        "name": "Get Persona for Slot",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          624,
+          352
+        ],
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.name }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "exists"
+                },
+                "id": "cond-1"
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "persona-found",
+        "name": "Persona Found?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1056,
+          352
+        ]
+      },
+      {
+        "parameters": {
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $('Execute Workflow Trigger').item.json.channelId }}"
+          },
+          "text": "Dieser Persona wurde in dieser Fokusgruppe noch keine Rolle zugewiesen.",
+          "otherOptions": {
+            "includeLinkToWorkflow": false,
+            "thread_ts": {
+              "replyValues": {
+                "thread_ts": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            },
+            "unfurl_links": false,
+            "unfurl_media": false
+          }
+        },
+        "id": "no-persona-reply",
+        "name": "No Persona Reply",
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.4,
+        "position": [
+          1280,
+          368
+        ],
+        "webhookId": "3579c139-6721-46f3-b8db-81f7c7620813",
+        "credentials": {
+          "slackApi": {
+            "id": "LGc2ErEQ4dgP1qnJ",
+            "name": "Syn"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $('Execute Workflow Trigger').item.json.slotNumber }}",
+                      "rightValue": 1,
+                      "operator": {
+                        "type": "number",
+                        "operation": "equals"
+                      },
+                      "id": "c1"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $('Execute Workflow Trigger').item.json.slotNumber }}",
+                      "rightValue": 2,
+                      "operator": {
+                        "type": "number",
+                        "operation": "equals"
+                      },
+                      "id": "c2"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $('Execute Workflow Trigger').item.json.slotNumber }}",
+                      "rightValue": 3,
+                      "operator": {
+                        "type": "number",
+                        "operation": "equals"
+                      },
+                      "id": "c3"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $('Execute Workflow Trigger').item.json.slotNumber }}",
+                      "rightValue": 4,
+                      "operator": {
+                        "type": "number",
+                        "operation": "equals"
+                      },
+                      "id": "c4"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $('Execute Workflow Trigger').item.json.slotNumber }}",
+                      "rightValue": 5,
+                      "operator": {
+                        "type": "number",
+                        "operation": "equals"
+                      },
+                      "id": "c5"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "f53310fe-ce44-4d3e-b920-f5d478ac7c21",
+        "name": "Route Reply",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          2896,
+          192
+        ]
+      },
+      {
+        "parameters": {
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $('Execute Workflow Trigger').item.json.channelId }}"
+          },
+          "text": "={{ $('Audience Response').isExecuted ? $('Audience Response').first().json.content[0].text : $('Audience Response1').first().json.content[0].text }}",
+          "otherOptions": {
+            "includeLinkToWorkflow": false,
+            "thread_ts": {
+              "replyValues": {
+                "thread_ts": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            },
+            "unfurl_links": false,
+            "unfurl_media": false
+          }
+        },
+        "id": "0ef221f6-3b32-4d49-bd48-cb4857346f3e",
+        "name": "Reply Alpha",
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.4,
+        "position": [
+          3088,
+          -80
+        ],
+        "webhookId": "c5090d20-01d1-4e69-a14a-6ade22606c7f",
+        "credentials": {
+          "slackApi": {
+            "id": "fcRFfUG6Iad6wkE8",
+            "name": "Alpha"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $('Execute Workflow Trigger').item.json.channelId }}"
+          },
+          "text": "={{ $('Audience Response').isExecuted ? $('Audience Response').first().json.content[0].text : $('Audience Response1').first().json.content[0].text }}",
+          "otherOptions": {
+            "includeLinkToWorkflow": false,
+            "thread_ts": {
+              "replyValues": {
+                "thread_ts": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            },
+            "unfurl_links": false,
+            "unfurl_media": false
+          }
+        },
+        "id": "9ba806ee-ab87-460b-bcda-7ca018adb1c3",
+        "name": "Reply Beta",
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.4,
+        "position": [
+          3088,
+          80
+        ],
+        "webhookId": "cb9188dc-8a52-4870-b6a1-97dc3a56142a",
+        "credentials": {
+          "slackApi": {
+            "id": "Zt30sfMRcvqxrXFZ",
+            "name": "Beta"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $('Execute Workflow Trigger').item.json.channelId }}"
+          },
+          "text": "={{ $('Audience Response').isExecuted ? $('Audience Response').first().json.content[0].text : $('Audience Response1').first().json.content[0].text }}",
+          "otherOptions": {
+            "includeLinkToWorkflow": false,
+            "thread_ts": {
+              "replyValues": {
+                "thread_ts": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            },
+            "unfurl_links": false,
+            "unfurl_media": false
+          }
+        },
+        "id": "b62305e5-5976-4c83-b00f-01c14e17f8fc",
+        "name": "Reply Gamma",
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.4,
+        "position": [
+          3088,
+          240
+        ],
+        "webhookId": "a28346af-a956-484f-8b0f-49b20ffb0906",
+        "credentials": {
+          "slackApi": {
+            "id": "X7y1MM6mt8HfLnLc",
+            "name": "Gamma"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $('Execute Workflow Trigger').item.json.channelId }}"
+          },
+          "text": "={{ $('Audience Response').isExecuted ? $('Audience Response').first().json.content[0].text : $('Audience Response1').first().json.content[0].text }}",
+          "otherOptions": {
+            "includeLinkToWorkflow": false,
+            "thread_ts": {
+              "replyValues": {
+                "thread_ts": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            },
+            "unfurl_links": false,
+            "unfurl_media": false
+          }
+        },
+        "id": "69f788e7-5597-4153-b7c9-1df1f931b288",
+        "name": "Reply Sigma",
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.4,
+        "position": [
+          3088,
+          400
+        ],
+        "webhookId": "70bd9641-17f3-4e73-8ae1-0ad14e08d3db",
+        "credentials": {
+          "slackApi": {
+            "id": "PIftkO2BX8m6cxHk",
+            "name": "Sigma"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $('Execute Workflow Trigger').item.json.channelId }}"
+          },
+          "text": "={{ $('Audience Response').isExecuted ? $('Audience Response').first().json.content[0].text : $('Audience Response1').first().json.content[0].text }}",
+          "otherOptions": {
+            "includeLinkToWorkflow": false,
+            "thread_ts": {
+              "replyValues": {
+                "thread_ts": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            },
+            "unfurl_links": false,
+            "unfurl_media": false
+          }
+        },
+        "id": "dce6f10a-78cd-47da-b49f-e0fe69dd2e77",
+        "name": "Reply Omega",
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.4,
+        "position": [
+          3088,
+          560
+        ],
+        "webhookId": "5b374be1-bc11-4e57-bd57-6b3b8d8eba3d",
+        "credentials": {
+          "slackApi": {
+            "id": "e0MMY19Sus8wXef6",
+            "name": "Omega"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\n\n// If DataTable returned 0 rows, create an empty item so the IF node can route to false-branch\nif (items.length === 0 || !items[0].json || Object.keys(items[0].json).length === 0) {\n  return [{\n    json: {\n      name: null,\n      profile: null,\n      session_id: null,\n      persona_id: null,\n      slack_slot: null,\n      _noPersonaFound: true\n    }\n  }];\n}\n\nreturn items;"
+        },
+        "id": "d3f6e1a7-3da5-40eb-aa47-8348126688f4",
+        "name": "Ensure Item",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          832,
+          352
+        ]
+      },
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "sessionId"
+              },
+              {
+                "name": "channelId"
+              },
+              {
+                "name": "userId"
+              },
+              {
+                "name": "cleanMessage"
+              },
+              {
+                "name": "hasFiles",
+                "type": "boolean"
+              },
+              {
+                "name": "fileStatus"
+              },
+              {
+                "name": "botName"
+              },
+              {
+                "name": "slotNumber",
+                "type": "number"
+              },
+              {
+                "name": "targetWorkflow"
+              },
+              {
+                "name": "fileUrl"
+              }
+            ]
+          }
+        },
+        "id": "99bfbd12-88e0-46bc-ad8c-b9c783bfe1aa",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          400,
+          352
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_files"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            ]
+          },
+          "limit": 10
+        },
+        "id": "b01dcacb-a948-4022-a233-b2707db4bbd1",
+        "name": "Get File URL",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1280,
+          224
+        ],
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.file_url }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "slackApi",
+          "options": {}
+        },
+        "id": "5b80a9c0-0631-42ad-890f-5abcc206ce35",
+        "name": "Download File",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1712,
+          112
+        ],
+        "credentials": {
+          "slackApi": {
+            "id": "LGc2ErEQ4dgP1qnJ",
+            "name": "Syn"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Merge all downloaded file binaries + add binaryKeys for Anthropic node\nconst triggerData = $('Execute Workflow Trigger').first().json;\nconst personaData = $('Ensure Item').first().json;\nconst downloadedItems = $input.all();\n\nconst mergedBinary = {};\nconst keys = [];\nlet fileCount = 0;\n\nfor (const item of downloadedItems) {\n  if (item.binary) {\n    for (const [key, value] of Object.entries(item.binary)) {\n      const newKey = `file_${fileCount}`;\n      mergedBinary[newKey] = value;\n      keys.push(newKey);\n      fileCount++;\n    }\n  }\n}\n\nreturn [{\n  json: {\n    ...personaData,\n    sessionId: triggerData.sessionId,\n    channelId: triggerData.channelId,\n    cleanMessage: triggerData.cleanMessage || '',\n    slotNumber: triggerData.slotNumber,\n    botName: triggerData.botName,\n    fileCount,\n    binaryKeys: keys.join(',')\n  },\n  binary: fileCount > 0 ? mergedBinary : undefined\n}];"
+        },
+        "id": "0705bbe1-09cb-4f64-9bc0-cd91f1f7f82a",
+        "name": "Merge Files",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1920,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT message FROM n8n_chat_histories WHERE session_id = 'syn_aud_{{ $json.slotNumber }}_{{ $json.sessionId }}' ORDER BY id DESC LIMIT 20",
+          "options": {}
+        },
+        "id": "35767640-062a-4603-851c-c977cd226bd3",
+        "name": "Load Memory",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2112,
+          240
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO n8n_chat_histories (session_id, message) VALUES ('syn_aud_{{ $('Prep Audience').item.json.slotNumber }}_{{ $('Prep Audience').item.json.sessionId }}', '{\"type\":\"constructor\",\"id\":[\"langchain_core\",\"messages\",\"HumanMessage\"],\"kwargs\":{\"content\":\"{{ $('Prep Audience').item.json.cleanMessage.replace(/'/g, \"''\").replace(/\"/g, '\\\\\"') }}\",\"additional_kwargs\":{},\"response_metadata\":{}}}'), ('syn_aud_{{ $('Prep Audience').item.json.slotNumber }}_{{ $('Prep Audience').item.json.sessionId }}', '{\"type\":\"constructor\",\"id\":[\"langchain_core\",\"messages\",\"AIMessage\"],\"kwargs\":{\"content\":\"{{ $json.content[0].text.replace(/'/g, \"''\").replace(/\"/g, '\\\\\"').replace(/\\n/g, '\\\\n') }}\",\"tool_calls\":[],\"additional_kwargs\":{},\"response_metadata\":{},\"invalid_tool_calls\":[]}}')",
+          "options": {}
+        },
+        "id": "8f4a5a75-8a53-429a-af8e-29ba6f1dc68a",
+        "name": "Save Memory",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2720,
+          240
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-opus-4-6",
+            "mode": "list",
+            "cachedResultName": "claude-opus-4-6"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Du bist {{ $('Merge Files').item.json.name }}.\n\nPROFIL:\n{{ $('Merge Files').item.json.profile }}\n\nKERNPERSPEKTIVE:\n{{ $('Merge Files').item.json.core_perspective }}\n\nAKTUELLE POSITION:\n{{ $('Merge Files').item.json.position_summary || 'Noch nicht etabliert' }}\n\n{{ $('Merge Files').item.json.round_1_response ? 'RUNDE 1 ANALYSE:\\n' + $('Merge Files').item.json.round_1_response.substring(0, 2000) + '\\n' : '' }}{{ $('Merge Files').item.json.round_2_response ? 'RUNDE 2 ANTWORT:\\n' + $('Merge Files').item.json.round_2_response.substring(0, 2000) + '\\n' : '' }}\nBISHERIGER GESPRAECHSVERLAUF:\n{{ $('Load Memory').all().length > 0 ? $('Load Memory').all().reverse().map(i => i.json.role + ': ' + i.json.content).join('\\n') : 'Kein bisheriges Gespraech' }}\n\nWenn Dateien angehaengt sind, analysiere sie gruendlich und beziehe sie in deine Antwort ein.\n\nFRAGE VOM OPERATOR:\n{{ $('Merge Files').item.json.cleanMessage }}\n\nAntworte voll in character. Dies ist ein Sidebar-Interview - nichts aendert deine Position in der Hauptdiskussion.\nKein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis sparsam."
+              }
+            ]
+          },
+          "addAttachments": true,
+          "attachmentsInputType": "binary",
+          "binaryPropertyName": "={{ $('Merge Files').item.json.binaryKeys || 'data' }}",
+          "options": {
+            "temperature": 0.7
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          2448,
+          240
+        ],
+        "id": "6f7b1009-333a-4ad6-907a-377b328ad723",
+        "name": "Audience Response",
+        "credentials": {
+          "anthropicApi": {
+            "id": "xryPDagnAi6vifng",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Re-attach binaries from Merge Files + combine with Load Memory results\nconst mergeItem = $('Merge Files').first();\nconst memoryItems = $('Load Memory').all();\n\n// Build conversation history\nlet conversationHistory = 'Kein bisheriges Gespraech';\nif (memoryItems.length > 0 && memoryItems[0].json && Object.keys(memoryItems[0].json).length > 0) {\n  const history = memoryItems.reverse().map(i => {\n    const j = i.json;\n    const role = j.role || j.type || 'unknown';\n    const content = j.content || j.message || j.text || JSON.stringify(j);\n    return role + ': ' + content;\n  }).join('\\n');\n  if (history.trim()) conversationHistory = history;\n}\n\nreturn [{\n  json: {\n    ...mergeItem.json,\n    conversationHistory\n  },\n  binary: mergeItem.binary || undefined\n}];"
+        },
+        "id": "7a713647-8fbd-43ae-b413-b5c0fa22758a",
+        "name": "Prep Audience",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2288,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT message FROM n8n_chat_histories WHERE session_id = 'syn_aud_{{ $('Execute Workflow Trigger').item.json.slotNumber }}_{{ $('Execute Workflow Trigger').item.json.sessionId }}' ORDER BY id DESC LIMIT 20",
+          "options": {}
+        },
+        "id": "75ec1793-2942-4292-8141-58e7671bd309",
+        "name": "Load Memory1",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2208,
+          448
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "claude-sonnet-4-20250514"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Du bist {{ $('Ensure Item').item.json.name }}.\n\nPROFIL:\n{{ $('Ensure Item').item.json.profile }}\n\nKERNPERSPEKTIVE:\n{{ $('Ensure Item').item.json.core_perspective }}\n\nAKTUELLE POSITION:\n{{ $('Ensure Item').item.json.position_summary || 'Noch nicht etabliert' }}\n\n{{ $('Ensure Item').item.json.round_1_response ? 'RUNDE 1 ANALYSE:\\n' + $('Ensure Item').item.json.round_1_response.substring(0, 2000) + '\\n' : '' }}{{ $('Ensure Item').item.json.round_2_response ? 'RUNDE 2 ANTWORT:\\n' + $('Ensure Item').item.json.round_2_response.substring(0, 2000) + '\\n' : '' }}\nBISHERIGER GESPRAECHSVERLAUF:\n{{ $('Load Memory1').all().length > 0 && $('Load Memory1').first().json.message ? $('Load Memory1').all().map(i => i.json.message).join('\\n') : 'Kein bisheriges Gespraech' }}\n\nFRAGE VOM OPERATOR:\n{{ $('Execute Workflow Trigger').item.json.cleanMessage }}\n\nAntworte voll in character. Dies ist ein Sidebar-Interview - nichts aendert deine Position in der Hauptdiskussion.\nKein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis sparsam."
+              }
+            ]
+          },
+          "options": {
+            "temperature": 0.7
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          2400,
+          448
+        ],
+        "id": "9f2ec138-23a4-4e5c-a5fc-7bc6865c037d",
+        "name": "Audience Response1",
+        "credentials": {
+          "anthropicApi": {
+            "id": "6YlHfpAGGCKl1H1S",
+            "name": "Anthropic account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO n8n_chat_histories (session_id, message) VALUES ('syn_aud_{{ $('Execute Workflow Trigger').item.json.slotNumber }}_{{ $('Execute Workflow Trigger').item.json.sessionId }}', '{\"type\":\"constructor\",\"id\":[\"langchain_core\",\"messages\",\"HumanMessage\"],\"kwargs\":{\"content\":\"{{ $('Execute Workflow Trigger').item.json.cleanMessage.replace(/'/g, \"''\").replace(/\"/g, '\\\\\"') }}\",\"additional_kwargs\":{},\"response_metadata\":{}}}'), ('syn_aud_{{ $('Execute Workflow Trigger').item.json.slotNumber }}_{{ $('Execute Workflow Trigger').item.json.sessionId }}', '{\"type\":\"constructor\",\"id\":[\"langchain_core\",\"messages\",\"AIMessage\"],\"kwargs\":{\"content\":\"{{ $json.content[0].text.replace(/'/g, \"''\").replace(/\"/g, '\\\\\"').replace(/\\n/g, '\\\\n') }}\",\"tool_calls\":[],\"additional_kwargs\":{},\"response_metadata\":{},\"invalid_tool_calls\":[]}}')",
+          "options": {}
+        },
+        "id": "be9338e8-a0d7-42e4-bd57-8c88436a4cbc",
+        "name": "Save Memory1",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2720,
+          448
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "59909a14-79ea-47d6-b8f0-d0d1632ab4ae",
+                "leftValue": "={{ $json.file_url }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "exists",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1488,
+          224
+        ],
+        "id": "9167fa4b-a4b8-4584-84b3-2adab107c0a7",
+        "name": "If"
+      }
+    ],
+    "connections": {
+      "Persona Found?": {
+        "main": [
+          [
+            {
+              "node": "Get File URL",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "No Persona Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Route Reply": {
+        "main": [
+          [
+            {
+              "node": "Reply Alpha",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Reply Beta",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Reply Gamma",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Reply Sigma",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Reply Omega",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Persona for Slot": {
+        "main": [
+          [
+            {
+              "node": "Ensure Item",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ensure Item": {
+        "main": [
+          [
+            {
+              "node": "Persona Found?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Get Persona for Slot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get File URL": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download File": {
+        "main": [
+          [
+            {
+              "node": "Merge Files",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge Files": {
+        "main": [
+          [
+            {
+              "node": "Load Memory",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save Memory": {
+        "main": [
+          [
+            {
+              "node": "Route Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Audience Response": {
+        "main": [
+          [
+            {
+              "node": "Save Memory",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Memory": {
+        "main": [
+          [
+            {
+              "node": "Prep Audience",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prep Audience": {
+        "main": [
+          [
+            {
+              "node": "Audience Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Memory1": {
+        "main": [
+          [
+            {
+              "node": "Audience Response1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Audience Response1": {
+        "main": [
+          [
+            {
+              "node": "Save Memory1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save Memory1": {
+        "main": [
+          [
+            {
+              "node": "Route Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Download File",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Load Memory1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true,
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false,
+      "binaryMode": "separate",
+      "timeSavedMode": "fixed",
+      "errorWorkflow": "k_1wGROZ77CNjRE1INOwj"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": {
+      "Alpha Trigger": [
+        {
+          "json": {
+            "type": "app_mention",
+            "user": "U08339R2BST",
+            "ts": "1773345409.117859",
+            "client_msg_id": "09453fe3-850c-45b6-8ab0-19f1884e91f5",
+            "text": "<@U0AL64H4GES>",
+            "team": "T083HN9V83D",
+            "blocks": [
+              {
+                "type": "rich_text",
+                "block_id": "nvlEW",
+                "elements": [
+                  {
+                    "type": "rich_text_section",
+                    "elements": [
+                      {
+                        "type": "user",
+                        "user_id": "U0AL64H4GES"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "channel": "C0AL3D16Z7W",
+            "event_ts": "1773345409.117859",
+            "user_resolved": "lukasz",
+            "channel_resolved": "agent_syn"
+          },
+          "pairedItem": {
+            "item": 0
+          }
+        }
+      ],
+      "Execute Workflow Trigger": [
+        {
+          "json": {
+            "sessionId": "1774037886.656379",
+            "channelId": "C0AL3D16Z7W",
+            "userId": "U08339R2BST",
+            "cleanMessage": ", wasist deine meinuung?",
+            "hasFiles": false,
+            "fileStatus": "no_files",
+            "botName": "Alpha",
+            "slotNumber": 1,
+            "targetWorkflow": "audience",
+            "fileUrl": ""
+          },
+          "pairedItem": {
+            "item": 0
+          }
+        }
+      ]
+    },
+    "versionId": "5c2c3885-5d34-4a47-b4ba-672b98aea41c",
+    "activeVersionId": "5c2c3885-5d34-4a47-b4ba-672b98aea41c",
+    "versionCounter": 410,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-03-12T13:23:44.932Z",
+        "createdAt": "2026-03-12T13:23:44.932Z",
+        "role": "workflow:owner",
+        "workflowId": "2HjacLxh0Y5KV7Dh",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": "Version 5c2c3885",
+      "description": ""
+    }
+  }
+]

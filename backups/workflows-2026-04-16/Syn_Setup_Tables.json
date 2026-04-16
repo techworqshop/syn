@@ -1,0 +1,320 @@
+[
+  {
+    "updatedAt": "2026-03-12T13:23:53.419Z",
+    "createdAt": "2026-03-09T18:24:05.479Z",
+    "id": "tclm3R3XeCWCccQb",
+    "name": "Syn_Setup Tables",
+    "description": null,
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "trigger-1",
+        "name": "Manual Trigger",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          250,
+          300
+        ],
+        "parameters": {}
+      },
+      {
+        "id": "create-sessions",
+        "name": "Create panel_sessions",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          500,
+          100
+        ],
+        "parameters": {
+          "resource": "table",
+          "operation": "create",
+          "tableName": "panel_sessions",
+          "columns": {
+            "column": [
+              {
+                "name": "session_id",
+                "type": "string"
+              },
+              {
+                "name": "status",
+                "type": "string"
+              },
+              {
+                "name": "problem_brief",
+                "type": "string"
+              },
+              {
+                "name": "rigidity_score",
+                "type": "number"
+              },
+              {
+                "name": "file_context",
+                "type": "string"
+              },
+              {
+                "name": "persona_count",
+                "type": "number"
+              },
+              {
+                "name": "current_round",
+                "type": "number"
+              },
+              {
+                "name": "coordinator_context",
+                "type": "string"
+              },
+              {
+                "name": "channel_id",
+                "type": "string"
+              },
+              {
+                "name": "user_id",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {
+            "createIfNotExists": true
+          }
+        }
+      },
+      {
+        "id": "create-personas",
+        "name": "Create panel_personas",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          500,
+          300
+        ],
+        "parameters": {
+          "resource": "table",
+          "operation": "create",
+          "tableName": "panel_personas",
+          "columns": {
+            "column": [
+              {
+                "name": "session_id",
+                "type": "string"
+              },
+              {
+                "name": "persona_id",
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "type",
+                "type": "string"
+              },
+              {
+                "name": "core_perspective",
+                "type": "string"
+              },
+              {
+                "name": "profile",
+                "type": "string"
+              },
+              {
+                "name": "round_1_response",
+                "type": "string"
+              },
+              {
+                "name": "round_2_response",
+                "type": "string"
+              },
+              {
+                "name": "round_3_response",
+                "type": "string"
+              },
+              {
+                "name": "position_summary",
+                "type": "string"
+              },
+              {
+                "name": "slack_slot",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {
+            "createIfNotExists": true
+          }
+        }
+      },
+      {
+        "id": "create-syntheses",
+        "name": "Create panel_syntheses",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          500,
+          500
+        ],
+        "parameters": {
+          "resource": "table",
+          "operation": "create",
+          "tableName": "panel_syntheses",
+          "columns": {
+            "column": [
+              {
+                "name": "session_id",
+                "type": "string"
+              },
+              {
+                "name": "round_number",
+                "type": "number"
+              },
+              {
+                "name": "synthesis_text",
+                "type": "string"
+              },
+              {
+                "name": "consensus_points",
+                "type": "string"
+              },
+              {
+                "name": "disagreements",
+                "type": "string"
+              },
+              {
+                "name": "surprise_insights",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {
+            "createIfNotExists": true
+          }
+        }
+      },
+      {
+        "id": "da153893-479f-478b-96c0-71b225382a53",
+        "name": "Create panel_files",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          500,
+          700
+        ],
+        "parameters": {
+          "resource": "table",
+          "operation": "create",
+          "tableName": "panel_files",
+          "columns": {
+            "column": [
+              {
+                "name": "session_id",
+                "type": "string"
+              },
+              {
+                "name": "file_id",
+                "type": "string"
+              },
+              {
+                "name": "file_name",
+                "type": "string"
+              },
+              {
+                "name": "mime_type",
+                "type": "string"
+              },
+              {
+                "name": "summary",
+                "type": "string"
+              },
+              {
+                "name": "extracted_text",
+                "type": "string"
+              },
+              {
+                "name": "upload_order",
+                "type": "number"
+              },
+              {
+                "name": "char_count",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {
+            "createIfNotExists": true
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Manual Trigger": {
+        "main": [
+          [
+            {
+              "node": "Create panel_sessions",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Create panel_personas",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Create panel_syntheses",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Create panel_files",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true,
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "116bbda7-a0ae-40c9-bca3-b63918a8ddef",
+    "activeVersionId": null,
+    "versionCounter": 4,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-03-09T18:24:05.479Z",
+        "createdAt": "2026-03-09T18:24:05.479Z",
+        "role": "workflow:owner",
+        "workflowId": "tclm3R3XeCWCccQb",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

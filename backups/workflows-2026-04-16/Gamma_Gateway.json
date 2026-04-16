@@ -1,0 +1,882 @@
+[
+  {
+    "updatedAt": "2026-03-20T20:54:01.068Z",
+    "createdAt": "2026-03-20T20:06:09.621Z",
+    "id": "sklUeeYy012cphsZ",
+    "name": "Gamma_Gateway",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "trigger": [
+            "app_mention"
+          ],
+          "channelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "C0AL3D16Z7W"
+          },
+          "options": {
+            "resolveIds": true
+          }
+        },
+        "id": "318458b2-3d82-4379-95ea-0d3d30e0cf3c",
+        "name": "Slack Trigger",
+        "type": "n8n-nodes-base.slackTrigger",
+        "typeVersion": 1,
+        "position": [
+          208,
+          304
+        ],
+        "webhookId": "2a6231d6-fca7-44f2-874a-495fc7f316ce",
+        "credentials": {
+          "slackApi": {
+            "id": "X7y1MM6mt8HfLnLc",
+            "name": "Gamma"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\nconst item = items[0].json;\n\nconst messageText = item.event?.text || item.text || '';\n\nconst BOTS = {\n  'U0AKTCAEUH1': { name: 'Syn', target: 'coordinator', slot: 0 },\n  'U0AL64H4GES': { name: 'Alpha', target: 'audience', slot: 1 },\n  'U0AM2ESA872': { name: 'Beta', target: 'audience', slot: 2 },\n  'U0AL87H2NQJ': { name: 'Gamma', target: 'audience', slot: 3 },\n  'U0AL886C5R8': { name: 'Sigma', target: 'audience', slot: 4 },\n  'U0AL1SN0EP5': { name: 'Omega', target: 'audience', slot: 5 }\n};\n\nlet detectedBot = null;\nfor (const [botId, botInfo] of Object.entries(BOTS)) {\n  if (messageText.includes(`<@${botId}>`)) {\n    detectedBot = { ...botInfo, botId };\n    break;\n  }\n}\n\nif (!detectedBot) return [];\n\nconst threadTs = item.event?.thread_ts || item.event?.ts || item.thread_ts || item.ts;\nconst channelId = item.event?.channel || item.channel;\nconst userId = item.event?.user || item.user;\nconst cleanMessage = messageText.replace(/<@[A-Z0-9]+>/g, '').trim();\n\nconst files = item.event?.files || item.files || [];\nconst hasFiles = files.length > 0;\n\nconst MAX_FILE_SIZE = 10 * 1024 * 1024;\nconst ALLOWED = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp'];\n\nconst baseData = {\n  sessionId: threadTs,\n  channelId,\n  userId,\n  cleanMessage,\n  targetWorkflow: detectedBot.target,\n  slotNumber: detectedBot.slot,\n  botName: detectedBot.name\n};\n\n// No files: single item\nif (!hasFiles) {\n  return [{ json: { ...baseData, hasFiles: false, fileStatus: 'no_files', fileInfo: null, fileUrl: '' } }];\n}\n\n// Multi-file: one item per valid file\nconst results = [];\nfor (let i = 0; i < files.length; i++) {\n  const f = files[i];\n  const mime = f.mimetype || '';\n  const size = f.size || 0;\n  const name = f.name || 'unknown';\n  const url = f.url_private || f.url_private_download || '';\n\n  if (!ALLOWED.includes(mime)) {\n    results.push({ json: { ...baseData, hasFiles: true, fileStatus: 'rejected', rejectionReason: `Dateityp ${mime} nicht unterstuetzt.`, fileInfo: { fileName: name, mimeType: mime, fileSize: size }, fileUrl: url, fileIndex: i, totalFiles: files.length } });\n  } else if (size > MAX_FILE_SIZE) {\n    results.push({ json: { ...baseData, hasFiles: true, fileStatus: 'rejected', rejectionReason: `${name} ist ${(size/1024/1024).toFixed(1)} MB. Max 10 MB.`, fileInfo: { fileName: name, mimeType: mime, fileSize: size }, fileUrl: url, fileIndex: i, totalFiles: files.length } });\n  } else {\n    results.push({ json: { ...baseData, hasFiles: true, fileStatus: mime === 'application/pdf' ? 'pdf' : 'image', fileInfo: { fileName: name, mimeType: mime, fileSize: size }, fileUrl: url, fileIndex: i, totalFiles: files.length } });\n  }\n}\n\nreturn results;"
+        },
+        "id": "678bdb7e-f40e-4f09-b2ae-02f4afa1cea0",
+        "name": "Detect Bot",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          432,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 3,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.hasFiles }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "equals"
+                },
+                "id": "hf1"
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "394232ac-c036-48e0-965b-31526576f899",
+        "name": "Has Files?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          640,
+          304
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 3,
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.fileStatus }}",
+                "rightValue": "rejected",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                },
+                "id": "fr1"
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "f80ea0c7-c5d7-40d6-a1bf-a57a9aa7ea32",
+        "name": "File Rejected?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          880,
+          96
+        ]
+      },
+      {
+        "parameters": {
+          "select": "channel",
+          "channelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "={{ $json.channelId }}"
+          },
+          "text": "={{ $json.rejectionReason }}",
+          "otherOptions": {
+            "includeLinkToWorkflow": false,
+            "thread_ts": {
+              "replyValues": {
+                "thread_ts": "={{ $json.sessionId }}"
+              }
+            },
+            "unfurl_links": false,
+            "unfurl_media": false
+          }
+        },
+        "id": "15e65f9e-9980-430e-85f0-0729353cef1d",
+        "name": "Reject File",
+        "type": "n8n-nodes-base.slack",
+        "typeVersion": 2.4,
+        "position": [
+          1104,
+          -48
+        ],
+        "webhookId": "8606a1d5-1fc2-41c0-bf53-e89279e7313c",
+        "credentials": {
+          "slackApi": {
+            "id": "X7y1MM6mt8HfLnLc",
+            "name": "Gamma"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.fileUrl }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "slackApi",
+          "options": {}
+        },
+        "id": "3e0341b6-25fa-4f56-82fc-f436ca085f56",
+        "name": "Download File",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1104,
+          112
+        ],
+        "credentials": {
+          "slackApi": {
+            "id": "LGc2ErEQ4dgP1qnJ",
+            "name": "Syn"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Prep each file for saving\n// Anthropic output: $json.content[0].text (non-simplified) or $json.message (simplified)\nconst items = $input.all();\nconst detectItems = $('Detect Bot').all().filter(i => i.json.hasFiles && i.json.fileStatus !== 'rejected');\nconst results = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const json = items[i].json;\n\n  // Extract text from Anthropic output formats\n  let llmOutput = '';\n  if (typeof json.message === 'string') {\n    llmOutput = json.message;\n  } else if (json.text) {\n    llmOutput = json.text;\n  } else if (Array.isArray(json.content)) {\n    llmOutput = json.content.filter(c => c.type === 'text').map(c => c.text).join('\\n');\n  } else if (json.content?.parts) {\n    llmOutput = json.content.parts.filter(p => p.text).map(p => p.text).join('\\n');\n  } else if (json.output) {\n    llmOutput = json.output;\n  }\n\n  const d = detectItems[i]?.json || detectItems[0]?.json || {};\n\n  results.push({\n    json: {\n      sessionId: d.sessionId,\n      channelId: d.channelId,\n      userId: d.userId,\n      cleanMessage: d.cleanMessage,\n      targetWorkflow: d.targetWorkflow,\n      slotNumber: d.slotNumber,\n      botName: d.botName,\n      fileInfo: d.fileInfo,\n      fileUrl: d.fileUrl || '',\n      fileStatus: 'accepted',\n      extractedText: llmOutput,\n      charCount: llmOutput.length,\n      summary: llmOutput.substring(0, 500) || 'File: ' + (d.fileInfo?.fileName || 'unknown')\n    }\n  });\n}\n\nreturn results;"
+        },
+        "id": "82786632-11f0-45a5-ad4a-2d2cae0ed528",
+        "name": "Prep Save",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1616,
+          112
+        ]
+      },
+      {
+        "parameters": {
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_files"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "session_id": "={{ $json.sessionId }}",
+              "file_id": "={{ $json.fileInfo?.fileName + '_' + Date.now() }}",
+              "file_name": "={{ $json.fileInfo?.fileName }}",
+              "mime_type": "={{ $json.fileInfo?.mimeType }}",
+              "summary": "={{ $json.summary }}",
+              "extracted_text": "={{ $json.extractedText }}",
+              "upload_order": "={{ $json.fileIndex || 1 }}",
+              "char_count": "={{ $json.charCount }}",
+              "file_url": "={{ $json.fileUrl }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "session_id",
+                "displayName": "session_id",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "file_id",
+                "displayName": "file_id",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "file_name",
+                "displayName": "file_name",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "mime_type",
+                "displayName": "mime_type",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "summary",
+                "displayName": "summary",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "extracted_text",
+                "displayName": "extracted_text",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "upload_order",
+                "displayName": "upload_order",
+                "type": "number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "char_count",
+                "displayName": "char_count",
+                "type": "number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "file_url",
+                "displayName": "file_url",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "readOnly": false,
+                "removed": false
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "de704e0f-f534-4705-86aa-f7782863ccac",
+        "name": "Save to Panel Files",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1824,
+          112
+        ],
+        "executeOnce": false
+      },
+      {
+        "parameters": {
+          "jsCode": "const allItems = $input.all();\nconst detectData = $('Detect Bot').first().json;\n\nreturn [{\n  json: {\n    sessionId: detectData.sessionId,\n    channelId: detectData.channelId,\n    userId: detectData.userId,\n    cleanMessage: detectData.cleanMessage,\n    hasFiles: true,\n    fileStatus: 'processed',\n    targetWorkflow: detectData.targetWorkflow,\n    slotNumber: detectData.slotNumber,\n    botName: detectData.botName,\n    savedFileCount: allItems.length\n  }\n}];"
+        },
+        "id": "21c34cc5-e5ab-4d23-b6e5-49733ca94480",
+        "name": "Merge After Save",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2016,
+          112
+        ]
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "claude-haiku-4-5-20251001"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "Analysiere die angehaengte Datei praezise. Erstelle eine Zusammenfassung in maximal 500 Zeichen.\n\nBei Bildern: Beschreibe was zu sehen ist und welche relevanten Informationen enthalten sind.\nBei PDFs: Fokus auf Kernaussagen, Daten, Tabellen und wichtigste Fakten. Beschreibe auch visuelle Elemente.\n\nAntwort nur auf Deutsch. Kein Markdown. Nur plain text."
+              }
+            ]
+          },
+          "addAttachments": true,
+          "attachmentsInputType": "binary",
+          "options": {
+            "maxTokens": 1024,
+            "temperature": 0.3
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          1296,
+          112
+        ],
+        "id": "e4cfcc45-8d54-4fdb-8ce0-a2cba7148bdb",
+        "name": "Summarize File",
+        "credentials": {
+          "anthropicApi": {
+            "id": "xryPDagnAi6vifng",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "2HjacLxh0Y5KV7Dh"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "sessionId": "={{ $json.sessionId }}",
+              "channelId": "={{ $json.channelId }}",
+              "userId": "={{ $json.userId }}",
+              "cleanMessage": "={{ $json.cleanMessage }}",
+              "hasFiles": "={{ $json.hasFiles }}",
+              "fileStatus": "={{ $json.fileStatus }}",
+              "botName": "={{ $json.botName }}",
+              "slotNumber": "={{ $json.slotNumber }}",
+              "targetWorkflow": "={{ $json.targetWorkflow }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "sessionId",
+                "displayName": "sessionId",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "channelId",
+                "displayName": "channelId",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "userId",
+                "displayName": "userId",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "cleanMessage",
+                "displayName": "cleanMessage",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "hasFiles",
+                "displayName": "hasFiles",
+                "type": "boolean",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "fileStatus",
+                "displayName": "fileStatus",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "botName",
+                "displayName": "botName",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "slotNumber",
+                "displayName": "slotNumber",
+                "type": "number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "targetWorkflow",
+                "displayName": "targetWorkflow",
+                "type": "string",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "fe021b4e-1052-4add-a624-df2a0bfcebd4",
+        "name": "Execute Audience",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          2272,
+          320
+        ]
+      }
+    ],
+    "connections": {
+      "Slack Trigger": {
+        "main": [
+          [
+            {
+              "node": "Detect Bot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Detect Bot": {
+        "main": [
+          [
+            {
+              "node": "Has Files?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Has Files?": {
+        "main": [
+          [
+            {
+              "node": "File Rejected?",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Execute Audience",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "File Rejected?": {
+        "main": [
+          [
+            {
+              "node": "Reject File",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Download File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prep Save": {
+        "main": [
+          [
+            {
+              "node": "Save to Panel Files",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save to Panel Files": {
+        "main": [
+          [
+            {
+              "node": "Merge After Save",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge After Save": {
+        "main": [
+          [
+            {
+              "node": "Execute Audience",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Summarize File": {
+        "main": [
+          [
+            {
+              "node": "Prep Save",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download File": {
+        "main": [
+          [
+            {
+              "node": "Summarize File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true,
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false,
+      "binaryMode": "separate",
+      "timeSavedMode": "fixed",
+      "errorWorkflow": "k_1wGROZ77CNjRE1INOwj"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": {
+      "Slack Trigger": [
+        {
+          "json": {
+            "type": "app_mention",
+            "text": "<@U0AKTCAEUH1> hier hast du skripte und video clip skizzen aus nano banana 2. erstelle mir ein Audience die das ganze Bewertet",
+            "files": [
+              {
+                "id": "F0AMV7VCRV4",
+                "created": 1774028260,
+                "timestamp": 1774028260,
+                "name": "Gemini_Generated_Image_e2c49te2c49te2c4.png",
+                "title": "Gemini_Generated_Image_e2c49te2c49te2c4.png",
+                "mimetype": "image/png",
+                "filetype": "png",
+                "pretty_type": "PNG",
+                "user": "U08339R2BST",
+                "user_team": "T083HN9V83D",
+                "editable": false,
+                "size": 2058644,
+                "mode": "hosted",
+                "is_external": false,
+                "external_type": "",
+                "is_public": true,
+                "public_url_shared": false,
+                "display_as_bot": false,
+                "username": "",
+                "url_private": "https://files.slack.com/files-pri/T083HN9V83D-F0AMV7VCRV4/gemini_generated_image_e2c49te2c49te2c4.png",
+                "url_private_download": "https://files.slack.com/files-pri/T083HN9V83D-F0AMV7VCRV4/download/gemini_generated_image_e2c49te2c49te2c4.png",
+                "media_display_type": "unknown",
+                "thumb_64": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMV7VCRV4-d4cd9e3967/gemini_generated_image_e2c49te2c49te2c4_64.png",
+                "thumb_80": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMV7VCRV4-d4cd9e3967/gemini_generated_image_e2c49te2c49te2c4_80.png",
+                "thumb_360": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMV7VCRV4-d4cd9e3967/gemini_generated_image_e2c49te2c49te2c4_360.png",
+                "thumb_360_w": 201,
+                "thumb_360_h": 360,
+                "thumb_480": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMV7VCRV4-d4cd9e3967/gemini_generated_image_e2c49te2c49te2c4_480.png",
+                "thumb_480_w": 268,
+                "thumb_480_h": 480,
+                "thumb_160": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMV7VCRV4-d4cd9e3967/gemini_generated_image_e2c49te2c49te2c4_160.png",
+                "thumb_720": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMV7VCRV4-d4cd9e3967/gemini_generated_image_e2c49te2c49te2c4_720.png",
+                "thumb_720_w": 402,
+                "thumb_720_h": 720,
+                "thumb_800": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMV7VCRV4-d4cd9e3967/gemini_generated_image_e2c49te2c49te2c4_800.png",
+                "thumb_800_w": 447,
+                "thumb_800_h": 800,
+                "thumb_960": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMV7VCRV4-d4cd9e3967/gemini_generated_image_e2c49te2c49te2c4_960.png",
+                "thumb_960_w": 536,
+                "thumb_960_h": 960,
+                "thumb_1024": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMV7VCRV4-d4cd9e3967/gemini_generated_image_e2c49te2c49te2c4_1024.png",
+                "thumb_1024_w": 572,
+                "thumb_1024_h": 1024,
+                "original_w": 768,
+                "original_h": 1376,
+                "thumb_tiny": "AwAwABupGpByVyPerMdzMowrAjrg1GJ2dNpAUHjcB0qwtkvadCcccf8A16kZC80ufvsM+lQlWJJLgk981YaGJCAbgHJzkLUbCEMQJCffb/8AXoAPKaNQMH14pYSGWVe+3+oqFFbO4rkZ5zVpLmVV4YHJzgigCFx3II9zTDgnOAasB5mXBkxz2NQOH3Hcyk+uc0AaBtnZCpkUe4X/AOvURsQnJkyfZCf61epG6ZwT7A0xFMWBDBhNz1+5QbFySTPyf9n/AOvV2igD/9k=",
+                "permalink": "https://worqshop-space.slack.com/files/U0AKTCAEUH1/F0AMV7VCRV4/gemini_generated_image_e2c49te2c49te2c4.png",
+                "permalink_public": "https://slack-files.com/T083HN9V83D-F0AMV7VCRV4-935230f8d6",
+                "is_starred": false,
+                "skipped_shares": true,
+                "has_rich_preview": false,
+                "file_access": "visible"
+              },
+              {
+                "id": "F0AMQTJ8MNF",
+                "created": 1774028265,
+                "timestamp": 1774028265,
+                "name": "Gemini_Generated_Image_5u7tnz5u7tnz5u7t.png",
+                "title": "Gemini_Generated_Image_5u7tnz5u7tnz5u7t.png",
+                "mimetype": "image/png",
+                "filetype": "png",
+                "pretty_type": "PNG",
+                "user": "U08339R2BST",
+                "user_team": "T083HN9V83D",
+                "editable": false,
+                "size": 1992539,
+                "mode": "hosted",
+                "is_external": false,
+                "external_type": "",
+                "is_public": true,
+                "public_url_shared": false,
+                "display_as_bot": false,
+                "username": "",
+                "url_private": "https://files.slack.com/files-pri/T083HN9V83D-F0AMQTJ8MNF/gemini_generated_image_5u7tnz5u7tnz5u7t.png",
+                "url_private_download": "https://files.slack.com/files-pri/T083HN9V83D-F0AMQTJ8MNF/download/gemini_generated_image_5u7tnz5u7tnz5u7t.png",
+                "media_display_type": "unknown",
+                "thumb_64": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMQTJ8MNF-b3c4607103/gemini_generated_image_5u7tnz5u7tnz5u7t_64.png",
+                "thumb_80": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMQTJ8MNF-b3c4607103/gemini_generated_image_5u7tnz5u7tnz5u7t_80.png",
+                "thumb_360": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMQTJ8MNF-b3c4607103/gemini_generated_image_5u7tnz5u7tnz5u7t_360.png",
+                "thumb_360_w": 201,
+                "thumb_360_h": 360,
+                "thumb_480": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMQTJ8MNF-b3c4607103/gemini_generated_image_5u7tnz5u7tnz5u7t_480.png",
+                "thumb_480_w": 268,
+                "thumb_480_h": 480,
+                "thumb_160": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMQTJ8MNF-b3c4607103/gemini_generated_image_5u7tnz5u7tnz5u7t_160.png",
+                "thumb_720": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMQTJ8MNF-b3c4607103/gemini_generated_image_5u7tnz5u7tnz5u7t_720.png",
+                "thumb_720_w": 402,
+                "thumb_720_h": 720,
+                "thumb_800": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMQTJ8MNF-b3c4607103/gemini_generated_image_5u7tnz5u7tnz5u7t_800.png",
+                "thumb_800_w": 447,
+                "thumb_800_h": 800,
+                "thumb_960": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMQTJ8MNF-b3c4607103/gemini_generated_image_5u7tnz5u7tnz5u7t_960.png",
+                "thumb_960_w": 536,
+                "thumb_960_h": 960,
+                "thumb_1024": "https://files.slack.com/files-tmb/T083HN9V83D-F0AMQTJ8MNF-b3c4607103/gemini_generated_image_5u7tnz5u7tnz5u7t_1024.png",
+                "thumb_1024_w": 572,
+                "thumb_1024_h": 1024,
+                "original_w": 768,
+                "original_h": 1376,
+                "thumb_tiny": "AwAwABuKZjJtQnHHPy96tQhPLAwDxg5HWofIOzdv4xngU3y2W3aQStwOnSkBLPDG0bBVRT64qrEUEYyBTN8jEBmYgnuaetuCoPmYz7UwLDuBFGfwpPNBiZSPl75qwmPLXp0qheD98x+lICTEXljg+opgcYHXpTJcsVUryFGPyqM7PU/lTA1xA+AN44/2aha0WWQ5kbPuh/nV2kbOAQCcHoKQFEaZ8uPN/wDHf/r0v9mj/nr/AOO//Xq9RTA//9k=",
+                "permalink": "https://worqshop-space.slack.com/files/U0AKTCAEUH1/F0AMQTJ8MNF/gemini_generated_image_5u7tnz5u7tnz5u7t.png",
+                "permalink_public": "https://slack-files.com/T083HN9V83D-F0AMQTJ8MNF-8438c51923",
+                "is_starred": false,
+                "skipped_shares": true,
+                "has_rich_preview": false,
+                "file_access": "visible"
+              },
+              {
+                "id": "F0ANA6TTS2D",
+                "created": 1774028275,
+                "timestamp": 1774028275,
+                "name": "RATIO - GTM pain clips skripte.pdf",
+                "title": "RATIO - GTM pain clips skripte.pdf",
+                "mimetype": "application/pdf",
+                "filetype": "pdf",
+                "pretty_type": "PDF",
+                "user": "U08339R2BST",
+                "user_team": "T083HN9V83D",
+                "editable": false,
+                "size": 94695,
+                "mode": "hosted",
+                "is_external": false,
+                "external_type": "",
+                "is_public": true,
+                "public_url_shared": false,
+                "display_as_bot": false,
+                "username": "",
+                "url_private": "https://files.slack.com/files-pri/T083HN9V83D-F0ANA6TTS2D/ratio_-_gtm_pain_clips_skripte.pdf",
+                "url_private_download": "https://files.slack.com/files-pri/T083HN9V83D-F0ANA6TTS2D/download/ratio_-_gtm_pain_clips_skripte.pdf",
+                "media_display_type": "unknown",
+                "thumb_pdf": "https://files.slack.com/files-tmb/T083HN9V83D-F0ANA6TTS2D-4f38987169/ratio_-_gtm_pain_clips_skripte_thumb_pdf.png",
+                "thumb_pdf_w": 911,
+                "thumb_pdf_h": 1286,
+                "permalink": "https://worqshop-space.slack.com/files/U0AKTCAEUH1/F0ANA6TTS2D/ratio_-_gtm_pain_clips_skripte.pdf",
+                "permalink_public": "https://slack-files.com/T083HN9V83D-F0ANA6TTS2D-670d4b2a58",
+                "is_starred": false,
+                "skipped_shares": true,
+                "has_rich_preview": false,
+                "file_access": "visible"
+              },
+              {
+                "id": "F0AN0SU7N8L",
+                "created": 1774028277,
+                "timestamp": 1774028277,
+                "name": "Gemini_Generated_Image_z0dxapz0dxapz0dx.png",
+                "title": "Gemini_Generated_Image_z0dxapz0dxapz0dx.png",
+                "mimetype": "image/png",
+                "filetype": "png",
+                "pretty_type": "PNG",
+                "user": "U08339R2BST",
+                "user_team": "T083HN9V83D",
+                "editable": false,
+                "size": 1452776,
+                "mode": "hosted",
+                "is_external": false,
+                "external_type": "",
+                "is_public": true,
+                "public_url_shared": false,
+                "display_as_bot": false,
+                "username": "",
+                "url_private": "https://files.slack.com/files-pri/T083HN9V83D-F0AN0SU7N8L/gemini_generated_image_z0dxapz0dxapz0dx.png",
+                "url_private_download": "https://files.slack.com/files-pri/T083HN9V83D-F0AN0SU7N8L/download/gemini_generated_image_z0dxapz0dxapz0dx.png",
+                "media_display_type": "unknown",
+                "thumb_64": "https://files.slack.com/files-tmb/T083HN9V83D-F0AN0SU7N8L-74f88ea333/gemini_generated_image_z0dxapz0dxapz0dx_64.png",
+                "thumb_80": "https://files.slack.com/files-tmb/T083HN9V83D-F0AN0SU7N8L-74f88ea333/gemini_generated_image_z0dxapz0dxapz0dx_80.png",
+                "thumb_360": "https://files.slack.com/files-tmb/T083HN9V83D-F0AN0SU7N8L-74f88ea333/gemini_generated_image_z0dxapz0dxapz0dx_360.png",
+                "thumb_360_w": 208,
+                "thumb_360_h": 360,
+                "thumb_480": "https://files.slack.com/files-tmb/T083HN9V83D-F0AN0SU7N8L-74f88ea333/gemini_generated_image_z0dxapz0dxapz0dx_480.png",
+                "thumb_480_w": 277,
+                "thumb_480_h": 480,
+                "thumb_160": "https://files.slack.com/files-tmb/T083HN9V83D-F0AN0SU7N8L-74f88ea333/gemini_generated_image_z0dxapz0dxapz0dx_160.png",
+                "thumb_720": "https://files.slack.com/files-tmb/T083HN9V83D-F0AN0SU7N8L-74f88ea333/gemini_generated_image_z0dxapz0dxapz0dx_720.png",
+                "thumb_720_w": 415,
+                "thumb_720_h": 720,
+                "thumb_800": "https://files.slack.com/files-tmb/T083HN9V83D-F0AN0SU7N8L-74f88ea333/gemini_generated_image_z0dxapz0dxapz0dx_800.png",
+                "thumb_800_w": 461,
+                "thumb_800_h": 800,
+                "thumb_960": "https://files.slack.com/files-tmb/T083HN9V83D-F0AN0SU7N8L-74f88ea333/gemini_generated_image_z0dxapz0dxapz0dx_960.png",
+                "thumb_960_w": 554,
+                "thumb_960_h": 960,
+                "thumb_1024": "https://files.slack.com/files-tmb/T083HN9V83D-F0AN0SU7N8L-74f88ea333/gemini_generated_image_z0dxapz0dxapz0dx_1024.png",
+                "thumb_1024_w": 590,
+                "thumb_1024_h": 1024,
+                "original_w": 768,
+                "original_h": 1332,
+                "thumb_tiny": "AwAwABymMbtpx09KecCNse386NgChlO4Z6H/AD9KXPG0ICDg/KT+XNIYxCdh9fep0C7Ruh3H13YzUCgkbPLwQOW7mkYHPIJPqaAEDkqV7dqcjFhlwQScbqlkKNGuI1THXAqNhuYcgD0HH8qAHhUxkyZJ9BTCnPDL+JxQuB8pOc9M0xg2eGFAFoafN/eT06n/AAp6WMqrjch+pP8AhWhSHh/useBznigRn/YJw24NGD9T/hQdPlJyfL/M1o9BRQB//9k=",
+                "permalink": "https://worqshop-space.slack.com/files/U0AKTCAEUH1/F0AN0SU7N8L/gemini_generated_image_z0dxapz0dxapz0dx.png",
+                "permalink_public": "https://slack-files.com/T083HN9V83D-F0AN0SU7N8L-2f543a6d11",
+                "is_starred": false,
+                "skipped_shares": true,
+                "has_rich_preview": false,
+                "file_access": "visible"
+              }
+            ],
+            "upload": false,
+            "user": "U08339R2BST",
+            "blocks": [
+              {
+                "type": "rich_text",
+                "block_id": "1Lgsr",
+                "elements": [
+                  {
+                    "type": "rich_text_section",
+                    "elements": [
+                      {
+                        "type": "user",
+                        "user_id": "U0AKTCAEUH1"
+                      },
+                      {
+                        "type": "text",
+                        "text": " hier hast du skripte und video clip skizzen aus nano banana 2. erstelle mir ein Audience die das ganze Bewertet"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "ts": "1774028321.062159",
+            "client_msg_id": "7b32b755-39d2-41c9-8f46-3b6b39b1f4a1",
+            "channel": "C0AL3D16Z7W",
+            "event_ts": "1774028321.062159",
+            "user_resolved": "lukasz",
+            "channel_resolved": "agent_syn"
+          },
+          "pairedItem": {
+            "item": 0
+          }
+        }
+      ]
+    },
+    "versionId": "d634e4a8-cc66-4c5c-af03-3ebd694b7459",
+    "activeVersionId": "d634e4a8-cc66-4c5c-af03-3ebd694b7459",
+    "versionCounter": 15,
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-03-20T20:06:09.621Z",
+        "createdAt": "2026-03-20T20:06:09.621Z",
+        "role": "workflow:owner",
+        "workflowId": "sklUeeYy012cphsZ",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": "Version d634e4a8",
+      "description": ""
+    }
+  }
+]
