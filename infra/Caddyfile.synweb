@@ -1,0 +1,22 @@
+# SynWeb reverse proxy block.
+# Append to /etc/caddy/Caddyfile, then: systemctl reload caddy
+# Remove: delete this block and reload.
+
+syn.worqshop.io {
+    encode zstd gzip
+
+    # Long-lived SSE connections for realtime persona responses
+    @sse path /api/stream*
+    handle @sse {
+        reverse_proxy 127.0.0.1:3100 {
+            flush_interval -1
+            transport http {
+                read_timeout 0
+            }
+        }
+    }
+
+    handle {
+        reverse_proxy 127.0.0.1:3100
+    }
+}
