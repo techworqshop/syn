@@ -30,3 +30,7 @@ Thumbs.db
 .vscode
 .idea
 *.swp
+
+# Runtime data volumes
+pg_data/
+redis_data/
