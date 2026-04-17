@@ -33,3 +33,34 @@ export type AudienceMessage = {
 };
 
 export const PERSONA_NAMES = ["", "Alpha", "Beta", "Gamma", "Sigma", "Omega"];
+
+export type PanelPersona = {
+  session_id: string;
+  persona_id: string;
+  name?: string;
+  type?: string;
+  core_perspective?: string;
+  profile?: string;
+  position_summary?: string;
+  round_1_response?: string;
+  round_2_response?: string;
+  round_3_response?: string;
+  slack_slot?: number;
+};
+
+export type PanelSynthesis = {
+  session_id: string;
+  round_number: number;
+  synthesis_text: string;
+};
+
+export type FileRow = {
+  id: string;
+  sessionId: string;
+  fileName: string;
+  mimeType: string;
+  storagePath: string;
+  summary: string | null;
+  sizeBytes: number;
+  createdAt: string | Date;
+};

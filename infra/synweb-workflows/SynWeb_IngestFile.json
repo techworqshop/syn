@@ -1,0 +1,166 @@
+[
+  {
+    "name": "SynWeb_IngestFile",
+    "id": "oFGYiNFs7B1At0n0",
+    "nodes": [
+      {
+        "id": "9eb0b2e3-c007-4546-a508-17ed68f3a4b4",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          300
+        ],
+        "webhookId": "8da009db-0448-4e06-a9f6-4ba1a815b5e1",
+        "parameters": {
+          "path": "synweb/ingest-file",
+          "httpMethod": "POST",
+          "responseMode": "lastNode",
+          "options": {}
+        }
+      },
+      {
+        "id": "a6ef610b-a3c4-4026-afe0-03ac95857463",
+        "name": "Download File",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          450,
+          300
+        ],
+        "parameters": {
+          "url": "={{ $json.body.fileUrl }}",
+          "options": {}
+        }
+      },
+      {
+        "id": "b25b718f-92cf-4036-8161-fad7cdc52d3a",
+        "name": "Summarize File",
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          700,
+          300
+        ],
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "claude-haiku-4-5-20251001"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "Analysiere die angehaengte Datei praezise. Erstelle eine Zusammenfassung in maximal 500 Zeichen.\n\nBei Bildern: Beschreibe was zu sehen ist und welche relevanten Informationen enthalten sind.\nBei PDFs: Fokus auf Kernaussagen, Daten, Tabellen und wichtigste Fakten. Beschreibe auch visuelle Elemente.\n\nAntwort nur auf Deutsch. Kein Markdown. Nur plain text."
+              }
+            ]
+          },
+          "addAttachments": true,
+          "attachmentsInputType": "binary",
+          "options": {
+            "maxTokens": 1024,
+            "temperature": 0.3
+          }
+        },
+        "credentials": {
+          "anthropicApi": {
+            "id": "xryPDagnAi6vifng",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "id": "8bbe9e60-0b1c-48da-b4b7-729d6b0e0e3f",
+        "name": "Prep Row",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          950,
+          300
+        ],
+        "parameters": {
+          "jsCode": "const body = $('Webhook').first().json.body;\nconst out = $input.first().json;\nlet text = '';\nif (typeof out.message === 'string') text = out.message;\nelse if (out.text) text = out.text;\nelse if (Array.isArray(out.content)) text = out.content.filter(c=>c.type==='text').map(c=>c.text).join('\\n');\nelse if (out.output) text = out.output;\nreturn [{json:{session_id: body.sessionId, file_id: body.fileId, file_name: body.fileName, mime_type: body.mimeType, summary: text.substring(0,500), extracted_text: text, upload_order: body.uploadOrder||1, char_count: text.length, file_url: body.fileUrl}}];"
+        }
+      },
+      {
+        "id": "03b1567b-482e-4e6d-96c5-fd0019dd31f3",
+        "name": "Save to Panel Files",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1200,
+          300
+        ],
+        "parameters": {
+          "operation": "insert",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_files"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": []
+          },
+          "options": {}
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Download File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download File": {
+        "main": [
+          [
+            {
+              "node": "Summarize File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Summarize File": {
+        "main": [
+          [
+            {
+              "node": "Prep Row",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prep Row": {
+        "main": [
+          [
+            {
+              "node": "Save to Panel Files",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataSuccessExecution": "all",
+      "saveDataErrorExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true,
+      "callerPolicy": "workflowsFromSameOwner"
+    }
+  }
+]

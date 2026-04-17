@@ -1,0 +1,137 @@
+[
+  {
+    "name": "SynWeb_ReadState",
+    "id": "Iu9BXYdydQueQC41",
+    "nodes": [
+      {
+        "id": "2c95158d-a576-4648-8152-be5505b9c9f5",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          300
+        ],
+        "webhookId": "47a3f2b1-bb9c-4384-85fb-586056d04cf3",
+        "parameters": {
+          "path": "synweb/readstate",
+          "httpMethod": "POST",
+          "responseMode": "lastNode",
+          "options": {}
+        }
+      },
+      {
+        "id": "725ef422-273c-4640-9c3c-52a647e4e30f",
+        "name": "Get Personas",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          450,
+          200
+        ],
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_personas"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Webhook').item.json.body.sessionId }}"
+              }
+            ]
+          },
+          "returnAll": true
+        }
+      },
+      {
+        "id": "a69ee1c7-9f38-4d5e-918a-7dcb5a62ac34",
+        "name": "Get Syntheses",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          450,
+          400
+        ],
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_syntheses"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Webhook').item.json.body.sessionId }}"
+              }
+            ]
+          },
+          "returnAll": true
+        }
+      },
+      {
+        "id": "b282710e-a265-41d4-b3e9-aa565ee411c9",
+        "name": "Aggregate",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          700,
+          300
+        ],
+        "parameters": {
+          "jsCode": "const personas = $('Get Personas').all().map(i => i.json);\nconst syntheses = $('Get Syntheses').all().map(i => i.json);\nreturn [{json: {personas, syntheses}}];"
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Get Personas",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Personas": {
+        "main": [
+          [
+            {
+              "node": "Get Syntheses",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Syntheses": {
+        "main": [
+          [
+            {
+              "node": "Aggregate",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataSuccessExecution": "all",
+      "saveDataErrorExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true,
+      "callerPolicy": "workflowsFromSameOwner"
+    }
+  }
+]
