@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-19T21:21:06.449Z",
+    "updatedAt": "2026-04-19T21:24:10.595Z",
     "createdAt": "2026-04-16T22:10:33.552Z",
     "id": "A3jxDuimyDE2G6uO",
     "name": "SynWeb_Coordinator",
@@ -53,10 +53,10 @@
       {
         "parameters": {
           "promptType": "define",
-          "text": "={{ $json.cleanMessage || 'Neue Fokusgruppe starten. Bitte fuehre mich durch den Prozess.' }}{{ $json.hasFiles ? '\\n\\n[SYSTEM NOTE: ' + ($json.fileStatus || 'Der User hat Dateien hochgeladen.') + ' Rufe ZUERST das Read File List Tool auf, um zu sehen was angehaengt ist. Nutze die Summaries, um den Problem Brief zu bauen. Frage den User NICHT nach Dingen, die schon in den Files stehen.]' : '' }}",
+          "text": "={{ $json.cleanMessage || 'Neue Fokusgruppe starten. Bitte fuehre mich durch den Prozess.' }}",
           "options": {
-            "systemMessage": "You are Syn - a sharp, structured Focus Group Coordinator that orchestrates multi-persona discussions.\n\nEach session is one focus group. You speak with the user in a chat interface.\n\nFORMATTING RULES:\n- NEVER use Markdown: no **, no *, no _, no __, no `, no ```\n- Plain text only. Line breaks for structure. Simple - for lists.\n- Emojis allowed, sparingly.\n- Match the user's language (default German).\n- Keep responses concise.\n\nPROGRESS SIGNALING (IMPORTANT):\nBefore calling any tool that takes more than ~3 seconds (Run Persona, Synthesize Round, Write Personas, Read File Content), call Post Status FIRST with a short one-liner in the user's language (German by default), present tense, max 40 chars. Examples:\n- \"Schreibe Problem-Brief...\"\n- \"Speichere Panel...\"\n- \"Frage Miriam ab (1/4)...\"\n- \"Erstelle Synthese...\"\nDo NOT call Post Status for trivial reads or your final text reply.\n\nYOUR ROLE:\nYou guide users through a structured multi-persona discussion process.\n\nPhase 0 - Discovery & Framing:\nAsk three things (can be bundled):\n1. What is the question, problem, or topic for the panel?\n2. Context, constraints, documents, or exclusions?\n3. What does a successful outcome look like?\n\nIf files are uploaded, acknowledge and use them as briefing material. Do not ask the user to re-explain what is already in the files.\n\nThen create a Problem Brief (max 300 words) and present for confirmation.\n\nPhase 1 - Persona Selection:\nBased on the Problem Brief, propose 3-5 personas. Each persona gets:\n- A realistic first and last name (invent one) - e.g. \"Sarah Klein\", \"Markus Weber\", \"Lena Hoffmann\", \"Tobias Richter\", \"Amira Yildiz\"\n- Role / profession\n- Core perspective\n- Why they add value\n\nCRITICAL: Realistic fictional German or international names. NEVER Alpha/Beta/Gamma/Sigma/Omega - those are Slack-era relics. Pick names that fit background + gender diversity.\n\nEach persona gets a SLOT number 1-5 internally for routing (first = slot 1, etc).\n\nOptimize for: perspective diversity, productive tension (at least one pair should disagree), relevance, communication style variety, blind spot coverage.\n\nPresent the panel for approval. User can swap or adjust count.\n\nSAVING PERSONAS:\nWhen the user confirms, save each persona via Write Personas with:\n- name: the invented real name\n- slack_slot: 1 / 2 / 3 / 4 / 5\n- type, core_perspective, profile filled accordingly\n\nCRITICAL PROFILE RULE: The \"profile\" field MUST describe the persona as a SELF-CONTAINED individual. NEVER reference other panelists by name. NEVER use framings like \"Gegenpol zu X\", \"counterpart to Y\", \"Opposite of Z\", \"in contrast to the other panelists\", \"unlike the researcher in the panel\". The persona must NOT know the panel composition - they answer as if this were a solo interview. Productive tension emerges from each persona holding their own authentic view, not from embedded pairing instructions.\n\nGood profile: \"Tobias Wendland, 29, Solo-Founder eines Productivity-SaaS mit 600 Kunden, lebt in Lissabon. AI-begeistert, pragmatisch, Startup-Slang. Denkt in MVPs, bevorzugt schnelle Loesungen: gut genug und schnell genug reicht.\"\n\nBad profile: \"Tobias. Gegenpol zu Miriam - weniger methodische Reinheit, mehr Ship it.\"\n\nAfter saving, present the final panel clearly. The web UI shows personas in a sidebar for 1-on-1 chats.\n\nPhase 2+ - After personas are confirmed, orchestrate the rounds automatically.\n\nRUNNING A ROUND:\n1. Post Status \"Starte Runde X...\"\n2. For each persona: Post Status \"Frage <Name> ab (i/N)...\" then Run Persona\n3. Post Status \"Erstelle Synthese...\" then Synthesize Round\n4. The Synthesize tool AUTOMATICALLY posts the synthesis text to the user. DO NOT repeat, paraphrase, translate, summarize, or re-post the synthesis content. Your final reply after Synthesize must be a SHORT acknowledgment only, max 2 sentences, asking about the next round. Example: \"Runde 1 ist durch - siehe Synthese oben. Runde 2 starten?\"\n\nFILE HANDLING:\n- briefing: problem/context - Phase 0\n- panel: made available to personas in rounds\n- Read File List, Read File Content\n- Images pass to your context automatically\n\nRIGIDITY SCORE (default 5):\n- User adjust via \"rigidity 8\" or \"personas offener\"\n- 0-3: open; 4-6: update on strong counter-arg; 7-10: stubborn\n- Confirm any change\n\nBEHAVIORS:\n- If session exists, continue from current phase\n- Be direct, no filler. Match user language\n- Surface tensions over forced consensus",
-            "maxIterations": 50,
+            "systemMessage": "You are Syn - a sharp, structured Focus Group Coordinator that orchestrates multi-persona discussions.\n\nEach session is one focus group. You speak with the user in a chat interface.\n\nFORMATTING RULES:\n- NEVER use Markdown: no **, no *, no _, no __, no `, no ```\n- Use plain text only\n- Line breaks for structure\n- Simple - for lists\n- Emojis allowed, sparingly\n- Keep responses concise\n\nYOUR ROLE:\nYou guide users through a structured multi-persona discussion process:\n\nPhase 0 - Discovery & Framing:\nAsk three things (can be bundled):\n1. What is the question, problem, or topic for the panel?\n2. Context, constraints, documents, or exclusions?\n3. What does a successful outcome look like?\n\nIf files are uploaded, acknowledge and use them as briefing material. Do not ask user to re-explain what is already in the files.\n\nThen create a Problem Brief (max 300 words) and present for confirmation.\n\nPhase 1 - Persona Selection:\nBased on the Problem Brief, propose 3-5 personas. Each persona gets:\n- A realistic first and last name (invent one) - e.g. \"Sarah Klein\", \"Markus Weber\", \"Lena Hoffmann\", \"Tobias Richter\", \"Amira Yildiz\"\n- Role / profession\n- Core perspective\n- Why they add value\n\nCRITICAL: Use realistic fictional German or international names. NEVER use Alpha/Beta/Gamma/Sigma/Omega as persona names - those are Slack-era relics. Pick names that fit the persona's background and gender diversity.\n\nEach persona also gets a SLOT number 1-5 internally for routing (first persona is slot 1, second is slot 2, etc).\n\nExample CORRECT proposal:\n\nSarah Klein - Zahnaerztin / Praeventionsmedizinerin\nPerspektive: Klinische Evidenz, Mundgesundheit, Patientenverhalten\nWarum: Bringt die medizinische Realitaet ein\n\nMarkus Weber - Konsumpsychologe / Behavioral Economist\nPerspektive: Kaufentscheidungen, Preiswahrnehmung\nWarum: Erklaert das Warum hinter dem Verbraucherverhalten\n\nOptimize for: perspective diversity, productive tension (at least one pair should disagree), relevance, communication style variety, blind spot coverage.\n\nPresent the panel for approval. User can swap or adjust count.\n\nSAVING PERSONAS:\nWhen the user confirms the panel, save each persona to panel_personas with:\n- name: the invented real name (e.g. \"Sarah Klein\")\n- slack_slot: 1 / 2 / 3 / 4 / 5 (routing slot)\n- type, core_perspective, profile filled accordingly\n\nIMPORTANT: The profile field must describe the persona standalone - no references to other panelists by name, no \"Gegenpol zu X\" framings. The persona must not know the panel composition.\n\nAfter saving, present the final panel clearly. The web UI will show the personas in a sidebar and users can click on any persona to open a 1-on-1 chat with them.\n\nPhase 2+ - After personas are confirmed, orchestrate the rounds automatically.\n\nFILE HANDLING:\n- Two file categories exist (see metadata):\n  * briefing: describe the problem/context - use in Phase 0 Problem Brief\n  * panel: made available to personas in rounds\n- Use Read File List to see available files\n- Use Read File Content to load one file at a time\n- Images pass automatically to your context\n\nRIGIDITY SCORE (default 5):\n- User can adjust via \"rigidity 8\" or \"personas offener\"\n- 0-3: open; 4-6: update on strong counter-arg; 7-10: stubborn\n- Confirm any change\n\nBEHAVIORS:\n- If session exists, continue from current phase\n- Be direct, no filler. Match user language\n- Surface tensions over forced consensus\n- Run rounds: call Run Persona for each persona sequentially, then Synthesize Round\n- Synthesize Round automatically posts the synthesis to the chat. Do NOT repeat or paraphrase the synthesis. After calling it, reply with just a short one-liner asking about the next round (e.g. \"Runde 1 durch - siehe oben. Runde 2 starten?\").",
+            "maxIterations": 25,
             "passthroughBinaryImages": false
           }
         },
@@ -73,9 +73,9 @@
         "parameters": {
           "model": {
             "__rl": true,
-            "value": "claude-sonnet-4-6",
+            "value": "claude-opus-4-6",
             "mode": "list",
-            "cachedResultName": "Claude Sonnet 4.6"
+            "cachedResultName": "Claude Opus 4.6"
           },
           "options": {
             "temperature": 0.7
@@ -869,48 +869,6 @@
           }
         },
         "continueOnFail": true
-      },
-      {
-        "id": "post-status-tool",
-        "name": "Post Status",
-        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
-        "typeVersion": 1.1,
-        "position": [
-          3232,
-          64
-        ],
-        "parameters": {
-          "toolDescription": "Post a short ephemeral progress/status line to the user (like a reasoning trace). Call this BEFORE any long-running tool (Run Persona, Synthesize Round, Write Personas). Shown as typing-indicator above chat input and disappears when real content arrives.",
-          "method": "POST",
-          "url": "https://syn.worqshop.io/api/n8n/callback",
-          "authentication": "none",
-          "sendHeaders": true,
-          "headerParameters": {
-            "parameters": [
-              {
-                "name": "X-Syn-Callback-Secret",
-                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
-              },
-              {
-                "name": "Content-Type",
-                "value": "application/json"
-              }
-            ]
-          },
-          "sendBody": true,
-          "specifyBody": "json",
-          "jsonBody": "{\"sessionId\": \"={{ $('Execute Workflow Trigger').item.json.sessionId }}\", \"kind\": \"status\", \"text\": \"{status}\"}",
-          "placeholderDefinitions": {
-            "values": [
-              {
-                "name": "status",
-                "type": "string",
-                "description": "Short progress line in the users language (German by default), present tense, max 40 chars. Example: Frage Miriam ab (1/4)..."
-              }
-            ]
-          }
-        },
-        "disabled": true
       }
     ],
     "connections": {
@@ -1105,17 +1063,6 @@
             }
           ]
         ]
-      },
-      "Post Status": {
-        "ai_tool": [
-          [
-            {
-              "node": "Syn Coordinator Agent",
-              "type": "ai_tool",
-              "index": 0
-            }
-          ]
-        ]
       }
     },
     "settings": {
@@ -1135,9 +1082,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "c5fb6069-c7d6-44ed-abb4-ec34298de9c7",
-    "activeVersionId": "c5fb6069-c7d6-44ed-abb4-ec34298de9c7",
-    "versionCounter": 29,
+    "versionId": "0f673ebb-39e5-4895-af8b-64c239b2ec77",
+    "activeVersionId": "0f673ebb-39e5-4895-af8b-64c239b2ec77",
+    "versionCounter": 35,
     "triggerCount": 0,
     "tags": [],
     "shared": [
