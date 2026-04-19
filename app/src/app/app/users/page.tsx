@@ -7,5 +7,5 @@ export const dynamic = "force-dynamic";
 export default async function UsersPage() {
   const u = await requireUser();
   if (!u.isAdmin) redirect("/app/dashboard");
-  return <UsersManager />;
+  return <UsersManager currentUserId={u.id} />;
 }
