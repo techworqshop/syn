@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-19T21:37:43.572Z",
+    "updatedAt": "2026-04-19T21:41:24.842Z",
     "createdAt": "2026-04-16T22:10:03.276Z",
     "id": "XybiSig1oi3HquZd",
     "name": "SynWeb_RunPersona",
@@ -285,9 +285,7 @@
           "addAttachments": true,
           "attachmentsInputType": "binary",
           "binaryPropertyName": "={{ $json.binaryKeys || 'data' }}",
-          "options": {
-            "temperature": 0.7
-          }
+          "options": {}
         },
         "type": "@n8n/n8n-nodes-langchain.anthropic",
         "typeVersion": 1,
@@ -520,9 +518,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "e80e1dd2-0d82-4717-8a47-e16a654c36db",
-    "activeVersionId": "e80e1dd2-0d82-4717-8a47-e16a654c36db",
-    "versionCounter": 11,
+    "versionId": "484d22c5-b5d4-46bb-ae72-5bb388ae4bfc",
+    "activeVersionId": "484d22c5-b5d4-46bb-ae72-5bb388ae4bfc",
+    "versionCounter": 14,
     "triggerCount": 0,
     "tags": [],
     "shared": [

@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-19T21:37:50.898Z",
+    "updatedAt": "2026-04-19T21:41:33.359Z",
     "createdAt": "2026-04-16T22:10:09.817Z",
     "id": "M04sAqjOhZRVGlXb",
     "name": "SynWeb_Audience",
@@ -260,9 +260,7 @@
           "addAttachments": true,
           "attachmentsInputType": "binary",
           "binaryPropertyName": "={{ $('Merge Files').item.json.binaryKeys || 'data' }}",
-          "options": {
-            "temperature": 0.7
-          }
+          "options": {}
         },
         "type": "@n8n/n8n-nodes-langchain.anthropic",
         "typeVersion": 1,
@@ -329,9 +327,7 @@
               }
             ]
           },
-          "options": {
-            "temperature": 0.7
-          }
+          "options": {}
         },
         "type": "@n8n/n8n-nodes-langchain.anthropic",
         "typeVersion": 1,
@@ -669,9 +665,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "23ba9f15-3411-47f7-aff6-ba064d343821",
-    "activeVersionId": "23ba9f15-3411-47f7-aff6-ba064d343821",
-    "versionCounter": 8,
+    "versionId": "a527cf83-be2f-4217-b557-6584ad215087",
+    "activeVersionId": "a527cf83-be2f-4217-b557-6584ad215087",
+    "versionCounter": 11,
     "triggerCount": 0,
     "tags": [],
     "shared": [

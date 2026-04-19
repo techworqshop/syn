@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-19T21:37:35.968Z",
+    "updatedAt": "2026-04-19T21:41:17.843Z",
     "createdAt": "2026-04-16T22:10:33.552Z",
     "id": "A3jxDuimyDE2G6uO",
     "name": "SynWeb_Coordinator",
@@ -77,9 +77,7 @@
             "mode": "list",
             "cachedResultName": "Claude Opus 4.7"
           },
-          "options": {
-            "temperature": 0.7
-          }
+          "options": {}
         },
         "id": "llm-coordinator",
         "name": "Anthropic Chat Model",
@@ -1140,9 +1138,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "28b4205f-6bde-41ec-9f39-31065fc9379f",
-    "activeVersionId": "28b4205f-6bde-41ec-9f39-31065fc9379f",
-    "versionCounter": 44,
+    "versionId": "6eb2e12b-0236-4e92-b333-caf519f8e8e7",
+    "activeVersionId": "6eb2e12b-0236-4e92-b333-caf519f8e8e7",
+    "versionCounter": 47,
     "triggerCount": 0,
     "tags": [],
     "shared": [
