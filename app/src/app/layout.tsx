@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
+const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
+
 export const metadata: Metadata = {
-  title: "SynWeb",
-  description: "Synthetic focus groups — web interface"
+  title: "SynWeb - Synthetic Focus Groups",
+  description: "Multi-persona focus groups for Worqshop"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de">
-      <body>{children}</body>
+    <html lang="de" className={inter.variable}>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   );
 }

@@ -3,11 +3,36 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0b0d10;
-  --fg: #e7e9ec;
-  --muted: #8a8f98;
-  --accent: #7aa2f7;
+  --bg-0: #09090b;
+  --bg-1: #0c0c10;
+  --bg-2: #14141a;
+  --fg-0: #f5f5f7;
+  --fg-1: #a8a8b3;
+  --fg-2: #64646f;
 }
 
-html, body { background: var(--bg); color: var(--fg); }
-body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+@layer base {
+  html, body {
+    background: radial-gradient(ellipse at top, rgba(99,102,241,0.08), transparent 60%), var(--bg-0);
+    color: var(--fg-0);
+    min-height: 100vh;
+  }
+  body {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #27272a; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+::-webkit-scrollbar-track { background: transparent; }
+
+@layer utilities {
+  .glass {
+    background: rgba(20,20,26,0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}

@@ -47,7 +47,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
             <div className="flex items-stretch">
               <button onClick={() => onSelect(n)}
                 className="flex-1 text-left p-3 hover:bg-neutral-800/50">
-                <div className="font-medium">{PERSONA_NAMES[n]}</div>
+                <div className="font-medium">{p?.name || `Slot ${n}`}</div>
                 <div className="text-xs text-neutral-500 mt-0.5 line-clamp-1">
                   {p?.type || "Noch nicht zugewiesen"}
                 </div>

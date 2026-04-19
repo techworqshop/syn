@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import type { AudienceMessage } from "./types";
-import { PERSONA_NAMES } from "./types";
+import type { AudienceMessage, PanelPersona } from "./types";
 
 type Props = { sessionId: string; slot: number; onClose: () => void };
 
@@ -9,9 +8,15 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
   const [msgs, setMsgs] = useState<AudienceMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [persona, setPersona] = useState<PanelPersona | null>(null);
+  const displayName = persona?.name || `Slot ${slot}`;
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    fetch(`/api/sessions/${sessionId}/personas`).then(r=>r.json()).then(d=>{
+      const found = (d.personas||[]).find((x: PanelPersona) => x.slack_slot === slot);
+      if (found) setPersona(found);
+    }).catch(()=>{});
     fetch(`/api/sessions/${sessionId}/audience/${slot}`)
       .then(r => r.json()).then(d => setMsgs(d.messages || []));
     const es = new EventSource(`/api/sessions/${sessionId}/stream?slot=${slot}`);
@@ -47,7 +52,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
       <div className="w-full max-w-2xl h-[80vh] bg-neutral-950 border border-neutral-800 rounded-lg flex flex-col">
         <div className="flex items-center justify-between border-b border-neutral-800 px-4 py-3">
           <div>
-            <div className="font-semibold">{PERSONA_NAMES[slot]}</div>
+            <div className="font-semibold">{displayName}</div>
             <div className="text-xs text-neutral-500">1:1 Interview (parallel zur Diskussion)</div>
           </div>
           <button onClick={onClose} className="text-neutral-400 hover:text-neutral-100">Schliessen</button>
@@ -55,7 +60,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {msgs.length === 0 && (
             <div className="text-neutral-500 text-sm text-center py-8">
-              Stell {PERSONA_NAMES[slot]} deine Frage.
+              Stell {displayName} deine Frage.
             </div>
           )}
           {msgs.map(m => (
@@ -70,7 +75,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
         <div className="border-t border-neutral-800 p-3 flex gap-2">
           <input value={input} onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder={`Frage an ${PERSONA_NAMES[slot]}...`}
+            placeholder={`Frage an ${displayName}...`}
             className="flex-1 px-3 py-2 rounded bg-neutral-800 border border-neutral-700 focus:outline-none focus:border-sky-500" />
           <button disabled={sending || !input.trim()} onClick={send}
             className="px-4 py-2 rounded bg-sky-600 hover:bg-sky-500 disabled:opacity-50">

@@ -46,7 +46,8 @@
             ]
           },
           "returnAll": true
-        }
+        },
+        "executeOnce": true
       },
       {
         "id": "a69ee1c7-9f38-4d5e-918a-7dcb5a62ac34",
@@ -74,7 +75,8 @@
             ]
           },
           "returnAll": true
-        }
+        },
+        "executeOnce": true
       },
       {
         "id": "b282710e-a265-41d4-b3e9-aa565ee411c9",
@@ -87,7 +89,8 @@
         ],
         "parameters": {
           "jsCode": "const personas = $('Get Personas').all().map(i => i.json);\nconst syntheses = $('Get Syntheses').all().map(i => i.json);\nreturn [{json: {personas, syntheses}}];"
-        }
+        },
+        "executeOnce": true
       }
     ],
     "connections": {

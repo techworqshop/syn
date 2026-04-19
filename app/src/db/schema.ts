@@ -75,5 +75,6 @@ export const files = pgTable("files", {
   storagePath: text("storage_path").notNull(),
   summary: text("summary"),
   sizeBytes: integer("size_bytes").notNull(),
+  category: text("category").notNull().default("panel"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
 }, (t) => [index("files_session_idx").on(t.sessionId)]);

@@ -55,6 +55,7 @@ export type PanelSynthesis = {
 };
 
 export type FileRow = {
+  category?: string;
   id: string;
   sessionId: string;
   fileName: string;
