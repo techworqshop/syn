@@ -97,3 +97,21 @@ export async function deleteFileFromPanel(fileId: string) {
     });
   } catch {}
 }
+
+const INVITE_HOOK = process.env.SYNWEB_INVITE_WEBHOOK!;
+
+export async function sendInviteEmail(payload: {
+  recipientEmail: string;
+  inviterName: string;
+  inviteUrl: string;
+}) {
+  if (!INVITE_HOOK) return false;
+  try {
+    const res = await fetch(INVITE_HOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    return res.ok;
+  } catch { return false; }
+}

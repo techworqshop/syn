@@ -1,0 +1,68 @@
+[
+  {
+    "name": "SynWeb_SendInvite",
+    "id": "43KZPaaRtfchFZ8h",
+    "nodes": [
+      {
+        "id": "a3dee326-c70c-43cf-bb6c-0cfb0bb36711",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          300
+        ],
+        "webhookId": "cf0f8067-0272-43eb-baac-af53fcdb836e",
+        "parameters": {
+          "path": "synweb/send-invite",
+          "httpMethod": "POST",
+          "responseMode": "lastNode"
+        }
+      },
+      {
+        "id": "ce8bcac1-9bab-40e3-96a4-4cb3497726ed",
+        "name": "Send Gmail",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          450,
+          300
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "send",
+          "sendTo": "={{ $json.body.recipientEmail }}",
+          "subject": "Einladung zu SynWeb",
+          "emailType": "html",
+          "message": "=<div style=\"font-family:system-ui,sans-serif;max-width:540px;margin:24px auto;padding:32px;background:#130f1c;color:#f4f1f7;border-radius:16px;\">\n<h1 style=\"font-size:22px;margin:0 0 12px 0;\">SynWeb</h1>\n<p style=\"color:#b8b2c0;\">{{ $json.body.inviterName }} hat dich zu SynWeb eingeladen.</p>\n<p style=\"color:#d4d1da;\">SynWeb orchestriert synthetische Fokusgruppen mit AI-Personas.</p>\n<p><a href=\"{{ $json.body.inviteUrl }}\" style=\"display:inline-block;padding:12px 28px;background:#d946ef;color:white;border-radius:12px;text-decoration:none;font-weight:500;\">Account erstellen</a></p>\n<p style=\"color:#8b8595;font-size:12px;\">Oder: {{ $json.body.inviteUrl }}</p>\n<p style=\"color:#716b7d;font-size:11px;\">Der Link ist 14 Tage gueltig.</p>\n</div>\n",
+          "options": {}
+        },
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "zHsOQgsahwMpHDy9",
+            "name": "Gmail account Tech"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Send Gmail",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataSuccessExecution": "all",
+      "saveDataErrorExecution": "all",
+      "saveManualExecutions": true
+    }
+  }
+]
