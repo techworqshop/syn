@@ -15,6 +15,7 @@ export const sessions = pgTable("sessions", {
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull().default("Neue Fokusgruppe"),
   titleLocked: boolean("title_locked").notNull().default(false),
+  shareToken: text("share_token"),
   problemBrief: text("problem_brief"),
   status: text("status").notNull().default("discovery"),
   rigidityScore: integer("rigidity_score").notNull().default(5),
