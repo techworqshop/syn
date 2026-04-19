@@ -1,0 +1,67 @@
+[
+  {
+    "name": "SynWeb_DeleteFile",
+    "id": "8YMfBODhPVGNYNpq",
+    "nodes": [
+      {
+        "id": "8b4e204d-641d-41a2-a995-ec283119cacf",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          300
+        ],
+        "webhookId": "d9371c13-58ea-432a-a548-dd53801ee6b5",
+        "parameters": {
+          "path": "synweb/delete-file",
+          "httpMethod": "POST",
+          "responseMode": "lastNode"
+        }
+      },
+      {
+        "id": "20e43de3-1e39-461b-ad61-ef6b29bdbc81",
+        "name": "Delete Row",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          450,
+          300
+        ],
+        "parameters": {
+          "operation": "delete",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_files"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "file_id",
+                "keyValue": "={{ $json.body.fileId }}"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Delete Row",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1"
+    }
+  }
+]

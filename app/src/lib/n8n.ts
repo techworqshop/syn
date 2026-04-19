@@ -85,3 +85,15 @@ export async function ingestFile(payload: {
   if (!res.ok) throw new Error(`ingest ${res.status}`);
   return await res.json().catch(() => ({}));
 }
+
+const DELFILE = process.env.SYNWEB_DELETEFILE_WEBHOOK!;
+
+export async function deleteFileFromPanel(fileId: string) {
+  try {
+    await fetch(DELFILE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fileId })
+    });
+  } catch {}
+}

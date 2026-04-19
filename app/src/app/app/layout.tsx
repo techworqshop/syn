@@ -8,20 +8,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const session = await auth();
   if (!session?.user) redirect("/login");
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col">
       <header className="glass border-b border-white/5 px-6 py-3 flex items-center justify-between sticky top-0 z-20">
         <Link href="/app/dashboard" className="flex items-center gap-2.5 group">
-          <img src="/syn-avatar.svg" alt="" className="w-7 h-7 rounded-full ring-1 ring-white/10" />
+          <img src="/api/assets/syn-avatar" alt="" className="w-7 h-7 rounded-full ring-1 ring-white/10" />
           <div className="font-semibold tracking-tight text-neutral-100 group-hover:text-white">SynWeb</div>
         </Link>
         <div className="text-sm text-neutral-400 flex items-center gap-4">
+          <Link href="/app/settings" className="hidden sm:inline text-neutral-500 hover:text-neutral-200 transition-colors">Einstellungen</Link>
           <span className="hidden sm:inline text-neutral-500">{session.user.email}</span>
           <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
             <button className="text-neutral-400 hover:text-neutral-100 transition-colors">Logout</button>
           </form>
         </div>
       </header>
-      <main className="flex-1 p-6">{children}</main>
+      <main className="flex-1 flex flex-col min-h-0">{children}</main>
     </div>
   );
 }

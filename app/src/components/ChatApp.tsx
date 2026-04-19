@@ -45,6 +45,11 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs.length, waiting]);
 
 
+  async function deleteFile(id: string) {
+    const res = await fetch(`/api/files/${id}`, { method: 'DELETE' });
+    if (res.ok) setFilesList(prev => prev.filter(f => f.id !== id));
+  }
+
   async function send() {
     if (!input.trim() || sending) return;
     setSending(true);
@@ -63,7 +68,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
 
 
   return (
-    <div className="flex h-[calc(100vh-57px)] -mt-6 -mx-6"
+    <div className="flex flex-1 min-h-0 overflow-hidden"
       >
       <div className="flex-1 flex flex-col min-w-0 relative">
         <div className="border-b border-neutral-800 px-6 py-3 flex items-center justify-between">
@@ -98,6 +103,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
                 <span className="max-w-[200px] truncate">{f.fileName}</span>
                 <span className="opacity-60">{Math.round(f.sizeBytes/1024)}K</span>
                 {f.summary ? <span className="text-emerald-400">✓</span> : <span className="opacity-60">…</span>}
+                <button onClick={() => deleteFile(f.id)} className="ml-1 opacity-50 hover:opacity-100 hover:text-red-400 transition-opacity" title="Datei loeschen">×</button>
               </div>
             ))}
           </div>

@@ -10,7 +10,7 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center px-4">
       <form action={action} className="w-full max-w-sm space-y-4 p-8 rounded-2xl border border-white/5 glass shadow-2xl shadow-black/50">
         <div className="flex items-center justify-center mb-4">
-          <img src="/syn-avatar.svg" alt="" className="w-14 h-14 rounded-full ring-2 ring-sky-500/20" />
+          <img src="/api/assets/syn-avatar" alt="" className="w-14 h-14 rounded-full ring-2 ring-sky-500/20" />
         </div>
         <div className="text-center space-y-1 mb-2">
           <h1 className="text-2xl font-semibold tracking-tight">SynWeb</h1>

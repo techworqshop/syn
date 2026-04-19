@@ -20,7 +20,7 @@ export default async function Dashboard() {
     .where(eq(sessions.userId, u.id))
     .orderBy(desc(sessions.updatedAt));
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto w-full p-6">
       <div className="flex items-end justify-between mb-8">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Fokusgruppen</h1>
@@ -36,7 +36,7 @@ export default async function Dashboard() {
       </div>
       {rows.length === 0 ? (
         <div className="rounded-2xl border border-white/5 glass p-12 text-center">
-          <img src="/syn-avatar.svg" alt="" className="w-14 h-14 mx-auto opacity-50 mb-4" />
+          <img src="/api/assets/syn-avatar" alt="" className="w-14 h-14 mx-auto opacity-50 mb-4" />
           <div className="text-neutral-300 mb-1">Noch keine Fokusgruppe.</div>
           <div className="text-sm text-neutral-500">Klick oben auf Neue Fokusgruppe um zu starten.</div>
         </div>
