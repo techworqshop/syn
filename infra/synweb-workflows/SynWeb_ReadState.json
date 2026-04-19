@@ -1,7 +1,12 @@
 [
   {
-    "name": "SynWeb_ReadState",
+    "updatedAt": "2026-04-19T21:53:45.360Z",
+    "createdAt": "2026-04-17T15:52:23.700Z",
     "id": "Iu9BXYdydQueQC41",
+    "name": "SynWeb_ReadState",
+    "description": null,
+    "active": true,
+    "isArchived": false,
     "nodes": [
       {
         "id": "2c95158d-a576-4648-8152-be5505b9c9f5",
@@ -47,7 +52,8 @@
           },
           "returnAll": true
         },
-        "executeOnce": true
+        "executeOnce": true,
+        "alwaysOutputData": true
       },
       {
         "id": "a69ee1c7-9f38-4d5e-918a-7dcb5a62ac34",
@@ -76,7 +82,8 @@
           },
           "returnAll": true
         },
-        "executeOnce": true
+        "executeOnce": true,
+        "alwaysOutputData": true
       },
       {
         "id": "b282710e-a265-41d4-b3e9-aa565ee411c9",
@@ -134,7 +141,39 @@
       "saveDataErrorExecution": "all",
       "saveManualExecutions": true,
       "saveExecutionProgress": true,
-      "callerPolicy": "workflowsFromSameOwner"
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "2c51081a-30e7-456d-9825-ae6cb31374e5",
+    "activeVersionId": "2c51081a-30e7-456d-9825-ae6cb31374e5",
+    "versionCounter": 11,
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-04-17T15:52:23.700Z",
+        "createdAt": "2026-04-17T15:52:23.700Z",
+        "role": "workflow:owner",
+        "workflowId": "Iu9BXYdydQueQC41",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
     }
   }
 ]
