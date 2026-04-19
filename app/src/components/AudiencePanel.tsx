@@ -95,7 +95,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
             <PersonaAvatar sessionId={sessionId} slot={slot} initials={initials} tintClass={tint} />
             <div className="min-w-0">
               <div className={`font-semibold truncate ${nameColor}`}>{displayName}</div>
-              <div className="text-xs text-neutral-500 truncate">{persona?.type || "1:1 Interview"}</div>
+              <div className="text-xs text-neutral-500 truncate">{persona?.type && persona.type.toLowerCase() !== "human" ? persona.type : "1:1 Interview"}</div>
             </div>
           </div>
           <button onClick={onClose}

@@ -76,7 +76,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
                 <div className="flex-1 min-w-0">
                 <div className="font-medium">{p?.name || `Slot ${n}`}</div>
                 <div className="text-xs text-neutral-500 mt-0.5 line-clamp-1">
-                  {p?.type || "Noch nicht zugewiesen"}
+                  {p ? (p.type && p.type.toLowerCase() !== "human" ? p.type : null) : "Noch nicht zugewiesen"}
                 </div>
                 </div>
               </button>
