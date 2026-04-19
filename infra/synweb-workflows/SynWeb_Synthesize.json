@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-19T20:10:04.773Z",
+    "updatedAt": "2026-04-19T21:38:44.421Z",
     "createdAt": "2026-04-16T22:10:06.588Z",
     "id": "xgBgCZeVWBVB7jLN",
     "name": "SynWeb_Synthesize",
@@ -177,7 +177,8 @@
           "modelId": {
             "__rl": true,
             "mode": "id",
-            "value": "claude-sonnet-4-5-20250929"
+            "value": "claude-sonnet-4-6",
+            "cachedResultName": "Claude Sonnet 4.6"
           },
           "messages": {
             "values": [
@@ -215,7 +216,8 @@
           "modelId": {
             "__rl": true,
             "mode": "id",
-            "value": "claude-sonnet-4-5-20250929"
+            "value": "claude-sonnet-4-6",
+            "cachedResultName": "Claude Sonnet 4.6"
           },
           "messages": {
             "values": [
@@ -426,9 +428,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "2aa01d64-fc9f-4be1-807b-0c66c0cb92f9",
-    "activeVersionId": "2aa01d64-fc9f-4be1-807b-0c66c0cb92f9",
-    "versionCounter": 11,
+    "versionId": "bc10f5df-0cdf-4048-b5ea-e6799b5dd6c3",
+    "activeVersionId": "bc10f5df-0cdf-4048-b5ea-e6799b5dd6c3",
+    "versionCounter": 14,
     "triggerCount": 0,
     "tags": [],
     "shared": [
