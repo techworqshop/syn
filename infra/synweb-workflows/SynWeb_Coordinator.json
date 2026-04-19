@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-19T20:09:03.422Z",
+    "updatedAt": "2026-04-19T20:54:53.307Z",
     "createdAt": "2026-04-16T22:10:33.552Z",
     "id": "A3jxDuimyDE2G6uO",
     "name": "SynWeb_Coordinator",
@@ -899,8 +899,18 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({ sessionId: $('Execute Workflow Trigger').item.json.sessionId, kind: 'status', text: $fromAI('status', 'Short status line in the users language (German by default), present tense, max 40 chars', 'string') }) }}"
-        }
+          "jsonBody": "{\"sessionId\": \"={{ $('Execute Workflow Trigger').item.json.sessionId }}\", \"kind\": \"status\", \"text\": \"{status}\"}",
+          "placeholderDefinitions": {
+            "values": [
+              {
+                "name": "status",
+                "type": "string",
+                "description": "Short progress line in the users language (German by default), present tense, max 40 chars. Example: Frage Miriam ab (1/4)..."
+              }
+            ]
+          }
+        },
+        "disabled": false
       }
     ],
     "connections": {
@@ -1125,9 +1135,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "e549240a-81f6-4917-923c-57b0c0b57eab",
-    "activeVersionId": "e549240a-81f6-4917-923c-57b0c0b57eab",
-    "versionCounter": 11,
+    "versionId": "33a95aea-6be6-4637-ab0c-fdfde98ca906",
+    "activeVersionId": "33a95aea-6be6-4637-ab0c-fdfde98ca906",
+    "versionCounter": 17,
     "triggerCount": 0,
     "tags": [],
     "shared": [
