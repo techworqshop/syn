@@ -1,0 +1,146 @@
+[
+  {
+    "updatedAt": "2026-04-19T23:47:09.462Z",
+    "createdAt": "2026-04-19T23:47:02.938Z",
+    "id": "vJ1K27VranwixXK1",
+    "name": "SynWeb_FinalReport",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "hook",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          300
+        ],
+        "parameters": {
+          "path": "synweb/final-report",
+          "httpMethod": "POST",
+          "responseMode": "lastNode"
+        },
+        "webhookId": "2adbc14a-5656-4ec8-b1c4-79af25b0aaeb"
+      },
+      {
+        "id": "gen",
+        "name": "Generate Report",
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          450,
+          300
+        ],
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "claude-opus-4-7"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Erstelle einen strukturierten deutschen Abschlussbericht zu dieser Fokusgruppe. Direkt, substanziell, basierend auf den Daten. Keine Platzhalter.\n\nSESSION: {{ $json.body.title }}\nERSTELLT: {{ $json.body.createdAt }}\n\nPROBLEM-BRIEF:\n{{ $json.body.problemBrief || 'nicht verfuegbar' }}\n\nPANEL:\n{{ $json.body.personasContext }}\n\nRUNDEN-SYNTHESEN:\n{{ $json.body.synthesesContext || 'keine Synthesen' }}\n\nDATEIEN:\n{{ $json.body.filesContext || 'keine' }}\n\nDISKUSSIONSAUSZUG:\n{{ $json.body.messagesContext || 'keine' }}\n\nOUTPUT in Markdown, genau diese Struktur:\n\n# Abschlussbericht\n\n## Executive Summary\n3-4 Saetze: Kernerkenntnis aus der Fokusgruppe. Was wurde konkret sichtbar?\n\n## Fragestellung\nProblem-Brief in 2-3 Saetzen zusammengefasst.\n\n## Panel\nFuer jede Persona eine Zeile: **Name** - Rolle (Haltung: standhaft/ausgewogen/offen). Ein Satz zur Kernperspektive.\n\n## Verlauf\nPro Runde eine Subsection: ### Runde N - Titel. Darunter: 2-3 Konsens-Punkte, 2-3 Spannungen, 1-2 Ueberraschungen, alles als kurze Bullets.\n\n## Zentrale Spannungslinien\nDie 3-5 wichtigsten produktiven Spannungen quer ueber alle Runden, jeweils eine namentliche Zuordnung wer welche Position vertritt.\n\n## Erkenntnisse & Empfehlungen\n4-6 actionable Insights als Bullets. Konkret, abgeleitet aus den Panel-Daten, keine Meta-Allgemeinplaetze."
+              }
+            ]
+          },
+          "options": {
+            "maxTokens": 4096,
+            "systemMessage": "Du bist Senior Research Analyst. Du schreibst prazise, substanzielle Abschlussberichte fuer Fokusgruppen. Weise Ideen namentlich zu. Keine vorgetaeuschten Konsense. Nur Markdown-Output, keine Einleitung vor dem #-Header."
+          }
+        },
+        "credentials": {
+          "anthropicApi": {
+            "id": "xryPDagnAi6vifng",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "id": "out",
+        "name": "Extract",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          700,
+          300
+        ],
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "1",
+                "name": "report",
+                "value": "={{ $json.content ? $json.content[0].text : ($json.output || '') }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Generate Report",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Report": {
+        "main": [
+          [
+            {
+              "node": "Extract",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "23ef5ece-9f9d-4657-9fc7-1d583e702499",
+    "activeVersionId": "23ef5ece-9f9d-4657-9fc7-1d583e702499",
+    "versionCounter": 4,
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-04-19T23:47:02.938Z",
+        "createdAt": "2026-04-19T23:47:02.938Z",
+        "role": "workflow:owner",
+        "workflowId": "vJ1K27VranwixXK1",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

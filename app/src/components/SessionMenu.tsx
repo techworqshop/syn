@@ -22,6 +22,7 @@ export default function SessionMenu({ sessionId, afterDelete }: { sessionId: str
     if (res.ok) { const d = await res.json(); router.push(`/app/sessions/${d.session.id}`); }
   }
   function exportPdf() { setMenu(false); window.location.href = `/api/sessions/${sessionId}/export`; }
+  function finalReport() { setMenu(false); window.location.href = `/api/sessions/${sessionId}/final-report`; }
 
   async function share() {
     setBusy(true); setMenu(false);
@@ -51,8 +52,8 @@ export default function SessionMenu({ sessionId, afterDelete }: { sessionId: str
         <>
           <div className="fixed inset-0 z-30" onClick={() => setMenu(false)} />
           <div className="absolute top-9 right-0 z-40 rounded-xl border border-white/10 glass shadow-2xl min-w-[200px] overflow-hidden text-sm">
-            <button onClick={duplicate} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-white/5 disabled:opacity-50">Duplizieren</button>
-            <button onClick={exportPdf} className="w-full text-left px-3 py-2 hover:bg-white/5">Export als PDF</button>
+            <button onClick={finalReport} className="w-full text-left px-3 py-2 hover:bg-fuchsia-500/10 text-fuchsia-200 font-medium">Abschlussbericht (PDF)</button><div className="h-px bg-white/10"></div><button onClick={duplicate} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-white/5 disabled:opacity-50">Duplizieren</button>
+            <button onClick={exportPdf} className="w-full text-left px-3 py-2 hover:bg-white/5">Chat-Verlauf PDF</button>
             <button onClick={share} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-white/5 disabled:opacity-50">Teilen</button>
             <div className="h-px bg-white/10"></div>
             <button onClick={del} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-red-500/10 text-red-300 disabled:opacity-50">Loeschen</button>
