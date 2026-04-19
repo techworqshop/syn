@@ -21,11 +21,13 @@ export async function POST(req: Request, { params }: P) {
   const [exists] = await db.select().from(users).where(eq(users.email, inv.email)).limit(1);
   if (exists) return NextResponse.json({ error: "user already exists" }, { status: 409 });
   const hash = await bcrypt.hash(password, 12);
+  const isWorqshop = inv.email.toLowerCase().endsWith("@worqshop.io");
   await db.insert(users).values({
     email: inv.email,
     passwordHash: hash,
     name: name || inv.email,
-    mustChangePassword: "false"
+    mustChangePassword: "false",
+    isAdmin: isWorqshop
   });
   await db.update(invites).set({ usedAt: new Date() }).where(eq(invites.id, inv.id));
   return NextResponse.json({ ok: true, email: inv.email });

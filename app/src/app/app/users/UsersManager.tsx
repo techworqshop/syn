@@ -75,10 +75,10 @@ export default function UsersManager() {
         )}
       </div>
 
-      <h2 className="text-sm font-medium text-neutral-400 mb-3">Offene Einladungen</h2>
+      <h2 className="text-sm font-medium text-neutral-400 mb-3">User</h2>
       {invites.length === 0 ? (
         <div className="rounded-xl border border-white/5 glass p-8 text-center text-sm text-neutral-500">
-          Noch keine Einladungen verschickt.
+          Noch keine User.
         </div>
       ) : (
         <ul className="space-y-2">
