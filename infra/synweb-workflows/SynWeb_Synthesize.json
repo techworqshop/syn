@@ -1,7 +1,12 @@
 [
   {
-    "name": "SynWeb_Synthesize",
+    "updatedAt": "2026-04-19T20:10:04.773Z",
+    "createdAt": "2026-04-16T22:10:06.588Z",
     "id": "xgBgCZeVWBVB7jLN",
+    "name": "SynWeb_Synthesize",
+    "description": null,
+    "active": true,
+    "isArchived": false,
     "nodes": [
       {
         "id": "03cbc922-9b34-42a0-b57c-86fa55aac152",
@@ -177,7 +182,7 @@
           "messages": {
             "values": [
               {
-                "content": "=ROUND {{ $json.round_number }} SYNTHESIS\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\nALL PERSONA RESPONSES ({{ $json.persona_count }} panelists):\n{{ $json.all_responses }}\n\nAngehaengte Dateien sind Teil des Panel-Kontexts. Analysiere sie gruendlich und beziehe sie in die Synthese ein.\n\nSections:\n1. CONSENSUS POINTS\n2. KEY TENSIONS\n3. SURPRISE INSIGHTS\n4. IDENTIFIED GAPS\n5. EMERGING QUESTIONS\n\nAttribute ideas clearly. No false consensus."
+                "content": "=RUNDE {{ $json.round_number }} - SYNTHESE\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\nALLE PERSONA-ANTWORTEN ({{ $json.persona_count }} Panelisten):\n{{ $json.all_responses }}\n\nAngehaengte Dateien sind Teil des Panel-Kontexts. Analysiere sie gruendlich und beziehe sie in die Synthese ein.\n\nSektionen:\n1. KONSENS\n2. SPANNUNGSLINIEN\n3. UEBERRASCHUNGEN\n4. OFFENE LUECKEN\n5. ENTSTEHENDE FRAGEN\n\nKeine vorgetaeuschten Konsense. Weise Ideen namentlich zu."
               }
             ]
           },
@@ -187,7 +192,7 @@
           "options": {
             "temperature": 0.5,
             "maxTokens": 4096,
-            "systemMessage": "You are the Syn synthesis engine. Create honest, structured synthesis reports from multiple expert perspectives. NEVER flatten disagreements. Attribute ideas clearly. FORMATTING: plain text only, no Markdown."
+            "systemMessage": "Du bist die Syn-Synthese-Engine. Erstelle ehrliche, strukturierte Synthese-Berichte aus mehreren Expertenperspektiven. Blaettere NIEMALS Meinungsverschiedenheiten weg. Weise Ideen namentlich zu. ANTWORTE IMMER in der gleichen Sprache wie die Persona-Antworten (Deutsch, wenn die Personas Deutsch sprechen). FORMATIERUNG: nur Plain Text, kein Markdown."
           }
         },
         "credentials": {
@@ -215,14 +220,14 @@
           "messages": {
             "values": [
               {
-                "content": "=ROUND {{ $json.round_number }} SYNTHESIS\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\nALL PERSONA RESPONSES ({{ $json.persona_count }} panelists):\n{{ $json.all_responses }}\n\nSections:\n1. CONSENSUS POINTS\n2. KEY TENSIONS\n3. SURPRISE INSIGHTS\n4. IDENTIFIED GAPS\n5. EMERGING QUESTIONS\n\nAttribute ideas clearly. No false consensus."
+                "content": "=RUNDE {{ $json.round_number }} - SYNTHESE\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\nALLE PERSONA-ANTWORTEN ({{ $json.persona_count }} Panelisten):\n{{ $json.all_responses }}\n\nSektionen:\n1. KONSENS\n2. SPANNUNGSLINIEN\n3. UEBERRASCHUNGEN\n4. OFFENE LUECKEN\n5. ENTSTEHENDE FRAGEN\n\nKeine vorgetaeuschten Konsense. Weise Ideen namentlich zu."
               }
             ]
           },
           "options": {
             "temperature": 0.5,
             "maxTokens": 4096,
-            "systemMessage": "You are the Syn synthesis engine. Create honest, structured synthesis reports from multiple expert perspectives. NEVER flatten disagreements. Attribute ideas clearly. FORMATTING: plain text only, no Markdown."
+            "systemMessage": "Du bist die Syn-Synthese-Engine. Erstelle ehrliche, strukturierte Synthese-Berichte aus mehreren Expertenperspektiven. Blaettere NIEMALS Meinungsverschiedenheiten weg. Weise Ideen namentlich zu. ANTWORTE IMMER in der gleichen Sprache wie die Persona-Antworten (Deutsch, wenn die Personas Deutsch sprechen). FORMATIERUNG: nur Plain Text, kein Markdown."
           }
         },
         "credentials": {
@@ -413,7 +418,41 @@
       "saveDataErrorExecution": "all",
       "saveManualExecutions": true,
       "saveExecutionProgress": true,
-      "callerPolicy": "workflowsFromSameOwner"
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "2aa01d64-fc9f-4be1-807b-0c66c0cb92f9",
+    "activeVersionId": "2aa01d64-fc9f-4be1-807b-0c66c0cb92f9",
+    "versionCounter": 11,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-04-16T22:10:06.588Z",
+        "createdAt": "2026-04-16T22:10:06.588Z",
+        "role": "workflow:owner",
+        "workflowId": "xgBgCZeVWBVB7jLN",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
     }
   }
 ]

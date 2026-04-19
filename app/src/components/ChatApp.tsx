@@ -23,6 +23,9 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
   const [sending, setSending] = useState(false);
   const [openSlot, setOpenSlot] = useState<number | null>(null);
   const [waiting, setWaiting] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+  const [personaCount, setPersonaCount] = useState<number>(session.personaCount);
+  const [currentRound, setCurrentRound] = useState<number>(session.currentRound);
   const [refreshToken, setRefreshToken] = useState(0);
   const [filesList, setFilesList] = useState<FileRow[]>([]);
   const [showUpload, setShowUpload] = useState(false);
@@ -35,11 +38,24 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
         const p = JSON.parse(ev.data);
         if (p.type === "session") {
           if (typeof p.title === "string") { setTitle(p.title); setTitleDraft(p.title); }
+          if (typeof p.personaCount === "number") setPersonaCount(p.personaCount);
+          if (typeof p.currentRound === "number") setCurrentRound(p.currentRound);
+          return;
+        }
+        if (p.type === "status") {
+          if (typeof p.text === "string" && p.text.trim()) {
+            setStatus(p.text);
+            setWaiting(true);
+          }
+          return;
+        }
+        if (p.type === "persona_image") {
+          setRefreshToken(t => t + 1);
           return;
         }
         if (p.type === "message") {
           setMsgs(prev => prev.some(m => m.id === p.message.id) ? prev : [...prev, p.message]);
-          if (p.message.role !== "user") { setWaiting(false); setRefreshToken(t => t + 1); }
+          if (p.message.role !== "user") { setWaiting(false); setStatus(null); setRefreshToken(t => t + 1); }
         }
       } catch {}
     };
@@ -109,7 +125,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
                 title="Klick zum Umbenennen">{title}</button>
             )}
             <div className="text-xs text-neutral-500">
-              {session.status} - Runde {session.currentRound} - {session.personaCount} Personas - {filesList.length} Dateien
+              {session.status} - Runde {currentRound} - {personaCount} Personas - {filesList.length} Dateien
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -126,8 +142,8 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
           {msgs.map(m => <MessageBubble key={m.id} m={m} />)}
           {waiting && (
             <div className="flex items-center gap-2 text-neutral-500 text-sm">
-              <span className="inline-block w-2 h-2 bg-sky-500 rounded-full animate-pulse" />
-              <span>Syn denkt nach...</span>
+              <span className="inline-block w-2 h-2 bg-fuchsia-500 rounded-full animate-pulse" />
+              <span className="italic">{status || "Syn denkt nach..."}</span>
             </div>
           )}
           <div ref={bottomRef} />

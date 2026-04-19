@@ -43,6 +43,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  if (b.kind === "status") {
+    // Ephemeral progress indicator - broadcast but don't persist
+    await publish(`session:${b.sessionId}`, { type: "status", text });
+    return NextResponse.json({ ok: true });
+  }
+
   let role = "system";
   let personaSlot: number | null = null;
   let personaName: string | null = null;
@@ -93,10 +99,32 @@ export async function POST(req: Request) {
       }
     }
   }
-  if (role === "coordinator") {
+  if (role === "coordinator" || role === "persona" || role === "synthesis") {
     try {
       const state = await readState(b.sessionId);
-      const existingImgs = await db.select().from(personaImages).where(eq(personaImages.sessionId, b.sessionId));
+      const personaCount = state.personas.length;
+      const derivedRound = Math.max(
+        0,
+        ...state.syntheses.map(s => s.round_number || 0),
+        ...state.personas.flatMap(p => [
+          p.round_1_response ? 1 : 0,
+          p.round_2_response ? 2 : 0,
+          p.round_3_response ? 3 : 0
+        ])
+      );
+      if (personaCount !== sess.personaCount || derivedRound !== sess.currentRound) {
+        await db.update(sessions).set({
+          personaCount,
+          currentRound: derivedRound,
+          updatedAt: new Date()
+        }).where(eq(sessions.id, b.sessionId));
+        await publish(`session:${b.sessionId}`, {
+          type: "session", personaCount, currentRound: derivedRound
+        });
+      }
+
+      const existingImgs = await db.select().from(personaImages)
+        .where(eq(personaImages.sessionId, b.sessionId));
       const existingSlots = new Set(existingImgs.map(x => x.slot));
       for (const p of state.personas) {
         const slot = p.slack_slot;
