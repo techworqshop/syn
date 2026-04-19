@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-19T21:16:19.785Z",
+    "updatedAt": "2026-04-19T21:21:06.449Z",
     "createdAt": "2026-04-16T22:10:33.552Z",
     "id": "A3jxDuimyDE2G6uO",
     "name": "SynWeb_Coordinator",
@@ -73,9 +73,9 @@
         "parameters": {
           "model": {
             "__rl": true,
-            "value": "claude-opus-4-6",
+            "value": "claude-sonnet-4-6",
             "mode": "list",
-            "cachedResultName": "Claude Opus 4.6"
+            "cachedResultName": "Claude Sonnet 4.6"
           },
           "options": {
             "temperature": 0.7
@@ -1135,9 +1135,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "08a5492f-29fd-40d1-aff3-179ff2aaddbb",
-    "activeVersionId": "08a5492f-29fd-40d1-aff3-179ff2aaddbb",
-    "versionCounter": 26,
+    "versionId": "c5fb6069-c7d6-44ed-abb4-ec34298de9c7",
+    "activeVersionId": "c5fb6069-c7d6-44ed-abb4-ec34298de9c7",
+    "versionCounter": 29,
     "triggerCount": 0,
     "tags": [],
     "shared": [
