@@ -128,6 +128,45 @@ Bugs beim Import:
 - Layout conditional, server-wrapped page mit redirect
 - `/app/users` zeigt Accounts + Pending Invites, Kick-Button
 
+## Phase 2l — Bugfixes + Error Handling + Progress Indicator
+
+User hat drei Bugs in erster Echt-Session gemeldet (session c2f2c357...):
+
+**Bug 1 — Doppelte Synthese (EN + DE)**
+- Synthesize-Workflow postet Synthese via Callback; Coordinator bekam den Text als Tool-Output zurück und hat ihn als eigene Antwort in Deutsch nochmal repostet.
+- Fix: Coordinator-System-Prompt sagt jetzt explizit _"Synthesize Round postet automatisch. Don't repeat or paraphrase. Nur kurzer Ack-Oneliner danach."_
+- Zusätzlich: Synthesize-Prompts auf Deutsch lokalisiert (Sektionen KONSENS/SPANNUNGSLINIEN/UEBERRASCHUNGEN/OFFENE LUECKEN/ENTSTEHENDE FRAGEN + System-Msg _"antworte in der gleichen Sprache wie Personas"_).
+
+**Bug 2 — Personas referenzieren andere Panelisten**
+- Tobias schrieb _"bin ich wahrscheinlich der Gegenpol zu Miriam"_. Ursache: Coordinator hat _"Gegenpol zu Miriam"_ wörtlich in Tobias' `profile` gespeichert; RunPersona reicht Profile 1:1 durch.
+- Fix: In SAVING PERSONAS prompt neue Regel — _"profile must describe the persona standalone. No references to other panelists, no 'Gegenpol zu X', no 'counterpart to Y'. Productive tension emerges from authentic views, not from embedded pairing instructions."_
+
+**Bug 3 — Persona-Bilder erscheinen nicht**
+- `generatePersonaImage` wurde NUR bei `kind=coordinator` im Callback getriggert. Zwischen Persona-Saving und Round-1-Ende gab es keine Coordinator-Message, also liefen Bilder erst Minuten später.
+- Fix: Image-Gen triggert jetzt bei coordinator/persona/synthesis callbacks.
+- Zusätzlich: `session.persona_count` und `current_round` wurden nirgends aktualisiert. Fix: route.ts berechnet beides aus readState und pusht via SSE (`type: "session", personaCount, currentRound`). Header im Chat ist jetzt live.
+
+**Feature — Error Handling im Chat**
+- n8n-Fehler verschwanden bisher silent. User sah nur kein Response.
+- Gateway: `Execute Coordinator` + `Execute Audience` auf `onError: continueErrorOutput`. Error-Branch führt zu neuem `Notify Web Error`-Node der `POST /api/n8n/callback` mit `kind=error` schickt.
+- Callback-Handler: neuer `kind=error`-Case → persistiert als `role=coordinator` Message mit `metadata.kind=error`.
+- MessageBubble: erkennt `metadata.kind === "error"`, rendert mit rot/rose Gradient, red border, Label "Fehler".
+- Gotcha: erster `jsonBody` hatte `'Probier''s'` (doppelter Apostroph als falsches JS-Escape) → JSON.stringify SyntaxError → leerer Body → Callback mit `invalid json` ignoriert. Fix: Apostroph raus, Error-Details aus `$json.error` angehängt.
+
+**Feature — Progress-Indikator ("Reasoning-Variante")**
+- User will sehen, was Syn im Hintergrund macht statt 60s Stille.
+- Neuer Workflow `SynWeb_PostStatus` (6GNn5cZdVZyGoxR1): simples Sub-Workflow mit Execute-Workflow-Trigger + einem HTTP-Request an Callback mit `kind=status`.
+- Coordinator bekommt neuen `toolWorkflow`-Node "Post Status" verbunden als `ai_tool`. $fromAI erzeugt hier kein problematisches Schema (funktioniert nur in toolWorkflow/dataTableTool, NICHT in `toolHttpRequest` — erster Ansatz mit toolHttpRequest scheiterte an Anthropic's `tools.0.custom.input_schema.properties`-Pattern-Validator).
+- Callback: `kind=status` broadcastet als ephemeres SSE-Event, wird NICHT in messages-Tabelle persistiert.
+- ChatApp: `useEffect` onmessage zweigt bei `type: "status"` ab, setzt `status` state + `waiting` state. Status wird kursiv als Typing-Indikator zwischen Messages gerendert, cleared sich bei nächster echter Message.
+- Prompt-Hint im Coordinator: _"Before any slow tool, call Post Status ONCE with short one-liner (DE default, Präsens, max 40 chars)."_
+
+**Fehlschläge auf dem Weg (zur Erinnerung)**
+- Erster Post-Status-Versuch war `toolHttpRequest` mit `$fromAI` — Anthropic lehnte Tool-Schema ab. Placeholder-Definitions-Fix griff nicht. Gelöst durch Umstellung auf `toolWorkflow` + dediziertes Sub-Workflow.
+- `maxIterations` von 25 → 50 hochgedreht um Rate-Limit-Fenster zu überschreiten; wieder auf 25 zurück. Root cause war nicht Iteration-Count sondern Konzentration von API-Calls pro Minute.
+- Vorübergehend Model auf Sonnet 4.6 umgestellt — User hat explizit Opus 4.6 gefordert wegen Context Window, zurück auf Opus.
+- System-Prompt war zwischenzeitlich aufgeblasen mit PROGRESS SIGNALING + CRITICAL PROFILE RULE mit Good/Bad-Beispielen + RUNNING A ROUND Section → reverted auf minimalen additiven Patch (zwei Sätze in SAVING PERSONAS + BEHAVIORS).
+
 ## Wiederkehrende Gotchas
 
 1. SSH MCP Command-Limit 1000 chars — heredocs in chunks, Python-scripts in /tmp
@@ -139,6 +178,9 @@ Bugs beim Import:
 7. Migrations: scripts/migrate.ts liest *.sql, idempotent
 8. Build errors: lazy DB-init + `force-dynamic` auf auth-pages
 9. Docker-build ~60-90s (npm install heavy)
+10. `$fromAI(...)` funktioniert in toolWorkflow/dataTableTool, aber NICHT in toolHttpRequest — Anthropic rejected das generierte tool-schema. Fallback: eigenes Sub-Workflow + toolWorkflow.
+11. n8n expression strings: Apostrophe in single-quoted Strings müssen mit `\'` escaped werden — doppelte Apostrophe sind KEIN valides JS-Escape, brechen JSON.stringify silent.
+12. Error-Output in executeWorkflow: `onError: "continueErrorOutput"` → Error-Item landet auf main[1] mit `{...originalInput, error: "message"}`.
 
 ## Bewusst nicht (noch nicht) implementiert
 
