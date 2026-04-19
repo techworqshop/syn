@@ -3,7 +3,8 @@ import { db } from "@/lib/db";
 import { messages, audienceMessages, sessions } from "@/db/schema";
 import { publish } from "@/lib/redis";
 import { readState } from "@/lib/n8n";
-import { eq } from "drizzle-orm";
+import { suggestTitle } from "@/lib/title-gen";
+import { eq, asc } from "drizzle-orm";
 
 const SECRET = process.env.N8N_CALLBACK_SECRET!;
 
@@ -76,5 +77,19 @@ export async function POST(req: Request) {
     metadata: { kind: b.kind }
   }).returning();
   await publish(`session:${b.sessionId}`, { type: "message", message: row });
+
+  if (role === "coordinator" && !sess.titleLocked && (sess.title === "Neue Fokusgruppe" || !sess.title)) {
+    const allMsgs = await db.select().from(messages)
+      .where(eq(messages.sessionId, b.sessionId)).orderBy(asc(messages.createdAt));
+    const firstUserMsgs = allMsgs.filter(m => m.role === "user").map(m => m.content).slice(0, 3);
+    if (firstUserMsgs.length >= 1) {
+      const suggestion = await suggestTitle(null, firstUserMsgs);
+      if (suggestion && suggestion.length >= 4) {
+        await db.update(sessions).set({ title: suggestion, updatedAt: new Date() })
+          .where(eq(sessions.id, b.sessionId));
+        await publish(`session:${b.sessionId}`, { type: "session", title: suggestion });
+      }
+    }
+  }
   return NextResponse.json({ ok: true });
 }

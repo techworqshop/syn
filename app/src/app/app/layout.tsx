@@ -15,7 +15,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <div className="font-semibold tracking-tight text-neutral-100 group-hover:text-white">SynWeb</div>
         </Link>
         <div className="text-sm text-neutral-400 flex items-center gap-4">
-          <Link href="/app/settings" className="hidden sm:inline text-neutral-500 hover:text-neutral-200 transition-colors">Einstellungen</Link>
           <span className="hidden sm:inline text-neutral-500">{session.user.email}</span>
           <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
             <button className="text-neutral-400 hover:text-neutral-100 transition-colors">Logout</button>

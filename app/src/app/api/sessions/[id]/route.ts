@@ -12,3 +12,17 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ session: row });
 }
+
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const u = await requireUser();
+  const { id } = await params;
+  const body = await req.json().catch(() => ({}));
+  const title = typeof body?.title === "string" ? body.title.trim().slice(0, 120) : null;
+  if (!title) return NextResponse.json({ error: "title required" }, { status: 400 });
+  const [row] = await db.update(sessions)
+    .set({ title, titleLocked: true, updatedAt: new Date() })
+    .where(and(eq(sessions.id, id), eq(sessions.userId, u.id)))
+    .returning();
+  if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
+  return NextResponse.json({ session: row });
+}

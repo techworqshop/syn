@@ -15,6 +15,9 @@ type Props = {
 
 export default function ChatApp({ sessionId, session, initialMessages }: Props) {
   const [msgs, setMsgs] = useState<Message[]>(initialMessages);
+  const [title, setTitle] = useState<string>(session.title);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(session.title);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [openSlot, setOpenSlot] = useState<number | null>(null);
@@ -29,6 +32,10 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
     es.onmessage = (ev) => {
       try {
         const p = JSON.parse(ev.data);
+        if (p.type === "session") {
+          if (typeof p.title === "string") { setTitle(p.title); setTitleDraft(p.title); }
+          return;
+        }
         if (p.type === "message") {
           setMsgs(prev => prev.some(m => m.id === p.message.id) ? prev : [...prev, p.message]);
           if (p.message.role !== "user") { setWaiting(false); setRefreshToken(t => t + 1); }
@@ -44,6 +51,19 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs.length, waiting]);
 
+
+  async function saveTitle() {
+    const trimmed = titleDraft.trim();
+    setEditingTitle(false);
+    if (!trimmed || trimmed === title) { setTitleDraft(title); return; }
+    const res = await fetch(`/api/sessions/${sessionId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: trimmed })
+    });
+    if (res.ok) { setTitle(trimmed); }
+    else { setTitleDraft(title); }
+  }
 
   async function deleteFile(id: string) {
     const res = await fetch(`/api/files/${id}`, { method: 'DELETE' });
@@ -73,7 +93,20 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
       <div className="flex-1 flex flex-col min-w-0 relative">
         <div className="border-b border-neutral-800 px-6 py-3 flex items-center justify-between">
           <div>
-            <div className="font-medium">{session.title}</div>
+            {editingTitle ? (
+              <input autoFocus value={titleDraft}
+                onChange={e => setTitleDraft(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') { saveTitle(); }
+                  if (e.key === 'Escape') { setEditingTitle(false); setTitleDraft(title); }
+                }}
+                onBlur={saveTitle}
+                className="font-medium bg-transparent border-b border-fuchsia-500/60 focus:outline-none" />
+            ) : (
+              <button onClick={() => setEditingTitle(true)}
+                className="font-medium hover:text-fuchsia-300 transition-colors text-left"
+                title="Klick zum Umbenennen">{title}</button>
+            )}
             <div className="text-xs text-neutral-500">
               {session.status} - Runde {session.currentRound} - {session.personaCount} Personas - {filesList.length} Dateien
             </div>

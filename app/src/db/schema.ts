@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, jsonb, index, foreignKey } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, integer, jsonb, boolean, index, foreignKey } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -14,6 +14,7 @@ export const sessions = pgTable("sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull().default("Neue Fokusgruppe"),
+  titleLocked: boolean("title_locked").notNull().default(false),
   problemBrief: text("problem_brief"),
   status: text("status").notNull().default("discovery"),
   rigidityScore: integer("rigidity_score").notNull().default(5),
