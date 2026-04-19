@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-16T22:24:20.552Z",
+    "updatedAt": "2026-04-19T21:37:43.572Z",
     "createdAt": "2026-04-16T22:10:03.276Z",
     "id": "XybiSig1oi3HquZd",
     "name": "SynWeb_RunPersona",
@@ -271,9 +271,9 @@
         "parameters": {
           "modelId": {
             "__rl": true,
-            "value": "claude-opus-4-6",
+            "value": "claude-opus-4-7",
             "mode": "list",
-            "cachedResultName": "claude-opus-4-6"
+            "cachedResultName": "claude-opus-4-7"
           },
           "messages": {
             "values": [
@@ -520,9 +520,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "c583e0f7-c4f6-4181-a58d-e69e6e2484c5",
-    "activeVersionId": "c583e0f7-c4f6-4181-a58d-e69e6e2484c5",
-    "versionCounter": 4,
+    "versionId": "e80e1dd2-0d82-4717-8a47-e16a654c36db",
+    "activeVersionId": "e80e1dd2-0d82-4717-8a47-e16a654c36db",
+    "versionCounter": 11,
     "triggerCount": 0,
     "tags": [],
     "shared": [

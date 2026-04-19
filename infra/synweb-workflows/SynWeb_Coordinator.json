@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-19T21:28:26.701Z",
+    "updatedAt": "2026-04-19T21:37:35.968Z",
     "createdAt": "2026-04-16T22:10:33.552Z",
     "id": "A3jxDuimyDE2G6uO",
     "name": "SynWeb_Coordinator",
@@ -73,9 +73,9 @@
         "parameters": {
           "model": {
             "__rl": true,
-            "value": "claude-opus-4-6",
+            "value": "claude-opus-4-7",
             "mode": "list",
-            "cachedResultName": "Claude Opus 4.6"
+            "cachedResultName": "Claude Opus 4.7"
           },
           "options": {
             "temperature": 0.7
@@ -1140,9 +1140,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "80d8f34d-c144-49d4-b4b6-2d2b68404fe8",
-    "activeVersionId": "80d8f34d-c144-49d4-b4b6-2d2b68404fe8",
-    "versionCounter": 41,
+    "versionId": "28b4205f-6bde-41ec-9f39-31065fc9379f",
+    "activeVersionId": "28b4205f-6bde-41ec-9f39-31065fc9379f",
+    "versionCounter": 44,
     "triggerCount": 0,
     "tags": [],
     "shared": [

@@ -1,7 +1,11 @@
 [
   {
+    "updatedAt": "2026-04-19T21:37:50.898Z",
+    "createdAt": "2026-04-16T22:10:09.817Z",
+    "id": "M04sAqjOhZRVGlXb",
     "name": "SynWeb_Audience",
     "description": null,
+    "active": true,
     "isArchived": false,
     "nodes": [
       {
@@ -242,9 +246,9 @@
         "parameters": {
           "modelId": {
             "__rl": true,
-            "value": "claude-opus-4-6",
+            "value": "claude-opus-4-7",
             "mode": "list",
-            "cachedResultName": "claude-opus-4-6"
+            "cachedResultName": "claude-opus-4-7"
           },
           "messages": {
             "values": [
@@ -315,7 +319,8 @@
           "modelId": {
             "__rl": true,
             "mode": "id",
-            "value": "claude-sonnet-4-20250514"
+            "value": "claude-opus-4-7",
+            "cachedResultName": "claude-opus-4-7"
           },
           "messages": {
             "values": [
@@ -663,10 +668,34 @@
     "meta": {
       "templateCredsSetupCompleted": true
     },
+    "pinData": null,
+    "versionId": "23ba9f15-3411-47f7-aff6-ba064d343821",
+    "activeVersionId": "23ba9f15-3411-47f7-aff6-ba064d343821",
+    "versionCounter": 8,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-04-16T22:10:09.817Z",
+        "createdAt": "2026-04-16T22:10:09.817Z",
+        "role": "workflow:owner",
+        "workflowId": "M04sAqjOhZRVGlXb",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
     "versionMetadata": {
-      "name": "Version 5c2c3885",
-      "description": ""
-    },
-    "id": "M04sAqjOhZRVGlXb"
+      "name": null,
+      "description": null
+    }
   }
 ]
