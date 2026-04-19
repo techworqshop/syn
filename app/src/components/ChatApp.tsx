@@ -145,18 +145,35 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
             ))}
           </div>
         )}
-        <div className="border-t border-neutral-800 p-4 flex gap-2 items-end">
-          <button onClick={() => setShowUpload(true)} className="px-4 py-2 rounded-lg border border-white/10 bg-neutral-900 hover:bg-neutral-800 text-sm text-neutral-200 whitespace-nowrap transition-colors" title="Dateien hochladen">Dateien</button>
-          <textarea value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            rows={2}
-            placeholder="Nachricht an Syn..."
-            className="flex-1 px-3 py-2 rounded bg-neutral-800 border border-neutral-700 focus:outline-none focus:border-sky-500 resize-none" />
-          <button disabled={sending || !input.trim()} onClick={send}
-            className="px-6 py-2 rounded btn-primary disabled:opacity-50">
-            {sending ? "..." : "Senden"}
-          </button>
+        <div className="border-t border-neutral-800 p-4">
+          <div className="rounded-2xl border border-white/10 bg-neutral-900/60 focus-within:border-fuchsia-500/50 focus-within:ring-2 focus-within:ring-fuchsia-500/10 transition-all">
+            <textarea value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+              rows={2}
+              placeholder="Nachricht an Syn..."
+              className="block w-full px-4 pt-3 pb-1 bg-transparent focus:outline-none resize-none text-[14px] leading-relaxed placeholder:text-neutral-500" />
+            <div className="flex items-center justify-between px-2 py-2">
+              <button onClick={() => setShowUpload(true)}
+                title="Dateien hochladen"
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-neutral-400 hover:text-neutral-100 hover:bg-white/5 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                  <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 0 1 17.99 8.85L9.42 17.42a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                </svg>
+              </button>
+              <button disabled={sending || !input.trim()} onClick={send}
+                title="Senden"
+                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${(!input.trim() || sending) ? "text-neutral-600 bg-neutral-800/50 cursor-not-allowed" : "btn-primary text-white"}`}>
+                {sending ? (
+                  <span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path d="M3.4 20.4 20.85 12.92a1 1 0 0 0 0-1.84L3.4 3.6a1 1 0 0 0-1.39 1.13L4 11l9 1-9 1-1.99 6.27a1 1 0 0 0 1.39 1.13Z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <PersonaSidebar sessionId={sessionId} refreshToken={refreshToken} onSelect={setOpenSlot} />
