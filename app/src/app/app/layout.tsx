@@ -1,12 +1,13 @@
-import { auth, signOut } from "@/lib/auth";
+import { signOut } from "@/lib/auth";
+import { requireUser } from "@/lib/current-user";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
-  if (!session?.user) redirect("/login");
+  const u = await requireUser().catch(() => null);
+  if (!u) redirect("/login");
   return (
     <div className="h-screen flex flex-col">
       <header className="glass border-b border-white/5 px-6 py-3 flex items-center justify-between sticky top-0 z-20">
@@ -15,8 +16,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <div className="font-semibold tracking-tight text-neutral-100 group-hover:text-white">SynWeb</div>
         </Link>
         <div className="text-sm text-neutral-400 flex items-center gap-4">
-          <span className="hidden sm:inline text-neutral-500">{session.user.email}</span>
-          <Link href="/app/users" className="hidden sm:inline text-neutral-500 hover:text-neutral-200 transition-colors">Nutzer</Link>
+          <span className="hidden sm:inline text-neutral-500">{u.email}</span>
+          {u.isAdmin && <Link href="/app/users" className="hidden sm:inline text-neutral-500 hover:text-neutral-200 transition-colors">Nutzer</Link>}
           <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
             <button className="text-neutral-400 hover:text-neutral-100 transition-colors">Logout</button>
           </form>

@@ -2,20 +2,20 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
 import { db } from "@/lib/db";
 import { invites, users } from "@/db/schema";
-import { requireUser } from "@/lib/current-user";
+import { requireUser, requireAdmin } from "@/lib/current-user";
 import { sendInviteEmail } from "@/lib/n8n";
 import { desc, eq, and, isNull, gt } from "drizzle-orm";
 
 const BASE = process.env.PUBLIC_BASE_URL || "";
 
 export async function GET() {
-  await requireUser();
+  await requireAdmin();
   const rows = await db.select().from(invites).orderBy(desc(invites.createdAt));
   return NextResponse.json({ invites: rows });
 }
 
 export async function POST(req: Request) {
-  const u = await requireUser();
+  const u = await requireAdmin();
   const body = await req.json().catch(() => ({}));
   const email = (body?.email as string | undefined)?.trim().toLowerCase();
   if (!email || !email.includes("@")) {

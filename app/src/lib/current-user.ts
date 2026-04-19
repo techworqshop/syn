@@ -10,3 +10,13 @@ export async function requireUser() {
   if (!u) throw new Error("User not found");
   return u;
 }
+
+export async function requireAdmin() {
+  const u = await requireUser();
+  if (!u.isAdmin) {
+    const e = new Error("Forbidden") as Error & { status?: number };
+    e.status = 403;
+    throw e;
+  }
+  return u;
+}
