@@ -84,18 +84,25 @@ const NAME_COLOR: Record<number, string> = {
 };
 
 export default function MessageBubble({ m }: { m: Message }) {
+  const isError = typeof m.metadata === "object" && m.metadata !== null &&
+    (m.metadata as { kind?: string }).kind === "error";
   let color = BUBBLE[m.role] ?? BUBBLE.system;
   if (m.role === "persona" && m.personaSlot && PERSONA_BUBBLE[m.personaSlot]) {
     color = PERSONA_BUBBLE[m.personaSlot] + " text-neutral-100";
   }
+  if (isError) {
+    color = "bg-gradient-to-br from-red-950/60 via-rose-950/50 to-neutral-900/60 text-rose-100 border border-red-700/50";
+  }
   let label: string = LABELS[m.role] ?? m.role;
   if (m.role === "persona") label = m.personaName || (m.personaSlot ? `Persona ${m.personaSlot}` : "Persona");
   if (m.role === "synthesis" && m.roundNumber) label = `Synthese Runde ${m.roundNumber}`;
+  if (isError) label = "Fehler";
   let labelColor = "text-neutral-200";
   if (m.role === "coordinator") labelColor = "text-fuchsia-300";
   if (m.role === "synthesis") labelColor = "text-amber-300";
   if (m.role === "user") labelColor = "text-sky-300";
   if (m.role === "persona" && m.personaSlot && NAME_COLOR[m.personaSlot]) labelColor = NAME_COLOR[m.personaSlot];
+  if (isError) labelColor = "text-red-300";
 
   return (
     <div className="flex gap-3 items-start group hover:bg-white/[0.015] rounded-xl -mx-2 px-2 py-1 transition-colors">

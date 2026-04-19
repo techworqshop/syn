@@ -1,6 +1,12 @@
 [
   {
+    "updatedAt": "2026-04-19T20:59:35.516Z",
+    "createdAt": "2026-04-16T22:10:51.612Z",
+    "id": "V0CpwraeTYxQh6BM",
     "name": "SynWeb_Gateway",
+    "description": null,
+    "active": true,
+    "isArchived": false,
     "nodes": [
       {
         "id": "21657c7b-da65-4c84-96a8-83930b57de1e",
@@ -143,7 +149,8 @@
               "hasFiles": "={{ $json.hasFiles }}"
             }
           }
-        }
+        },
+        "onError": "continueErrorOutput"
       },
       {
         "id": "b32c2481-2b0a-4512-a611-c111d8050ecb",
@@ -170,7 +177,42 @@
               "userId": "={{ $json.userId }}"
             }
           }
-        }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "id": "notify-web-error",
+        "name": "Notify Web Error",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1100,
+          300
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://syn.worqshop.io/api/n8n/callback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ sessionId: $('Extract Body').item.json.sessionId, kind: 'error', text: '⚠️ Da ist was schiefgelaufen. Ich probier''s nochmal beim nächsten Input.' }) }}",
+          "options": {
+            "timeout": 10000
+          }
+        },
+        "continueOnFail": true
       }
     ],
     "connections": {
@@ -218,6 +260,30 @@
             }
           ]
         ]
+      },
+      "Execute Coordinator": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Notify Web Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Audience": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Notify Web Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "settings": {
@@ -226,8 +292,39 @@
       "saveDataSuccessExecution": "all",
       "saveManualExecutions": true,
       "saveExecutionProgress": true,
-      "callerPolicy": "workflowsFromSameOwner"
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false
     },
-    "id": "V0CpwraeTYxQh6BM"
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "2781babd-c421-4e05-bd05-6d55589ee131",
+    "activeVersionId": "2781babd-c421-4e05-bd05-6d55589ee131",
+    "versionCounter": 8,
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-04-16T22:10:51.612Z",
+        "createdAt": "2026-04-16T22:10:51.612Z",
+        "role": "workflow:owner",
+        "workflowId": "V0CpwraeTYxQh6BM",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
   }
 ]

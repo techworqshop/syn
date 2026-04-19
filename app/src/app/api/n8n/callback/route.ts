@@ -49,6 +49,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  if (b.kind === "error") {
+    const content = text.trim() || "⚠️ Da ist was schiefgelaufen. Probier's bitte nochmal.";
+    const [row] = await db.insert(messages).values({
+      sessionId: b.sessionId,
+      role: "coordinator",
+      content,
+      metadata: { kind: "error" }
+    }).returning();
+    await publish(`session:${b.sessionId}`, { type: "message", message: row });
+    return NextResponse.json({ ok: true });
+  }
+
   let role = "system";
   let personaSlot: number | null = null;
   let personaName: string | null = null;
