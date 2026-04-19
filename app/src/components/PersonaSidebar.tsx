@@ -1,4 +1,5 @@
 "use client";
+import { renderMarkdown } from "./Markdown";
 import { useEffect, useRef, useState } from "react";
 import type { PanelPersona, PanelSynthesis } from "./types";
 
@@ -64,7 +65,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
   return (
     <aside className="w-72 border-l border-neutral-800 bg-neutral-900/30 p-3 space-y-2 overflow-y-auto">
       <div className="text-xs uppercase tracking-wide text-neutral-500 mb-2 px-1">Personas</div>
-      {[1,2,3,4,5].map(n => {
+      {[1,2,3,4,5].filter(n => bySlot[n]).map(n => {
         const p = bySlot[n];
         const isExp = expanded === n;
         return (
@@ -150,8 +151,8 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
                 <div className="font-medium text-emerald-300">Runde {s.round_number}</div>
               </button>
               {synthOpen === s.round_number && (
-                <div className="border-t border-emerald-900/50 p-3 text-xs text-neutral-200 whitespace-pre-wrap bg-neutral-950/50">
-                  {s.synthesis_text}
+                <div className="border-t border-emerald-900/50 p-3 text-xs text-neutral-200 bg-neutral-950/50">
+                  {renderMarkdown(s.synthesis_text)}
                 </div>
               )}
             </div>
