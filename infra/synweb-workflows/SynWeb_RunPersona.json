@@ -35,7 +35,8 @@
                 "name": "previous_synthesis"
               },
               {
-                "name": "rigidity_instruction"
+                "name": "rigidity",
+                "type": "number"
               },
               {
                 "name": "unresolved_tension"
@@ -278,7 +279,7 @@
           "messages": {
             "values": [
               {
-                "content": "=Du bist {{ $json.persona_id }} mit folgendem Profil:\n\n{{ $json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\n{{ $json.file_context ? 'FILE CONTEXT:\\n' + $json.file_context : '' }}\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\n{{ $json.rigidity_instruction ? 'RIGIDITY INSTRUCTION:\\n' + $json.rigidity_instruction : '' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nDies ist Runde {{ $json.round_number }}.\n\nWenn Dateien angehaengt sind, analysiere sie gruendlich und beziehe sie in deine Antwort ein.\n\nFORMATTING: Kein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt.\n\nAnalysiere das Problem aus deiner spezifischen Perspektive. Sei direkt und substanziell. Max 400 Woerter."
+                "content": "=Du bist {{ $json.persona_id }} mit folgendem Profil:\n\n{{ $json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\n{{ $json.file_context ? 'FILE CONTEXT:\\n' + $json.file_context : '' }}\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\nHALTUNG: {{ ($json.rigidity ?? 5) <= 3 ? 'Du bist standhaft. Bleib bei deiner Position, selbst bei guten Gegenargumenten.' : ($json.rigidity ?? 5) <= 6 ? 'Ausgewogen. Update nur bei wirklich starken neuen Argumenten.' : 'Offen. Aktualisiere deine Position aktiv basierend auf neuen Infos.' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nDies ist Runde {{ $json.round_number }}.\n\nWenn Dateien angehaengt sind, analysiere sie gruendlich und beziehe sie in deine Antwort ein.\n\nFORMATTING: Kein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt.\n\nAnalysiere das Problem aus deiner spezifischen Perspektive. Sei direkt und substanziell. Max 400 Woerter."
               }
             ]
           },
@@ -312,7 +313,7 @@
           "messages": {
             "values": [
               {
-                "content": "=Du bist {{ $('Execute Workflow Trigger').item.json.persona_id }} mit folgendem Profil:\n\n{{ $('Execute Workflow Trigger').item.json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $('Execute Workflow Trigger').item.json.problem_brief }}\n\n{{ $json.file_context ? 'FILE CONTEXT:\\n' + $json.file_context : '' }}\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\n{{ $json.rigidity_instruction ? 'RIGIDITY INSTRUCTION:\\n' + $json.rigidity_instruction : '' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nDies ist Runde {{ $('Execute Workflow Trigger').item.json.round_number }}.\n\nFORMATTING: Kein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt.\n\nAnalysiere das Problem aus deiner spezifischen Perspektive. Sei direkt und substanziell. Max 400 Woerter."
+                "content": "=Du bist {{ $('Execute Workflow Trigger').item.json.persona_id }} mit folgendem Profil:\n\n{{ $('Execute Workflow Trigger').item.json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $('Execute Workflow Trigger').item.json.problem_brief }}\n\n{{ $json.file_context ? 'FILE CONTEXT:\\n' + $json.file_context : '' }}\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\nHALTUNG: {{ ($json.rigidity ?? 5) <= 3 ? 'Du bist standhaft. Bleib bei deiner Position, selbst bei guten Gegenargumenten.' : ($json.rigidity ?? 5) <= 6 ? 'Ausgewogen. Update nur bei wirklich starken neuen Argumenten.' : 'Offen. Aktualisiere deine Position aktiv basierend auf neuen Infos.' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nDies ist Runde {{ $('Execute Workflow Trigger').item.json.round_number }}.\n\nFORMATTING: Kein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt.\n\nAnalysiere das Problem aus deiner spezifischen Perspektive. Sei direkt und substanziell. Max 400 Woerter."
               }
             ]
           },

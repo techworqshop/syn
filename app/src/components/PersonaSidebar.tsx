@@ -1,13 +1,18 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PanelPersona, PanelSynthesis } from "./types";
-import { PERSONA_NAMES } from "./types";
 
 type Props = {
   sessionId: string;
   refreshToken: number;
   onSelect: (slot: number) => void;
 };
+
+function rigidityLabel(r: number): string {
+  if (r <= 3) return "standhaft";
+  if (r <= 6) return "ausgewogen";
+  return "offen";
+}
 
 const TILE_GRADIENT: Record<number,string> = {
   1: "from-rose-500/15 via-pink-500/10 to-fuchsia-500/15 border-rose-400/30",
@@ -22,6 +27,8 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
   const [syntheses, setSyntheses] = useState<PanelSynthesis[]>([]);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [synthOpen, setSynthOpen] = useState<number | null>(null);
+  const [localRigidity, setLocalRigidity] = useState<Record<number, number>>({});
+  const saveTimers = useRef<Record<number, ReturnType<typeof setTimeout> | null>>({});
 
   useEffect(() => {
     let cancel = false;
@@ -40,6 +47,18 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
   for (const p of personas) {
     const slot = p.slack_slot ?? 0;
     if (slot >= 1 && slot <= 5) bySlot[slot] = p;
+  }
+
+  function changeRigidity(slot: number, value: number) {
+    setLocalRigidity(prev => ({ ...prev, [slot]: value }));
+    if (saveTimers.current[slot]) clearTimeout(saveTimers.current[slot]!);
+    saveTimers.current[slot] = setTimeout(() => {
+      fetch(`/api/sessions/${sessionId}/personas/${slot}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rigidity: value })
+      }).catch(() => {});
+    }, 400);
   }
 
   return (
@@ -69,6 +88,25 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
                 </button>
               )}
             </div>
+            {p && (() => {
+              const current = localRigidity[n] ?? (typeof p.rigidity === "number" ? p.rigidity : 5);
+              return (
+                <div className="border-t border-neutral-800/60 px-3 py-2 bg-neutral-950/30">
+                  <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-neutral-500 mb-1">
+                    <span>Haltung</span>
+                    <span className="text-neutral-300 normal-case tracking-normal">{rigidityLabel(current)}</span>
+                  </div>
+                  <input type="range" min={0} max={10} step={1} value={current}
+                    onChange={e => changeRigidity(n, parseInt(e.target.value))}
+                    className="w-full accent-fuchsia-500 cursor-pointer"
+                    title={`Rigidity ${current}/10`} />
+                  <div className="flex justify-between text-[9px] text-neutral-600 mt-0.5">
+                    <span>standhaft</span>
+                    <span>offen</span>
+                  </div>
+                </div>
+              );
+            })()}
             {isExp && p && (
               <div className="border-t border-neutral-800 p-3 space-y-2 text-xs bg-neutral-950/50">
                 {p.core_perspective && (

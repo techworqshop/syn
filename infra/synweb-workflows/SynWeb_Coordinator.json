@@ -10,7 +10,7 @@
     "nodes": [
       {
         "parameters": {
-          "jsCode": "// Phase Detection: Data comes pre-processed from Syn_Gateway\nconst items = $input.all();\nconst item = items[0].json;\n\nconst threadTs = item.sessionId;\nconst channelId = item.channelId;\nconst userId = item.userId;\nconst cleanMessage = item.cleanMessage || '';\nconst hasFiles = item.hasFiles || false;\n\n// Detect intent patterns\nconst isPersonaQuery = /^(frage an|ask|@|befrag)\\s+/i.test(cleanMessage);\nconst isRigidityChange = /rigidity|rigidität|offener|härter|flexibler|standhafter/i.test(cleanMessage);\nconst isShowAnalysis = /^(zeig|show|was sagt|analyse von)\\s+/i.test(cleanMessage);\nconst isRound3Trigger = /^(runde 3|round 3|weiter|nächste runde|convergence)/i.test(cleanMessage);\nconst isConfirmation = /^(ja|yes|ok|bestätigt|confirmed|go|los|start|passt|gut)/i.test(cleanMessage);\nconst isCancel = /^(abbruch|cancel|stop|nein|no)/i.test(cleanMessage);\n\nlet targetPersona = '';\nif (isPersonaQuery) {\n  const match = cleanMessage.match(/^(?:frage an|ask|@|befrag)\\s+([\\w\\s]+?)(?::|,|\\s+(?:was|wie|ob|whether|how|what))/i);\n  if (match) targetPersona = match[1].trim();\n}\n\nlet newRigidity = null;\nif (isRigidityChange) {\n  const scoreMatch = cleanMessage.match(/(\\d+)/);\n  if (scoreMatch) newRigidity = Math.min(10, Math.max(0, parseInt(scoreMatch[1])));\n}\n\nreturn [{\n  json: {\n    threadTs,\n    channelId,\n    userId,\n    cleanMessage,\n    hasFiles,\n    isPersonaQuery,\n    isRigidityChange,\n    isShowAnalysis,\n    isRound3Trigger,\n    isConfirmation,\n    isCancel,\n    targetPersona,\n    newRigidity,\n    sessionId: threadTs\n  }\n}];"
+          "jsCode": "// Phase Detection: Data comes pre-processed from Syn_Gateway\nconst items = $input.all();\nconst item = items[0].json;\n\nconst threadTs = item.sessionId;\nconst channelId = item.channelId;\nconst userId = item.userId;\nconst cleanMessage = item.cleanMessage || '';\nconst hasFiles = item.hasFiles || false;\n\n// Detect intent patterns\nconst isPersonaQuery = /^(frage an|ask|@|befrag)\\s+/i.test(cleanMessage);\nconst isRigidityChange = /rigidity|rigidit\u00e4t|offener|h\u00e4rter|flexibler|standhafter/i.test(cleanMessage);\nconst isShowAnalysis = /^(zeig|show|was sagt|analyse von)\\s+/i.test(cleanMessage);\nconst isRound3Trigger = /^(runde 3|round 3|weiter|n\u00e4chste runde|convergence)/i.test(cleanMessage);\nconst isConfirmation = /^(ja|yes|ok|best\u00e4tigt|confirmed|go|los|start|passt|gut)/i.test(cleanMessage);\nconst isCancel = /^(abbruch|cancel|stop|nein|no)/i.test(cleanMessage);\n\nlet targetPersona = '';\nif (isPersonaQuery) {\n  const match = cleanMessage.match(/^(?:frage an|ask|@|befrag)\\s+([\\w\\s]+?)(?::|,|\\s+(?:was|wie|ob|whether|how|what))/i);\n  if (match) targetPersona = match[1].trim();\n}\n\nlet newRigidity = null;\nif (isRigidityChange) {\n  const scoreMatch = cleanMessage.match(/(\\d+)/);\n  if (scoreMatch) newRigidity = Math.min(10, Math.max(0, parseInt(scoreMatch[1])));\n}\n\nreturn [{\n  json: {\n    threadTs,\n    channelId,\n    userId,\n    cleanMessage,\n    hasFiles,\n    isPersonaQuery,\n    isRigidityChange,\n    isShowAnalysis,\n    isRound3Trigger,\n    isConfirmation,\n    isCancel,\n    targetPersona,\n    newRigidity,\n    sessionId: threadTs\n  }\n}];"
         },
         "id": "phase-detect",
         "name": "Phase Detection",
@@ -261,7 +261,7 @@
       },
       {
         "parameters": {
-          "description": "Run a single persona analysis for the current round. Input must include: session_id, persona_id, persona_profile, problem_brief, round_number, file_context (optional), previous_synthesis (optional for round 2+), rigidity_instruction (optional for round 2+).",
+          "description": "Run a single persona analysis for the current round. Input must include: session_id, persona_id, persona_profile, problem_brief, round_number, file_context (optional), previous_synthesis (optional for round 2+), rigidity (int 0-10, look up per-persona via Read Personas).",
           "workflowId": {
             "__rl": true,
             "mode": "id",
@@ -340,16 +340,6 @@
                 "defaultMatch": false
               },
               {
-                "id": "rigidity_instruction",
-                "displayName": "rigidity_instruction",
-                "type": "string",
-                "required": false,
-                "display": true,
-                "removed": false,
-                "readOnly": false,
-                "defaultMatch": false
-              },
-              {
                 "id": "unresolved_tension",
                 "displayName": "unresolved_tension",
                 "type": "string",
@@ -368,6 +358,16 @@
                 "removed": false,
                 "readOnly": false,
                 "defaultMatch": false
+              },
+              {
+                "id": "rigidity",
+                "displayName": "rigidity",
+                "type": "number",
+                "required": false,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
               }
             ],
             "mappingMode": "defineBelow",
@@ -379,9 +379,9 @@
               "round_number": "={{ $fromAI('round_number', 'Current round: 1, 2, or 3') }}",
               "file_context": "={{ $fromAI('file_context', 'Optional: text summary of uploaded files') }}",
               "previous_synthesis": "={{ $fromAI('previous_synthesis', 'Optional: synthesis from previous round') }}",
-              "rigidity_instruction": "={{ $fromAI('rigidity_instruction', 'Optional: how rigid the persona should be') }}",
               "unresolved_tension": "={{ $fromAI('unresolved_tension', 'Optional: tension to address in round 3') }}",
-              "file_url": "={{ $fromAI('file_url', 'Optional: Slack url_private of uploaded file') }}"
+              "file_url": "={{ $fromAI('file_url', 'Optional: Slack url_private of uploaded file') }}",
+              "rigidity": "={{ $fromAI('rigidity', 'This personas rigidity/flexibility 0-10. Look it up via Read Personas tool for the persona. 0-3 standhaft, 4-6 ausgewogen, 7-10 offen. Default 5.', 'number') }}"
             }
           }
         },
