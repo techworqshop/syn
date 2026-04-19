@@ -46,7 +46,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
   const bySlot: Record<number, PanelPersona> = {};
   for (const p of personas) {
     const slot = p.slack_slot ?? 0;
-    if (slot >= 1 && slot <= 5) bySlot[slot] = p;
+    if (slot >= 1 && slot <= 5 && p.imageReady) bySlot[slot] = p;
   }
 
   function changeRigidity(slot: number, value: number) {

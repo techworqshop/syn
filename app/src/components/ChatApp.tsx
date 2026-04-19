@@ -47,9 +47,10 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
             setStatus(p.text);
             setWaiting(true);
           }
+          setRefreshToken(t => t + 1);
           return;
         }
-        if (p.type === "persona_image") {
+        if (p.type === "persona_image" || p.type === "panel_refresh") {
           setRefreshToken(t => t + 1);
           return;
         }

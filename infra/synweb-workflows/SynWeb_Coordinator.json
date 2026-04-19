@@ -694,7 +694,8 @@
               "type": "={{ $fromAI('type') }}",
               "core_perspective": "={{ $fromAI('core_perspective') }}",
               "profile": "={{ $fromAI('profile') }}",
-              "slack_slot": "={{ $fromAI('slack_slot') }}"
+              "slack_slot": "={{ $fromAI('slack_slot') }}",
+              "rigidity": "5"
             },
             "matchingColumns": [],
             "schema": [
@@ -807,6 +808,16 @@
                 "type": "number",
                 "readOnly": false,
                 "removed": false
+              },
+              {
+                "id": "rigidity",
+                "displayName": "rigidity",
+                "type": "number",
+                "required": false,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
               }
             ]
           },

@@ -47,6 +47,7 @@ export type PanelPersona = {
   round_3_response?: string;
   slack_slot?: number;
   rigidity?: number;
+  imageReady?: boolean;
 };
 
 export type PanelSynthesis = {

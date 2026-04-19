@@ -18,6 +18,44 @@ type Body = {
   roundNumber?: number;
 };
 
+type SessionRow = typeof sessions.$inferSelect;
+
+async function syncPanelAndImages(sessionId: string, sess: SessionRow) {
+  const state = await readState(sessionId);
+  const personaCount = state.personas.length;
+  const derivedRound = Math.max(
+    0,
+    ...state.syntheses.map(s => s.round_number || 0),
+    ...state.personas.flatMap(p => [
+      p.round_1_response ? 1 : 0,
+      p.round_2_response ? 2 : 0,
+      p.round_3_response ? 3 : 0
+    ])
+  );
+  if (personaCount !== sess.personaCount || derivedRound !== sess.currentRound) {
+    await db.update(sessions).set({
+      personaCount, currentRound: derivedRound, updatedAt: new Date()
+    }).where(eq(sessions.id, sessionId));
+    await publish(`session:${sessionId}`, {
+      type: "session", personaCount, currentRound: derivedRound
+    });
+  } else if (personaCount > 0) {
+    // even if counts didn't change, prompt sidebar to refetch (rigidity/content may have)
+    await publish(`session:${sessionId}`, { type: "panel_refresh" });
+  }
+
+  const existingImgs = await db.select().from(personaImages)
+    .where(eq(personaImages.sessionId, sessionId));
+  const existingSlots = new Set(existingImgs.map(x => x.slot));
+  for (const p of state.personas) {
+    const slot = p.slack_slot;
+    if (!slot || existingSlots.has(slot)) continue;
+    generatePersonaImage({ sessionId, slot, name: p.name || "", type: p.type, profile: p.profile })
+      .then(() => publish(`session:${sessionId}`, { type: "persona_image", slot }).catch(()=>{}))
+      .catch(()=>{});
+  }
+}
+
 export async function POST(req: Request) {
   const hdr = req.headers.get("x-syn-callback-secret");
   if (!SECRET || hdr !== SECRET) {
@@ -46,6 +84,10 @@ export async function POST(req: Request) {
   if (b.kind === "status") {
     // Ephemeral progress indicator - broadcast but don't persist
     await publish(`session:${b.sessionId}`, { type: "status", text });
+    // Opportunistic: while the agent is working, personas may be getting saved
+    // progressively - kick off image-gen for any that exist but have no image yet,
+    // and signal the sidebar to refetch so new tiles pop in.
+    syncPanelAndImages(b.sessionId, sess).catch(()=>{});
     return NextResponse.json({ ok: true });
   }
 
@@ -64,7 +106,7 @@ export async function POST(req: Request) {
   let role = "system";
   let personaSlot: number | null = null;
   let personaName: string | null = null;
-  if (b.kind === "coordinator") role = "coordinator";
+  if (b.kind === "coordinator") role = "cordinator";
   else if (b.kind === "synthesis") role = "synthesis";
   else if (b.kind === "persona_round") {
     role = "persona";
@@ -112,40 +154,7 @@ export async function POST(req: Request) {
     }
   }
   if (role === "coordinator" || role === "persona" || role === "synthesis") {
-    try {
-      const state = await readState(b.sessionId);
-      const personaCount = state.personas.length;
-      const derivedRound = Math.max(
-        0,
-        ...state.syntheses.map(s => s.round_number || 0),
-        ...state.personas.flatMap(p => [
-          p.round_1_response ? 1 : 0,
-          p.round_2_response ? 2 : 0,
-          p.round_3_response ? 3 : 0
-        ])
-      );
-      if (personaCount !== sess.personaCount || derivedRound !== sess.currentRound) {
-        await db.update(sessions).set({
-          personaCount,
-          currentRound: derivedRound,
-          updatedAt: new Date()
-        }).where(eq(sessions.id, b.sessionId));
-        await publish(`session:${b.sessionId}`, {
-          type: "session", personaCount, currentRound: derivedRound
-        });
-      }
-
-      const existingImgs = await db.select().from(personaImages)
-        .where(eq(personaImages.sessionId, b.sessionId));
-      const existingSlots = new Set(existingImgs.map(x => x.slot));
-      for (const p of state.personas) {
-        const slot = p.slack_slot;
-        if (!slot || existingSlots.has(slot)) continue;
-        generatePersonaImage({ sessionId: b.sessionId, slot, name: p.name || "", type: p.type, profile: p.profile })
-          .then(() => publish(`session:${b.sessionId}`, { type: "persona_image", slot }).catch(()=>{}))
-          .catch(()=>{});
-      }
-    } catch {}
+    syncPanelAndImages(b.sessionId, sess).catch(()=>{});
   }
   return NextResponse.json({ ok: true });
 }
