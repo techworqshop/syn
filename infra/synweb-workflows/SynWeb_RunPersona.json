@@ -1,7 +1,11 @@
 [
   {
+    "updatedAt": "2026-04-16T22:24:20.552Z",
+    "createdAt": "2026-04-16T22:10:03.276Z",
+    "id": "XybiSig1oi3HquZd",
     "name": "SynWeb_RunPersona",
     "description": null,
+    "active": true,
     "isArchived": false,
     "nodes": [
       {
@@ -394,7 +398,7 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').item.json.session_id, personaId: $('Execute Workflow Trigger').item.json.persona_id, kind: 'persona_round', roundNumber: $('Execute Workflow Trigger').item.json.round_number, text: ($json.content ? $json.content[0].text : $json.output)}) }}",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').item.json.session_id, personaId: $('Execute Workflow Trigger').item.json.persona_id, kind: 'persona_round', roundNumber: $('Execute Workflow Trigger').item.json.round_number, text: ($('Run Persona Analysis').isExecuted ? ($('Run Persona Analysis').first().json.content?.[0]?.text || '') : ($('Run Persona No Files').first().json.content?.[0]?.text || ''))}) }}",
           "options": {
             "timeout": 15000
           }
@@ -515,10 +519,34 @@
     "meta": {
       "templateCredsSetupCompleted": true
     },
+    "pinData": null,
+    "versionId": "c583e0f7-c4f6-4181-a58d-e69e6e2484c5",
+    "activeVersionId": "c583e0f7-c4f6-4181-a58d-e69e6e2484c5",
+    "versionCounter": 4,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-04-16T22:10:03.276Z",
+        "createdAt": "2026-04-16T22:10:03.276Z",
+        "role": "workflow:owner",
+        "workflowId": "XybiSig1oi3HquZd",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
     "versionMetadata": {
       "name": null,
       "description": null
-    },
-    "id": "XybiSig1oi3HquZd"
+    }
   }
 ]

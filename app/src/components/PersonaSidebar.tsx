@@ -9,7 +9,13 @@ type Props = {
   onSelect: (slot: number) => void;
 };
 
-const COLORS = ["", "sky", "rose", "amber", "emerald", "violet"];
+const TILE_GRADIENT: Record<number,string> = {
+  1: "from-rose-500/15 via-pink-500/10 to-fuchsia-500/15 border-rose-400/30",
+  2: "from-amber-500/15 via-orange-500/10 to-red-500/15 border-amber-400/30",
+  3: "from-emerald-500/15 via-teal-500/10 to-cyan-500/15 border-emerald-400/30",
+  4: "from-violet-500/15 via-purple-500/10 to-fuchsia-500/15 border-violet-400/30",
+  5: "from-sky-500/15 via-blue-500/10 to-indigo-500/15 border-sky-400/30"
+};
 
 export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Props) {
   const [personas, setPersonas] = useState<PanelPersona[]>([]);
@@ -43,7 +49,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
         const p = bySlot[n];
         const isExp = expanded === n;
         return (
-          <div key={n} className="rounded border border-neutral-800 bg-neutral-900/50 overflow-hidden">
+          <div key={n} className={`rounded-2xl border bg-gradient-to-br ${TILE_GRADIENT[n] || "from-neutral-900/60 to-neutral-900/40 border-neutral-800"} overflow-hidden transition-all hover:shadow-lg`}>
             <div className="flex items-stretch">
               <button onClick={() => onSelect(n)}
                 className="flex-1 text-left p-3 hover:bg-neutral-800/50">

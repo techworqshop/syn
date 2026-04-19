@@ -3,17 +3,23 @@
 @tailwind utilities;
 
 :root {
-  --bg-0: #09090b;
-  --bg-1: #0c0c10;
-  --bg-2: #14141a;
-  --fg-0: #f5f5f7;
-  --fg-1: #a8a8b3;
-  --fg-2: #64646f;
+  --bg-0: #0b0812;
+  --bg-1: #130f1c;
+  --bg-2: #1b1526;
+  --fg-0: #f4f1f7;
+  --fg-1: #b8b2c0;
+  --fg-2: #716b7d;
+  --accent: #d946ef;
 }
 
 @layer base {
   html, body {
-    background: radial-gradient(ellipse at top, rgba(99,102,241,0.08), transparent 60%), var(--bg-0);
+    background:
+      radial-gradient(ellipse 800px 600px at 15% 10%, rgba(236, 72, 153, 0.10), transparent 60%),
+      radial-gradient(ellipse 900px 700px at 85% 30%, rgba(139, 92, 246, 0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 50% 95%, rgba(251, 146, 60, 0.07), transparent 60%),
+      var(--bg-0);
+    background-attachment: fixed;
     color: var(--fg-0);
     min-height: 100vh;
   }
@@ -21,18 +27,37 @@
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    font-feature-settings: "ss01", "cv11";
   }
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: #27272a; border-radius: 8px; }
-::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(139,92,246,0.3), rgba(236,72,153,0.3));
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(139,92,246,0.5), rgba(236,72,153,0.5));
+}
 ::-webkit-scrollbar-track { background: transparent; }
 
 @layer utilities {
   .glass {
-    background: rgba(20,20,26,0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: linear-gradient(135deg, rgba(27,21,38,0.75), rgba(19,15,28,0.65));
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
   }
+}
+
+@layer utilities {
+  .btn-primary {
+    background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f472b6 100%);
+    box-shadow: 0 8px 24px -6px rgba(217, 70, 239, 0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+    transition: filter 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 12px 32px -6px rgba(217, 70, 239, 0.6), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .btn-primary:active { transform: translateY(1px); }
 }

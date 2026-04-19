@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Message, SessionRow, FileRow } from "./types";
+import UploadModal from "./UploadModal";
 import MessageBubble from "./MessageBubble";
 import PersonaSidebar from "./PersonaSidebar";
 import AudiencePanel from "./AudiencePanel";
@@ -20,10 +21,8 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
   const [waiting, setWaiting] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
   const [filesList, setFilesList] = useState<FileRow[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const es = new EventSource(`/api/sessions/${sessionId}/stream`);
@@ -45,25 +44,6 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs.length, waiting]);
 
-  async function uploadFiles(fs: FileList | File[], category: string = "panel") {
-    const arr = Array.from(fs);
-    if (!arr.length) return;
-    setUploading(true);
-    try {
-      for (const f of arr) {
-        const fd = new FormData();
-        fd.append("file", f);
-        fd.append("category", category);
-        const res = await fetch(`/api/sessions/${sessionId}/upload`, {
-          method: "POST", body: fd
-        });
-        if (res.ok) {
-          const d = await res.json();
-          if (d.file) setFilesList(prev => [...prev, d.file]);
-        }
-      }
-    } finally { setUploading(false); }
-  }
 
   async function send() {
     if (!input.trim() || sending) return;
@@ -81,22 +61,11 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
     finally { setSending(false); }
   }
 
-  function onDrop(e: React.DragEvent) {
-    e.preventDefault(); setDragOver(false);
-    if (e.dataTransfer.files?.length) uploadFiles(e.dataTransfer.files, "panel");
-  }
 
   return (
     <div className="flex h-[calc(100vh-57px)] -mt-6 -mx-6"
-      onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-      onDragLeave={() => setDragOver(false)}
-      onDrop={onDrop}>
+      >
       <div className="flex-1 flex flex-col min-w-0 relative">
-        {dragOver && (
-          <div className="absolute inset-0 bg-sky-500/10 border-4 border-dashed border-sky-500 z-10 flex items-center justify-center pointer-events-none">
-            <div className="text-sky-300 text-xl font-medium">Datei hier ablegen</div>
-          </div>
-        )}
         <div className="border-b border-neutral-800 px-6 py-3 flex items-center justify-between">
           <div>
             <div className="font-medium">{session.title}</div>
@@ -121,25 +90,20 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
           )}
           <div ref={bottomRef} />
         </div>
-        {(filesList.length > 0 || uploading) && (
+        {(filesList.length > 0) && (
           <div className="border-t border-neutral-800 px-4 py-2 flex flex-wrap gap-2 text-xs">
             {filesList.map(f => (
-              <div key={f.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs ${f.category === "briefing" ? "bg-amber-950/30 border-amber-700/50 text-amber-100" : "bg-sky-950/30 border-sky-700/50 text-sky-100"}`}>
-                <span className="text-[10px] uppercase tracking-wide opacity-70">{f.category === "briefing" ? "Briefing" : "Panel"}</span>
+              <div key={f.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs ${f.category === "briefing" ? "bg-amber-950/30 border-amber-700/50 text-amber-100" : f.category === "persona" ? "bg-rose-950/30 border-rose-700/50 text-rose-100" : "bg-sky-950/30 border-sky-700/50 text-sky-100"}`}>
+                <span className="text-[10px] uppercase tracking-wide opacity-70">{f.category === "briefing" ? "Briefing" : f.category === "persona" ? "Persona" : "Panel"}</span>
                 <span className="max-w-[200px] truncate">{f.fileName}</span>
                 <span className="opacity-60">{Math.round(f.sizeBytes/1024)}K</span>
                 {f.summary ? <span className="text-emerald-400">✓</span> : <span className="opacity-60">…</span>}
               </div>
             ))}
-            {uploading && <div className="text-neutral-500">Lade hoch…</div>}
           </div>
         )}
         <div className="border-t border-neutral-800 p-4 flex gap-2 items-end">
-          <input ref={fileInputRef} type="file" multiple className="hidden"
-            data-category="panel"
-            onChange={e => { const cat = e.target.getAttribute("data-category") || "panel"; if (e.target.files) uploadFiles(e.target.files, cat); e.target.value=""; }} />
-          <button onClick={() => { fileInputRef.current?.setAttribute("data-category","briefing"); fileInputRef.current?.click(); }} className="px-3 py-2 rounded-lg border border-amber-700/50 bg-amber-950/30 hover:bg-amber-900/40 text-amber-200 text-xs font-medium whitespace-nowrap" title="Datei als Briefing fuer den Coordinator">Briefing</button>
-          <button onClick={() => { fileInputRef.current?.setAttribute("data-category","panel"); fileInputRef.current?.click(); }} className="px-3 py-2 rounded-lg border border-sky-700/50 bg-sky-950/30 hover:bg-sky-900/40 text-sky-200 text-xs font-medium whitespace-nowrap" title="Datei fuers Panel">Panel-Datei</button>
+          <button onClick={() => setShowUpload(true)} className="px-4 py-2 rounded-lg border border-white/10 bg-neutral-900 hover:bg-neutral-800 text-sm text-neutral-200 whitespace-nowrap transition-colors" title="Dateien hochladen">Dateien</button>
           <textarea value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
@@ -147,7 +111,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
             placeholder="Nachricht an Syn..."
             className="flex-1 px-3 py-2 rounded bg-neutral-800 border border-neutral-700 focus:outline-none focus:border-sky-500 resize-none" />
           <button disabled={sending || !input.trim()} onClick={send}
-            className="px-6 py-2 rounded bg-sky-600 hover:bg-sky-500 disabled:opacity-50">
+            className="px-6 py-2 rounded btn-primary disabled:opacity-50">
             {sending ? "..." : "Senden"}
           </button>
         </div>
@@ -155,6 +119,9 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
       <PersonaSidebar sessionId={sessionId} refreshToken={refreshToken} onSelect={setOpenSlot} />
       {openSlot != null && (
         <AudiencePanel sessionId={sessionId} slot={openSlot} onClose={() => setOpenSlot(null)} />
+      )}
+      {showUpload && (
+        <UploadModal sessionId={sessionId} onClose={() => setShowUpload(false)} onUploaded={f => setFilesList(prev => [...prev, f])} />
       )}
     </div>
   );

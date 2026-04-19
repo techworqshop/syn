@@ -29,7 +29,7 @@ export default async function Dashboard() {
           </p>
         </div>
         <form action={createSession}>
-          <button className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 font-medium shadow-lg shadow-sky-900/30 text-sm">
+          <button className="px-5 py-2.5 rounded-xl btn-primary font-medium shadow-lg shadow-sky-900/30 text-sm">
             Neue Fokusgruppe
           </button>
         </form>

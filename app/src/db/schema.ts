@@ -78,3 +78,13 @@ export const files = pgTable("files", {
   category: text("category").notNull().default("panel"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
 }, (t) => [index("files_session_idx").on(t.sessionId)]);
+
+export const personaImages = pgTable("persona_images", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sessionId: uuid("session_id").notNull().references(() => sessions.id, { onDelete: "cascade" }),
+  slot: integer("slot").notNull(),
+  storagePath: text("storage_path").notNull(),
+  mimeType: text("mime_type").notNull().default("image/png"),
+  status: text("status").notNull().default("ready"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+});

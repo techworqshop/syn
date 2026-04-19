@@ -34,7 +34,7 @@ export async function POST(req: Request, { params }: P) {
     mimeType: file.type || "application/octet-stream",
     storagePath: fpath,
     sizeBytes: buf.length,
-    category: (form.get("category") as string) === "briefing" ? "briefing" : "panel"
+    category: (() => { const c = String(form.get("category") || "panel"); return ["briefing","persona","panel"].includes(c) ? c : "panel"; })()
   }).returning();
   const publicUrl = `${BASE}/api/files/${row.id}`;
   // count existing files for uploadOrder

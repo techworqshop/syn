@@ -22,7 +22,9 @@ export async function forwardToGateway(payload: {
   if (!res.ok) {
     throw new Error(`n8n gateway responded ${res.status}`);
   }
-  return await res.json();
+  const raw = await res.text();
+  if (!raw) return {};
+  try { return JSON.parse(raw); } catch { return { raw }; }
 }
 
 const READSTATE = process.env.SYNWEB_READSTATE_WEBHOOK!;

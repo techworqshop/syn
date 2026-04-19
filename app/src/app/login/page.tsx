@@ -19,7 +19,7 @@ export default function LoginPage() {
         <input name="email" type="email" required placeholder="Email" className={inp} />
         <input name="password" type="password" required placeholder="Passwort" className={inp} />
         {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
-        <button disabled={pending} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 disabled:opacity-50 font-medium transition-all shadow-lg shadow-sky-900/30">
+        <button disabled={pending} className="w-full py-2.5 rounded-xl btn-primary disabled:opacity-50 font-medium transition-all shadow-lg shadow-sky-900/30">
           {pending ? "..." : "Einloggen"}
         </button>
       </form>

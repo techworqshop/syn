@@ -78,7 +78,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
             placeholder={`Frage an ${displayName}...`}
             className="flex-1 px-3 py-2 rounded bg-neutral-800 border border-neutral-700 focus:outline-none focus:border-sky-500" />
           <button disabled={sending || !input.trim()} onClick={send}
-            className="px-4 py-2 rounded bg-sky-600 hover:bg-sky-500 disabled:opacity-50">
+            className="px-4 py-2 rounded btn-primary disabled:opacity-50">
             {sending ? "..." : "Senden"}
           </button>
         </div>

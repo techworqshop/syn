@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { messages, audienceMessages, sessions } from "@/db/schema";
 import { publish } from "@/lib/redis";
+import { readState } from "@/lib/n8n";
 import { eq } from "drizzle-orm";
 
 const SECRET = process.env.N8N_CALLBACK_SECRET!;
@@ -46,11 +47,24 @@ export async function POST(req: Request) {
   else if (b.kind === "synthesis") role = "synthesis";
   else if (b.kind === "persona_round") {
     role = "persona";
-    const pid = typeof b.personaId === "string" ? b.personaId : String(b.personaId);
-    const map: Record<string, number> = { alpha: 1, beta: 2, gamma: 3, sigma: 4, omega: 5 };
-    personaSlot = map[pid.toLowerCase()] ?? null;
-    personaName = pid;
+    const pid = String(b.personaId || "").toLowerCase();
+    try {
+      const state = await readState(b.sessionId);
+      const p = state.personas.find(
+        (x) => (x.persona_id || "").toLowerCase() === pid ||
+               (x.name || "").toLowerCase() === pid
+      );
+      if (p) { personaSlot = p.slack_slot ?? null; personaName = p.name ?? pid; }
+    } catch {}
+    if (!personaSlot) {
+      const map: Record<string, number> = { alpha: 1, beta: 2, gamma: 3, sigma: 4, omega: 5 };
+      personaSlot = map[pid] ?? null;
+    }
+    if (!personaName) personaName = pid;
   }
+
+  // skip empty messages
+  if (!text.trim()) return NextResponse.json({ ok: true, skipped: true });
 
   const [row] = await db.insert(messages).values({
     sessionId: b.sessionId,
