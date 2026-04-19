@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-19T20:59:35.516Z",
+    "updatedAt": "2026-04-19T21:16:13.425Z",
     "createdAt": "2026-04-16T22:10:51.612Z",
     "id": "V0CpwraeTYxQh6BM",
     "name": "SynWeb_Gateway",
@@ -207,7 +207,7 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({ sessionId: $('Extract Body').item.json.sessionId, kind: 'error', text: '⚠️ Da ist was schiefgelaufen. Ich probier''s nochmal beim nächsten Input.' }) }}",
+          "jsonBody": "={{ JSON.stringify({ sessionId: $('Extract Body').item.json.sessionId, kind: 'error', text: '⚠️ Da ist was schiefgelaufen. Probier bitte nochmal. Details: ' + ($json.error || 'unbekannt') }) }}",
           "options": {
             "timeout": 10000
           }
@@ -298,9 +298,9 @@
     "staticData": null,
     "meta": null,
     "pinData": null,
-    "versionId": "2781babd-c421-4e05-bd05-6d55589ee131",
-    "activeVersionId": "2781babd-c421-4e05-bd05-6d55589ee131",
-    "versionCounter": 8,
+    "versionId": "54e93b9f-0e3d-43b7-b694-4dfdb51d2492",
+    "activeVersionId": "54e93b9f-0e3d-43b7-b694-4dfdb51d2492",
+    "versionCounter": 11,
     "triggerCount": 1,
     "tags": [],
     "shared": [
