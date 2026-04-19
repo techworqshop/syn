@@ -6,6 +6,7 @@ import UploadModal from "./UploadModal";
 import MessageBubble from "./MessageBubble";
 import PersonaSidebar from "./PersonaSidebar";
 import AudiencePanel from "./AudiencePanel";
+import SessionMenu from "./SessionMenu";
 
 type Props = {
   sessionId: string;
@@ -111,7 +112,10 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
               {session.status} - Runde {session.currentRound} - {session.personaCount} Personas - {filesList.length} Dateien
             </div>
           </div>
-          <Link href="/app/dashboard" className="text-sm text-neutral-400 hover:text-neutral-100">Alle Sessions</Link>
+          <div className="flex items-center gap-2">
+            <Link href="/app/dashboard" className="text-sm text-neutral-400 hover:text-neutral-100">Alle Sessions</Link>
+            <SessionMenu sessionId={sessionId} afterDelete={() => window.location.href = "/app/dashboard"} />
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
           {msgs.length === 0 && (

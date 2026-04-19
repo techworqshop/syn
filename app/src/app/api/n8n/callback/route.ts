@@ -4,6 +4,8 @@ import { messages, audienceMessages, sessions } from "@/db/schema";
 import { publish } from "@/lib/redis";
 import { readState } from "@/lib/n8n";
 import { suggestTitle } from "@/lib/title-gen";
+import { generatePersonaImage } from "@/lib/persona-image-gen";
+import { personaImages } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 
 const SECRET = process.env.N8N_CALLBACK_SECRET!;
@@ -91,5 +93,20 @@ export async function POST(req: Request) {
       }
     }
   }
+  if (role === "coordinator") {
+    try {
+      const state = await readState(b.sessionId);
+      const existingImgs = await db.select().from(personaImages).where(eq(personaImages.sessionId, b.sessionId));
+      const existingSlots = new Set(existingImgs.map(x => x.slot));
+      for (const p of state.personas) {
+        const slot = p.slack_slot;
+        if (!slot || existingSlots.has(slot)) continue;
+        generatePersonaImage({ sessionId: b.sessionId, slot, name: p.name || "", type: p.type, profile: p.profile })
+          .then(() => publish(`session:${b.sessionId}`, { type: "persona_image", slot }).catch(()=>{}))
+          .catch(()=>{});
+      }
+    } catch {}
+  }
   return NextResponse.json({ ok: true });
 }
+

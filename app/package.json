@@ -19,7 +19,8 @@
     "postgres": "3.4.5",
     "bcryptjs": "2.4.3",
     "ioredis": "5.4.2",
-    "zod": "3.24.1"
+    "zod": "3.24.1",
+    "pdfkit": "0.15.0"
   },
   "devDependencies": {
     "@types/node": "22.10.5",
@@ -31,6 +32,7 @@
     "tsx": "4.19.2",
     "tailwindcss": "3.4.17",
     "autoprefixer": "10.4.20",
-    "postcss": "8.4.49"
+    "postcss": "8.4.49",
+    "@types/pdfkit": "0.13.9"
   }
 }

@@ -1,10 +1,17 @@
 [
   {
     "name": "SynWeb_Synthesize",
-    "description": null,
-    "isArchived": false,
+    "id": "xgBgCZeVWBVB7jLN",
     "nodes": [
       {
+        "id": "03cbc922-9b34-42a0-b57c-86fa55aac152",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -100,
+          300
+        ],
         "parameters": {
           "workflowInputs": {
             "values": [
@@ -20,17 +27,17 @@
               }
             ]
           }
-        },
-        "id": "trigger",
-        "name": "Execute Workflow Trigger",
-        "type": "n8n-nodes-base.executeWorkflowTrigger",
-        "typeVersion": 1.1,
-        "position": [
-          368,
-          304
-        ]
+        }
       },
       {
+        "id": "5dc4c119-863d-442f-85d7-d1296cb01785",
+        "name": "Get Persona Responses",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          150,
+          200
+        ],
         "parameters": {
           "operation": "get",
           "dataTableId": {
@@ -48,66 +55,141 @@
             ]
           },
           "returnAll": true
-        },
-        "id": "get-responses",
-        "name": "Get All Persona Responses",
+        }
+      },
+      {
+        "id": "8a6d1c3f-3777-4996-a22b-a465db3cf2ee",
+        "name": "Get Session Files",
         "type": "n8n-nodes-base.dataTable",
         "typeVersion": 1.1,
         "position": [
-          624,
-          304
-        ]
+          150,
+          400
+        ],
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_files"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.session_id }}"
+              }
+            ]
+          },
+          "returnAll": true,
+          "alwaysOutputData": true
+        },
+        "executeOnce": true
       },
       {
-        "parameters": {
-          "jsCode": "const items = $input.all();\nconst trigger = $('Execute Workflow Trigger').first().json;\nconst roundNumber = trigger.round_number;\n\nconst responseField = `round_${roundNumber}_response`;\n\nconst allResponses = items.map(item => {\n  return `--- ${item.json.name} (${item.json.type}) ---\\nPerspective: ${item.json.core_perspective}\\n\\n${item.json[responseField] || 'No response yet'}`;\n}).join('\\n\\n');\n\nreturn [{\n  json: {\n    session_id: trigger.session_id,\n    round_number: roundNumber,\n    all_responses: allResponses,\n    persona_count: items.length,\n    problem_brief: trigger.problem_brief\n  }\n}];"
-        },
-        "id": "aggregate",
-        "name": "Aggregate Responses",
+        "id": "46f21ed2-54b6-4c43-bedb-bf54b63a491c",
+        "name": "Aggregate",
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          864,
-          304
-        ]
-      },
-      {
-        "parameters": {
-          "promptType": "define",
-          "text": "=ROUND {{ $json.round_number }} SYNTHESIS\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\nALL PERSONA RESPONSES ({{ $json.persona_count }} panelists):\n{{ $json.all_responses }}\n\nCreate a synthesis report with these sections:\n\n1. {{ $json.round_number == 1 ? 'CONSENSUS POINTS - Ideas where multiple personas converge' : 'EVOLUTION OF THINKING - How the panels thinking evolved' }}\n\n2. {{ $json.round_number == 1 ? 'KEY TENSIONS AND DISAGREEMENTS - Where personas diverge, who disagrees with whom and why' : 'CONSOLIDATED AGREEMENTS - Where the panel now converges' }}\n\n3. {{ $json.round_number == 1 ? 'SURPRISE INSIGHTS - Unexpected angles or novel ideas' : 'REMAINING DISAGREEMENTS - Irreducible tensions where alignment was not reached' }}\n\n4. {{ $json.round_number == 1 ? 'IDENTIFIED GAPS - Important aspects no persona addressed' : 'STRONGEST ARGUMENTS - Most compelling arguments from both rounds' }}\n\n5. {{ $json.round_number == 1 ? 'EMERGING QUESTIONS - New questions from the combined analysis' : 'CONVERGENCE ASSESSMENT - Can we finalize, or is Round 3 needed?' }}\n\nAttribute ideas clearly. Never flatten disagreements into false consensus. Highlight surprises.",
-          "options": {
-            "systemMessage": "You are the Syn synthesis engine. Your job is to create honest, structured synthesis reports from multiple expert perspectives.\n\nCRITICAL RULES:\n- NEVER flatten disagreements into false consensus\n- Attribute ideas clearly (e.g. Dalios framing of X contrasts with Talebs emphasis on Y)\n- Identify the strongest version of each argument, even if you might favor one side\n- Highlight surprises - unexpected connections are often the most valuable\n- Be direct and concise\n\nFORMATTING: Plain text only. No Markdown (no **, *, _, `). Use numbered sections. Simple - for sub-lists. Emojis sparingly."
-          }
-        },
-        "id": "synthesize-agent",
-        "name": "Synthesize",
-        "type": "@n8n/n8n-nodes-langchain.agent",
-        "typeVersion": 3.1,
-        "position": [
-          1056,
-          304
-        ]
-      },
-      {
-        "parameters": {
-          "model": {
-            "__rl": true,
-            "value": "claude-opus-4-6",
-            "mode": "list",
-            "cachedResultName": "Claude Opus 4.6"
-          },
-          "options": {
-            "temperature": 0.5
-          }
-        },
-        "id": "llm-synth",
-        "name": "Anthropic Chat Model",
-        "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
-        "typeVersion": 1.3,
-        "position": [
-          1056,
-          512
+          400,
+          200
         ],
+        "parameters": {
+          "jsCode": "const trigger = $('Execute Workflow Trigger').first().json;\nconst roundNumber = trigger.round_number;\nconst responseField = `round_${roundNumber}_response`;\nconst personas = $input.all().map(i => i.json);\nconst allResponses = personas.map(p => {\n  return `--- ${p.name} (${p.type || ''}) ---\\nPerspective: ${p.core_perspective || ''}\\n\\n${p[responseField] || 'No response yet'}`;\n}).join('\\n\\n');\nreturn [{json: {session_id: trigger.session_id, round_number: roundNumber, problem_brief: trigger.problem_brief, all_responses: allResponses, persona_count: personas.length}}];"
+        }
+      },
+      {
+        "id": "9c75306e-c962-4ec5-9356-6ecc90ad70f0",
+        "name": "Has Files?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          650,
+          400
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "typeValidation": "strict",
+              "version": 2,
+              "leftValue": ""
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.file_url }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "exists",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          }
+        }
+      },
+      {
+        "id": "b14eb5fb-2b3b-4b3a-a3dd-4da85e8c4947",
+        "name": "Download File",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          900,
+          400
+        ],
+        "parameters": {
+          "url": "={{ $json.file_url }}",
+          "options": {}
+        }
+      },
+      {
+        "id": "5e1d12ed-7520-434c-b653-c566a32b841a",
+        "name": "Merge Files",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1150,
+          400
+        ],
+        "parameters": {
+          "jsCode": "const aggregate = $('Aggregate').first().json;\nconst items = $input.all();\nconst mergedBinary = {};\nconst keys = [];\nlet count = 0;\nfor (const it of items) {\n  if (it.binary) {\n    for (const [k, v] of Object.entries(it.binary)) {\n      const nk = `file_${count}`;\n      mergedBinary[nk] = v; keys.push(nk); count++;\n    }\n  }\n}\nreturn [{json: {...aggregate, binaryKeys: keys.join(',')}, binary: count > 0 ? mergedBinary : undefined}];"
+        }
+      },
+      {
+        "id": "4d92beb2-55c8-4d19-aa3c-ba3d275bdf4a",
+        "name": "Synthesize With Files",
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          1400,
+          400
+        ],
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "claude-sonnet-4-5-20250929"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=ROUND {{ $json.round_number }} SYNTHESIS\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\nALL PERSONA RESPONSES ({{ $json.persona_count }} panelists):\n{{ $json.all_responses }}\n\nAngehaengte Dateien sind Teil des Panel-Kontexts. Analysiere sie gruendlich und beziehe sie in die Synthese ein.\n\nSections:\n1. CONSENSUS POINTS\n2. KEY TENSIONS\n3. SURPRISE INSIGHTS\n4. IDENTIFIED GAPS\n5. EMERGING QUESTIONS\n\nAttribute ideas clearly. No false consensus."
+              }
+            ]
+          },
+          "addAttachments": true,
+          "attachmentsInputType": "binary",
+          "binaryPropertyName": "={{ $json.binaryKeys || 'data' }}",
+          "options": {
+            "temperature": 0.5,
+            "maxTokens": 4096,
+            "systemMessage": "You are the Syn synthesis engine. Create honest, structured synthesis reports from multiple expert perspectives. NEVER flatten disagreements. Attribute ideas clearly. FORMATTING: plain text only, no Markdown."
+          }
+        },
         "credentials": {
           "anthropicApi": {
             "id": "xryPDagnAi6vifng",
@@ -116,18 +198,51 @@
         }
       },
       {
-        "parameters": {},
-        "id": "think",
-        "name": "Think",
-        "type": "@n8n/n8n-nodes-langchain.toolThink",
-        "typeVersion": 1.1,
+        "id": "d24f4297-25ad-46dd-8b19-d0b4e535f83b",
+        "name": "Synthesize No Files",
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
         "position": [
-          1200,
-          512
-        ]
+          1400,
+          650
+        ],
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "claude-sonnet-4-5-20250929"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=ROUND {{ $json.round_number }} SYNTHESIS\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\nALL PERSONA RESPONSES ({{ $json.persona_count }} panelists):\n{{ $json.all_responses }}\n\nSections:\n1. CONSENSUS POINTS\n2. KEY TENSIONS\n3. SURPRISE INSIGHTS\n4. IDENTIFIED GAPS\n5. EMERGING QUESTIONS\n\nAttribute ideas clearly. No false consensus."
+              }
+            ]
+          },
+          "options": {
+            "temperature": 0.5,
+            "maxTokens": 4096,
+            "systemMessage": "You are the Syn synthesis engine. Create honest, structured synthesis reports from multiple expert perspectives. NEVER flatten disagreements. Attribute ideas clearly. FORMATTING: plain text only, no Markdown."
+          }
+        },
+        "credentials": {
+          "anthropicApi": {
+            "id": "xryPDagnAi6vifng",
+            "name": "Anthropic account"
+          }
+        }
       },
       {
+        "id": "6f46c9cc-6eb2-4a21-bc48-39e60a28c8eb",
+        "name": "Save Synthesis",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1700,
+          500
+        ],
         "parameters": {
+          "operation": "insert",
           "dataTableId": {
             "__rl": true,
             "mode": "name",
@@ -138,28 +253,20 @@
             "value": {
               "session_id": "={{ $('Execute Workflow Trigger').item.json.session_id }}",
               "round_number": "={{ $('Execute Workflow Trigger').item.json.round_number }}",
-              "synthesis_text": "={{ $json.output }}"
+              "synthesis_text": "={{ $json.content ? $json.content[0].text : ($json.output || '') }}"
             }
           },
           "options": {}
-        },
-        "id": "save-synth",
-        "name": "Save Synthesis",
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          1360,
-          304
-        ]
+        }
       },
       {
-        "id": "f0d0361e-36b8-472f-b01e-8b42b8695c32",
+        "id": "69443a12-f5ce-4f25-b13b-2cc0ce551789",
         "name": "Web Callback",
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
         "position": [
-          1600,
-          304
+          1950,
+          500
         ],
         "parameters": {
           "method": "POST",
@@ -169,7 +276,7 @@
             "parameters": [
               {
                 "name": "X-Syn-Callback-Secret",
-                "value": "=a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
               },
               {
                 "name": "Content-Type",
@@ -179,7 +286,7 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').item.json.session_id, kind: 'synthesis', roundNumber: $('Execute Workflow Trigger').item.json.round_number, text: $('Synthesize').first().json.output}) }}",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').item.json.session_id, kind: 'synthesis', roundNumber: $('Execute Workflow Trigger').item.json.round_number, text: ($('Synthesize With Files').isExecuted ? $('Synthesize With Files').first().json.content[0].text : $('Synthesize No Files').first().json.content[0].text)}) }}",
           "options": {
             "timeout": 15000
           }
@@ -192,58 +299,92 @@
         "main": [
           [
             {
-              "node": "Get All Persona Responses",
+              "node": "Get Persona Responses",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Get Session Files",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Get All Persona Responses": {
+      "Get Persona Responses": {
         "main": [
           [
             {
-              "node": "Aggregate Responses",
+              "node": "Aggregate",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Aggregate Responses": {
+      "Get Session Files": {
         "main": [
           [
             {
-              "node": "Synthesize",
+              "node": "Has Files?",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Anthropic Chat Model": {
-        "ai_languageModel": [
+      "Has Files?": {
+        "main": [
           [
             {
-              "node": "Synthesize",
-              "type": "ai_languageModel",
+              "node": "Download File",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Synthesize No Files",
+              "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Think": {
-        "ai_tool": [
+      "Download File": {
+        "main": [
           [
             {
-              "node": "Synthesize",
-              "type": "ai_tool",
+              "node": "Merge Files",
+              "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Synthesize": {
+      "Merge Files": {
+        "main": [
+          [
+            {
+              "node": "Synthesize With Files",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Synthesize With Files": {
+        "main": [
+          [
+            {
+              "node": "Save Synthesis",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Synthesize No Files": {
         "main": [
           [
             {
@@ -268,25 +409,11 @@
     },
     "settings": {
       "executionOrder": "v1",
-      "saveDataErrorExecution": "all",
       "saveDataSuccessExecution": "all",
+      "saveDataErrorExecution": "all",
       "saveManualExecutions": true,
       "saveExecutionProgress": true,
-      "callerPolicy": "workflowsFromSameOwner",
-      "availableInMCP": false,
-      "binaryMode": "separate",
-      "timeSavedMode": "fixed",
-      "errorWorkflow": "k_1wGROZ77CNjRE1INOwj"
-    },
-    "staticData": null,
-    "meta": {
-      "templateCredsSetupCompleted": true
-    },
-    "pinData": {},
-    "versionMetadata": {
-      "name": "Version d63071b5",
-      "description": ""
-    },
-    "id": "xgBgCZeVWBVB7jLN"
+      "callerPolicy": "workflowsFromSameOwner"
+    }
   }
 ]

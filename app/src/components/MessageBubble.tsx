@@ -1,4 +1,5 @@
 import type { Message } from "./types";
+import PersonaAvatar from "./PersonaAvatar";
 
 const LABELS: Record<string, string> = {
   user: "Du",
@@ -31,7 +32,7 @@ const PERSONA_AVATAR: Record<number, string> = {
   5: "bg-gradient-to-br from-sky-400 to-cyan-600"
 };
 
-function Avatar({ role, name, slot }: { role: string; name?: string | null; slot?: number | null }) {
+function Avatar({ role, name, slot, sessionId }: { role: string; name?: string | null; slot?: number | null; sessionId?: string | null }) {
   if (role === "coordinator") {
     return (
       <img src="/api/assets/syn-avatar" alt="Syn"
@@ -41,6 +42,9 @@ function Avatar({ role, name, slot }: { role: string; name?: string | null; slot
   if (role === "persona") {
     const initials = (name ?? "P").split(" ").map(s => s[0]).slice(0,2).join("").toUpperCase();
     const bg = slot && PERSONA_AVATAR[slot] ? PERSONA_AVATAR[slot] : "bg-gradient-to-br from-indigo-400 to-violet-600";
+    if (slot && sessionId) {
+      return <PersonaAvatar sessionId={sessionId} slot={slot} initials={initials} tintClass={bg} />;
+    }
     return (
       <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center text-white text-base font-bold ring-1 ring-white/10 shrink-0`}>
         {initials}
@@ -95,7 +99,7 @@ export default function MessageBubble({ m }: { m: Message }) {
 
   return (
     <div className="flex gap-3 items-start group hover:bg-white/[0.015] rounded-xl -mx-2 px-2 py-1 transition-colors">
-      <Avatar role={m.role} name={m.personaName} slot={m.personaSlot} />
+      <Avatar role={m.role} name={m.personaName} slot={m.personaSlot} sessionId={m.sessionId} />
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 mb-1">
           <span className={`font-semibold text-[15px] leading-tight ${labelColor}`}>{label}</span>

@@ -52,10 +52,13 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
           <div key={n} className={`rounded-2xl border bg-gradient-to-br ${TILE_GRADIENT[n] || "from-neutral-900/60 to-neutral-900/40 border-neutral-800"} overflow-hidden transition-all hover:shadow-lg`}>
             <div className="flex items-stretch">
               <button onClick={() => onSelect(n)}
-                className="flex-1 text-left p-3 hover:bg-neutral-800/50">
+                className="flex-1 text-left p-3 hover:bg-neutral-800/50 flex items-center gap-2.5">
+                {p ? <img src={`/api/persona-images/${sessionId}/${n}`} alt="" className="w-9 h-9 rounded-lg object-cover bg-neutral-900 shrink-0" onError={e => (e.currentTarget.style.display="none")} /> : null}
+                <div className="flex-1 min-w-0">
                 <div className="font-medium">{p?.name || `Slot ${n}`}</div>
                 <div className="text-xs text-neutral-500 mt-0.5 line-clamp-1">
                   {p?.type || "Noch nicht zugewiesen"}
+                </div>
                 </div>
               </button>
               {p && (
