@@ -106,7 +106,7 @@ export async function POST(req: Request) {
   let role = "system";
   let personaSlot: number | null = null;
   let personaName: string | null = null;
-  if (b.kind === "coordinator") role = "cordinator";
+  if (b.kind === "coordinator") role = "coordinator";
   else if (b.kind === "synthesis") role = "synthesis";
   else if (b.kind === "persona_round") {
     role = "persona";
