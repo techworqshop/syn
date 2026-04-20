@@ -40,6 +40,9 @@ Slack-Variante — die bleibt unverändert.
 | SynWeb_IngestFile | oFGYiNFs7B1At0n0 | File-Analyse (Haiku) -> panel_files |
 | SynWeb_DeleteFile | 8YMfBODhPVGNYNpq | panel_files Row löschen |
 | SynWeb_SendInvite | 43KZPaaRtfchFZ8h | Invite-Mail via Gmail (tech@worqshop.io) |
+| SynWeb_PostStatus | 6GNn5cZdVZyGoxR1 | Progress-Indikator (kind=status, ephemer) |
+| SynWeb_UpdatePersona | DPGRWxdL6qyAEd6i | Per-Persona Rigidity-Update via Postgres |
+| SynWeb_FinalReport | vJ1K27VranwixXK1 | Abschlussbericht (Opus 4.7) |
 
 **Slack-Seite unangetastet** — die 11 Syn_*/Alpha_*/etc. Workflows nicht modifizieren.
 
@@ -170,3 +173,13 @@ systemctl reload caddy
 ## Co-Author (Claude)
 
 Claude Code signiert Commits nicht automatisch. Wenn gewünscht, manuell `Co-Authored-By: Claude` an Commit-Messages anhängen.
+
+## Phase 2l+2m (auto-appended)
+
+New API: PATCH /api/sessions/[id]/personas/[slot] (rigidity), POST /api/sessions/[id]/final-report, GET /api/reports/[sessionId]/[reportId]
+
+DB: panel_personas.rigidity (double, default 5, NOT NULL); Message-metadata kinds: error, report_status, report (mit reportId+filename), report_error
+
+Model-Stack (04-2026): Coordinator/RunPersona/Audience/FinalReport=Opus 4.7, Synthesize=Sonnet 4.6, IngestFile=Haiku. temperature-param weg (Opus 4.7 deprecated).
+
+Volle Details siehe docs/JOURNEY.md Phase 2l+2m.

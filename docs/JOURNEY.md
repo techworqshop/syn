@@ -207,3 +207,57 @@ Aktiver Commit beim Session-Ende: `4f1a67c` (CLAUDE.md hinzugefügt).
 ## Commit-History (chronologisch grob)
 
 Siehe `git log --oneline`. Jeder Commit beginnt mit "Phase X" oder beschreibendem Slug.
+
+## Phase 2m — Rigidity-Slider, Progressive Reveal, Markdown-Render, Abschlussbericht
+
+Grosse Session mit vielen verbundenen Features.
+
+**Per-Persona Rigidity-Slider**
+- panel_personas.rigidity (double, default 5, NOT NULL) + column-metadata registriert
+- UI: Slider 0-10 unter jeder Persona-Kachel, Label standhaft/ausgewogen/offen, save-on-release 400ms debounce
+- Neuer Workflow SynWeb_UpdatePersona (DPGRWxdL6qyAEd6i): Webhook + direkter Postgres-UPDATE
+- App-Endpoint PATCH /api/sessions/[id]/personas/[slot] ruft den Webhook
+- RunPersona nimmt rigidity (number) statt rigidity_instruction (string), generiert Haltung-Text inline
+
+**Progressive Persona-Reveal**
+- syncPanelAndImages auch auf kind=status getriggert, Bilder starten frueher
+- /api/sessions/[id]/personas returnt imageReady: boolean pro Persona
+- PersonaSidebar filtert: nur assigned mit ready image, keine leeren Slots mehr
+
+**Synthesis-Markdown-Rendering**
+- app/src/components/Markdown.tsx shared util mit renderMarkdown(text)
+- parsed H1-H3, bold, bullet lists, horizontal rules
+- MessageBubble + PersonaSidebar nutzen die util fuer synthesis content
+
+**AudiencePanel-UI-Redesign**
+- Solo-Chats bekommen identischen Stil zum Hauptchat (Glass, Gradient-Bubbles, Avatar, Typing, Slack-Input) - ohne Upload-Button
+
+**Abschlussbericht-Feature**
+- SynWeb_FinalReport workflow (vJ1K27VranwixXK1): Opus 4.7, Markdown-Output mit Sections Executive Summary / Fragestellung / Panel / Verlauf / Spannungslinien / Erkenntnisse
+- POST /api/sessions/[id]/final-report: fire-and-forget, inFlight-Lock, maxDuration=300
+- PDF via pdfkit: Cover + gestufte Headings + bold + bullets - Farben fuer weisses Papier
+- PDFs persistent unter /app/uploads/reports/<sessionId>/<reportId>.pdf
+- Chat-Message mit kind=report + reportId + filename -> MessageBubble goldene Download-Card
+- GET /api/reports/[sessionId]/[reportId] auth-gated stream
+- SessionMenu: fetch POST (kein window.location mehr)
+
+**Model-Upgrades 04-2026**
+Coordinator/RunPersona/Audience: Opus 4.6 -> 4.7. Synthesize: Sonnet 4.5 -> 4.6. temperature-param raus (deprecated).
+
+**Bugfixes**
+- Hidden 0x0F im callback route.ts ("cordinator"), von chunked-transfer
+- SynWeb_ReadState: alwaysOutputData:true
+- SynWeb_DeleteFile: auf Postgres-Direct umgebaut
+- pdfkit: Dockerfile kopiert *.afm ins .next/server/chunks/data/
+- Final-Report Timeout -> fire-and-forget Pattern
+- "human"-type: UI-Filter + Prompt-Hardening
+
+**Gotchas 13-20**
+13. DataTable v1.1 Get bei 0 Rows throwt -> alwaysOutputData:true
+14. DataTable v1.1 Delete broken -> direkter Postgres
+15. pdfkit Next.js: Dockerfile-RUN fuer afm-Fonts noetig
+16. Opus 4.7 kein temperature mehr
+17. Handler >60s: maxDuration + fire-and-forget
+18. Base64-Chunked-Transfer fehleranfaellig - Python-Patch besser
+19. window.location.href auf long API = crash, immer fetch()
+20. Anthropic 450k input tokens/min - bei viel Context schnell gehittet
