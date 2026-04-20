@@ -174,7 +174,7 @@ export async function POST(_: Request, { params }: P) {
   inFlight.add(id);
   setTimeout(() => inFlight.delete(id), 300000);
 
-  await announce(id, "\u23F3 Abschlussbericht wird erstellt... Opus liest alle Daten und schreibt den Report. Das dauert 1-3 Minuten. Das PDF startet automatisch als Download.");
+  await announce(id, "\u23F3 Abschlussbericht wird erstellt... Das kann ein paar Minuten dauern. Du kannst weiterarbeiten - das PDF landet hier im Chat wenn er fertig ist.");
 
   const [state, msgs] = await Promise.all([
     readState(id).catch(() => ({ personas: [] as Persona[], syntheses: [] as Synth[] })),
