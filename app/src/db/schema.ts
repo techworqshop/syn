@@ -86,9 +86,11 @@ export const personaImages = pgTable("persona_images", {
   id: uuid("id").primaryKey().defaultRandom(),
   sessionId: uuid("session_id").notNull().references(() => sessions.id, { onDelete: "cascade" }),
   slot: integer("slot").notNull(),
-  storagePath: text("storage_path").notNull(),
+  storagePath: text("storage_path"),
   mimeType: text("mime_type").notNull().default("image/png"),
-  status: text("status").notNull().default("ready"),
+  status: text("status").notNull().default("pending"),
+  attempts: integer("attempts").notNull().default(0),
+  lastError: text("last_error"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
 });
 

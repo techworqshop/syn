@@ -14,7 +14,7 @@ export async function GET(_: Request, { params }: P) {
       .where(and(eq(personaImages.sessionId, sessionId), eq(personaImages.slot, slotNum))).limit(1);
     row = rows[0];
   } catch { return new Response("not found", { status: 404 }); }
-  if (!row) return new Response("not found", { status: 404 });
+  if (!row || !row.storagePath) return new Response("not found", { status: 404 });
   if (!fs.existsSync(row.storagePath)) return new Response("gone", { status: 410 });
   const buf = fs.readFileSync(row.storagePath);
   return new Response(buf, {

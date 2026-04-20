@@ -19,7 +19,7 @@ export async function GET(_: Request, { params }: P) {
       db.select().from(personaImages).where(eq(personaImages.sessionId, id))
     ]);
     const readySlots = new Set(
-      images.filter(i => i.status === "ready").map(i => i.slot)
+      images.filter(i => i.status === "ready" || i.attempts >= 3).map(i => i.slot)
     );
     const personas = state.personas.map(p => ({
       ...p,

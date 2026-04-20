@@ -1,0 +1,3 @@
+ALTER TABLE persona_images ADD COLUMN IF NOT EXISTS attempts INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE persona_images ADD COLUMN IF NOT EXISTS last_error TEXT;
+ALTER TABLE persona_images ALTER COLUMN storage_path DROP NOT NULL;

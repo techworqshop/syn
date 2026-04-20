@@ -4,7 +4,7 @@ import { messages, audienceMessages, sessions } from "@/db/schema";
 import { publish } from "@/lib/redis";
 import { readState } from "@/lib/n8n";
 import { suggestTitle } from "@/lib/title-gen";
-import { generatePersonaImage } from "@/lib/persona-image-gen";
+import { generatePersonaImage, MAX_ATTEMPTS } from "@/lib/persona-image-gen";
 import { personaImages } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 
@@ -44,16 +44,34 @@ async function syncPanelAndImages(sessionId: string, sess: SessionRow) {
     await publish(`session:${sessionId}`, { type: "panel_refresh" });
   }
 
-  const existingImgs = await db.select().from(personaImages)
-    .where(eq(personaImages.sessionId, sessionId));
-  const existingSlots = new Set(existingImgs.map(x => x.slot));
-  for (const p of state.personas) {
-    const slot = p.slack_slot;
-    if (!slot || existingSlots.has(slot)) continue;
-    generatePersonaImage({ sessionId, slot, name: p.name || "", type: p.type, profile: p.profile })
-      .then(() => publish(`session:${sessionId}`, { type: "persona_image", slot }).catch(()=>{}))
-      .catch(()=>{});
-  }
+  queueImageGen(sessionId, state.personas);
+}
+
+const IMAGE_QUEUE = new Map<string, Promise<void>>();
+
+function queueImageGen(sessionId: string, personas: Array<{ slack_slot?: number | null; name?: string | null; type?: string; profile?: string }>) {
+  const prev = IMAGE_QUEUE.get(sessionId) ?? Promise.resolve();
+  const next = prev.then(async () => {
+    const existingImgs = await db.select().from(personaImages)
+      .where(eq(personaImages.sessionId, sessionId));
+    const byslot = new Map(existingImgs.map(r => [r.slot, r]));
+    for (const p of personas) {
+      const slot = p.slack_slot;
+      if (!slot) continue;
+      const row = byslot.get(slot);
+      if (row?.status === "ready") continue;
+      if (row && row.attempts >= MAX_ATTEMPTS) continue;
+      const result = await generatePersonaImage({
+        sessionId, slot, name: p.name || "", type: p.type, profile: p.profile
+      });
+      await publish(`session:${sessionId}`, { type: "persona_image", slot, status: result }).catch(() => {});
+      await new Promise(r => setTimeout(r, 1500));
+    }
+  }).catch(e => { console.error(`[image-queue] session=${sessionId}`, e); });
+  IMAGE_QUEUE.set(sessionId, next);
+  next.finally(() => {
+    if (IMAGE_QUEUE.get(sessionId) === next) IMAGE_QUEUE.delete(sessionId);
+  });
 }
 
 export async function POST(req: Request) {
