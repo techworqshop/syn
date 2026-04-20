@@ -20,6 +20,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/node_modules ./node_modules
+RUN mkdir -p /app/.next/server/chunks/data && cp /app/node_modules/pdfkit/js/data/*.afm /app/.next/server/chunks/data/
 COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/src/db ./src/db
 COPY --from=builder /app/scripts ./scripts
