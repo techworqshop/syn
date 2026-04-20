@@ -75,17 +75,17 @@ function renderPDF(
     doc.on("end", () => resolve(Buffer.concat(chunks)));
 
     // Cover
-    doc.fontSize(10).fillColor("#716b7d").text("SynWeb - Abschlussbericht", { align: "left" });
+    doc.fontSize(10).fillColor("#6b7280").text("SynWeb - Abschlussbericht", { align: "left" });
     doc.moveDown(0.3);
-    doc.fontSize(28).fillColor("#f4f1f7").text(title, { align: "left" });
+    doc.fontSize(28).fillColor("#111827").text(title, { align: "left" });
     doc.moveDown(0.5);
     const created = new Date(meta.createdAt);
-    doc.fontSize(10).fillColor("#716b7d")
+    doc.fontSize(10).fillColor("#6b7280")
       .text(`Erstellt: ${created.toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" })}`);
     doc.text(`${meta.personaCount} Personas / ${meta.currentRound} Runden`);
     doc.text(`Export: ${new Date().toLocaleString("de-DE")}`);
     doc.moveDown(1.5);
-    doc.moveTo(56, doc.y).lineTo(539, doc.y).strokeColor("#3f2a5a").lineWidth(1).stroke();
+    doc.moveTo(56, doc.y).lineTo(539, doc.y).strokeColor("#d4d4d8").lineWidth(1).stroke();
     doc.moveDown(1.2);
 
     // Body - parse markdown
@@ -96,17 +96,17 @@ function renderPDF(
       if (/^#\s+/.test(line)) {
         if (inList) { inList = false; doc.moveDown(0.3); }
         doc.moveDown(0.6);
-        doc.fontSize(20).fillColor("#d946ef").text(line.replace(/^#\s+/, ""));
+        doc.fontSize(20).fillColor("#7c3aed").text(line.replace(/^#\s+/, ""));
         doc.moveDown(0.4);
       } else if (/^##\s+/.test(line)) {
         if (inList) { inList = false; doc.moveDown(0.3); }
         doc.moveDown(0.5);
-        doc.fontSize(15).fillColor("#c084fc").text(line.replace(/^##\s+/, ""));
+        doc.fontSize(15).fillColor("#9333ea").text(line.replace(/^##\s+/, ""));
         doc.moveDown(0.3);
       } else if (/^###\s+/.test(line)) {
         if (inList) { inList = false; doc.moveDown(0.2); }
         doc.moveDown(0.3);
-        doc.fontSize(12).fillColor("#fbbf24").text(line.replace(/^###\s+/, ""));
+        doc.fontSize(12).fillColor("#b45309").text(line.replace(/^###\s+/, ""));
         doc.moveDown(0.2);
       } else if (/^\s*[-*]\s+/.test(line)) {
         inList = true;
@@ -129,8 +129,8 @@ function renderInlineBold(doc: InstanceType<typeof PDFDocument>, text: string, o
   const parts = text.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
   const indent = opts.bullet ? 16 : 0;
   if (opts.bullet) {
-    doc.fontSize(11).fillColor("#c084fc").text("-", { continued: true, indent: 4 })
-      .fillColor("#d4d1da").text(" ", { continued: true });
+    doc.fontSize(11).fillColor("#9333ea").text("-", { continued: true, indent: 4 })
+      .fillColor("#1f2937").text(" ", { continued: true });
   }
   for (let i = 0; i < parts.length; i++) {
     const p = parts[i];
@@ -138,9 +138,9 @@ function renderInlineBold(doc: InstanceType<typeof PDFDocument>, text: string, o
     const isBold = /^\*\*[^*]+\*\*$/.test(p);
     const clean = isBold ? p.replace(/^\*\*|\*\*$/g, "") : p;
     if (isBold) {
-      doc.font("Helvetica-Bold").fontSize(11).fillColor("#f4f1f7").text(clean, { continued: !isLast, indent: opts.bullet ? 0 : indent });
+      doc.font("Helvetica-Bold").fontSize(11).fillColor("#111827").text(clean, { continued: !isLast, indent: opts.bullet ? 0 : indent });
     } else {
-      doc.font("Helvetica").fontSize(11).fillColor("#d4d1da").text(clean, { continued: !isLast, indent: opts.bullet ? 0 : indent });
+      doc.font("Helvetica").fontSize(11).fillColor("#1f2937").text(clean, { continued: !isLast, indent: opts.bullet ? 0 : indent });
     }
   }
   doc.font("Helvetica");
