@@ -43,7 +43,7 @@ function composeContext(personas: Persona[], syntheses: Synth[], msgs: Msg[]) {
 
   const relevantMsgs = msgs
     .filter(m => m.role === "persona" || m.role === "user")
-    .slice(-30)
+    .slice(-10)
     .map(m => {
       const who = m.role === "user" ? "User" : (m.personaName || "Persona");
       const round = m.roundNumber ? ` [R${m.roundNumber}]` : "";
@@ -139,12 +139,20 @@ function renderInlineBold(doc: InstanceType<typeof PDFDocument>, text: string, o
   else doc.moveDown(0.4);
 }
 
+const inFlight = new Set<string>();
+
 export async function GET(_: Request, { params }: P) {
   const u = await requireUser();
   const { id } = await params;
   const [sess] = await db.select().from(sessions)
     .where(and(eq(sessions.id, id), eq(sessions.userId, u.id))).limit(1);
   if (!sess) return NextResponse.json({ error: "not found" }, { status: 404 });
+
+  if (inFlight.has(id)) {
+    return NextResponse.json({ error: "already generating" }, { status: 429 });
+  }
+  inFlight.add(id);
+  setTimeout(() => inFlight.delete(id), 90000);
 
   const [state, msgs] = await Promise.all([
     readState(id).catch(() => ({ personas: [] as Persona[], syntheses: [] as Synth[] })),
@@ -153,7 +161,7 @@ export async function GET(_: Request, { params }: P) {
 
   const ctx = composeContext(state.personas, state.syntheses, msgs as Msg[]);
 
-  const hookRes = await fetch(REPORT_HOOK, {
+  const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 90000); const hookRes = await fetch(REPORT_HOOK, { signal: ctrl.signal,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -167,7 +175,7 @@ export async function GET(_: Request, { params }: P) {
     })
   });
 
-  if (!hookRes.ok) {
+  clearTimeout(to); if (!hookRes.ok) {
     return NextResponse.json({ error: "report generation failed" }, { status: 502 });
   }
   const payload = await hookRes.json().catch(() => ({ report: "" }));

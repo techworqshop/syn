@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-19T23:47:09.462Z",
+    "updatedAt": "2026-04-20T00:03:57.600Z",
     "createdAt": "2026-04-19T23:47:02.938Z",
     "id": "vJ1K27VranwixXK1",
     "name": "SynWeb_FinalReport",
@@ -37,7 +37,8 @@
           "modelId": {
             "__rl": true,
             "mode": "id",
-            "value": "claude-opus-4-7"
+            "value": "claude-sonnet-4-6",
+            "cachedResultName": "Claude Sonnet 4.6"
           },
           "messages": {
             "values": [
@@ -47,7 +48,7 @@
             ]
           },
           "options": {
-            "maxTokens": 4096,
+            "maxTokens": 3500,
             "systemMessage": "Du bist Senior Research Analyst. Du schreibst prazise, substanzielle Abschlussberichte fuer Fokusgruppen. Weise Ideen namentlich zu. Keine vorgetaeuschten Konsense. Nur Markdown-Output, keine Einleitung vor dem #-Header."
           }
         },
@@ -114,9 +115,9 @@
     "staticData": null,
     "meta": null,
     "pinData": null,
-    "versionId": "23ef5ece-9f9d-4657-9fc7-1d583e702499",
-    "activeVersionId": "23ef5ece-9f9d-4657-9fc7-1d583e702499",
-    "versionCounter": 4,
+    "versionId": "59de1bf0-17a8-4422-b268-859c4709b698",
+    "activeVersionId": "59de1bf0-17a8-4422-b268-859c4709b698",
+    "versionCounter": 12,
     "triggerCount": 1,
     "tags": [],
     "shared": [
