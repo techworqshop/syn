@@ -22,7 +22,7 @@ export default function SessionMenu({ sessionId, afterDelete }: { sessionId: str
     if (res.ok) { const d = await res.json(); router.push(`/app/sessions/${d.session.id}`); }
   }
   function exportPdf() { setMenu(false); window.location.href = `/api/sessions/${sessionId}/export`; }
-  function finalReport() { setMenu(false); window.location.href = `/api/sessions/${sessionId}/final-report`; }
+  async function finalReport() { setMenu(false); setBusy(true); try { await fetch(`/api/sessions/${sessionId}/final-report`, { method: "POST" }); } catch {} setBusy(false); }
 
   async function share() {
     setBusy(true); setMenu(false);

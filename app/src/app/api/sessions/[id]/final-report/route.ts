@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
+import fs from "node:fs/promises";
+import path from "node:path";
+import crypto from "node:crypto";
 import { db } from "@/lib/db";
 import { publish } from "@/lib/redis";
 import { sessions, messages } from "@/db/schema";
@@ -11,6 +14,8 @@ export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
 type P = { params: Promise<{ id: string }> };
+
+const REPORTS_DIR = "/app/uploads/reports";
 
 const REPORT_HOOK = process.env.SYNWEB_FINAL_REPORT_WEBHOOK
   || "https://n8n.worqshop.io/webhook/synweb/final-report";
@@ -146,17 +151,17 @@ function renderInlineBold(doc: InstanceType<typeof PDFDocument>, text: string, o
 const inFlight = new Set<string>();
 
 
-async function announce(sessionId: string, content: string) {
+async function announce(sessionId: string, content: string, metadata: object = { kind: "report_status" }) {
   try {
     const [row] = await db.insert(messages).values({
       sessionId, role: "coordinator", content,
-      metadata: { kind: "report_status" }
+      metadata
     }).returning();
     await publish(`session:${sessionId}`, { type: "message", message: row });
   } catch {}
 }
 
-export async function GET(_: Request, { params }: P) {
+export async function POST(_: Request, { params }: P) {
   const u = await requireUser();
   const { id } = await params;
   const [sess] = await db.select().from(sessions)
@@ -205,12 +210,19 @@ export async function GET(_: Request, { params }: P) {
     reportMd
   );
 
-  await announce(id, "\u2705 Abschlussbericht fertig. Das PDF ist im Download gelandet.");
+
+  const reportId = crypto.randomUUID();
+  const dir = path.join(REPORTS_DIR, id);
+  await fs.mkdir(dir, { recursive: true });
+  await fs.writeFile(path.join(dir, `${reportId}.pdf`), pdf);
   const safeName = sess.title.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40);
-  return new Response(pdf, {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="synweb-bericht-${safeName}.pdf"`
-    }
+  const filename = `synweb-bericht-${safeName}.pdf`;
+
+  await announce(id, "\u{1F4C4} Abschlussbericht", {
+    kind: "report", reportId, filename,
+    generatedAt: new Date().toISOString()
   });
+
+  inFlight.delete(id);
+  return NextResponse.json({ ok: true });
 }
