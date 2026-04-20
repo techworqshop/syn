@@ -42,5 +42,9 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
     try { await deleteFileFromPanel(f.id); } catch {}
   }
   await db.delete(sessions).where(eq(sessions.id, id));
+  // Remove on-disk artifacts for this session
+  for (const dir of [`/app/uploads/${id}`, `/app/uploads/personas/${id}`, `/app/uploads/reports/${id}`]) {
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
+  }
   return NextResponse.json({ ok: true });
 }
