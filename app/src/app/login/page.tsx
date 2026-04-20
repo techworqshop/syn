@@ -13,7 +13,7 @@ export default function LoginPage() {
           <img src="/api/assets/syn-avatar" alt="" className="w-14 h-14 rounded-full ring-2 ring-sky-500/20" />
         </div>
         <div className="text-center space-y-1 mb-2">
-          <h1 className="text-2xl font-semibold tracking-tight">SynWeb</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Syn</h1>
           <p className="text-sm text-neutral-500">Melde dich mit deinem Account an.</p>
         </div>
         <input name="email" type="email" required placeholder="Email" className={inp} />

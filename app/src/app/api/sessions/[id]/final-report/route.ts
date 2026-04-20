@@ -75,7 +75,7 @@ function renderPDF(
     doc.on("end", () => resolve(Buffer.concat(chunks)));
 
     // Cover
-    doc.fontSize(10).fillColor("#6b7280").text("SynWeb - Abschlussbericht", { align: "left" });
+    doc.fontSize(10).fillColor("#6b7280").text("Syn - Abschlussbericht", { align: "left" });
     doc.moveDown(0.3);
     doc.fontSize(28).fillColor("#111827").text(title, { align: "left" });
     doc.moveDown(0.5);
@@ -216,7 +216,7 @@ export async function POST(_: Request, { params }: P) {
   await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(path.join(dir, `${reportId}.pdf`), pdf);
   const safeName = sess.title.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40);
-  const filename = `synweb-bericht-${safeName}.pdf`;
+  const filename = `syn-bericht-${safeName}.pdf`;
 
   await announce(id, "\u{1F4C4} Abschlussbericht", {
     kind: "report", reportId, filename,

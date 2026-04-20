@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "SynWeb - Synthetic Focus Groups",
+  title: "Syn - Synthetic Focus Groups",
   description: "Multi-persona focus groups for Worqshop"
 };
 

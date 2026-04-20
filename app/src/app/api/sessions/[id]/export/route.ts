@@ -122,7 +122,7 @@ export async function GET(_: Request, { params }: P) {
   return new Response(pdf, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="synweb-${safeName}.pdf"`
+      "Content-Disposition": `attachment; filename="syn-${safeName}.pdf"`
     }
   });
 }

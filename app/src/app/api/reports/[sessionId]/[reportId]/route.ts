@@ -32,7 +32,7 @@ export async function GET(_: Request, { params }: P) {
     return NextResponse.json({ error: "report not found" }, { status: 404 });
   }
   const md = reportMsg.metadata as { filename?: string };
-  const filename = md.filename || `synweb-bericht-${reportId}.pdf`;
+  const filename = md.filename || `syn-bericht-${reportId}.pdf`;
 
   const target = path.join(REPORTS_DIR, sessionId, `${reportId}.pdf`);
   let buf: Buffer;

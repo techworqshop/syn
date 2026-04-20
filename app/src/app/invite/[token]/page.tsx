@@ -61,7 +61,7 @@ export default function InvitePage() {
           <img src="/api/assets/syn-avatar" alt="" className="w-14 h-14 rounded-full ring-2 ring-fuchsia-500/20" />
         </div>
         <div className="text-center mb-4">
-          <h1 className="text-2xl font-semibold tracking-tight">Willkommen bei SynWeb</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Willkommen bei Syn</h1>
           <p className="text-sm text-neutral-500 mt-1">Du richtest deinen Account fuer <b className="text-neutral-300">{email}</b> ein.</p>
         </div>
         <input value={name} onChange={e => setName(e.target.value)} placeholder="Dein Name (optional)" className={inp} />

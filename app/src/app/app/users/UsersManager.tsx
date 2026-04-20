@@ -51,7 +51,7 @@ export default function UsersManager({ currentUserId }: { currentUserId: string 
   return (
     <div className="max-w-3xl mx-auto w-full p-6">
       <h1 className="text-3xl font-semibold tracking-tight mb-2">User</h1>
-      <p className="text-sm text-neutral-500 mb-6">Lad Kollegen zu SynWeb ein und verwalte Accounts.</p>
+      <p className="text-sm text-neutral-500 mb-6">Lad Kollegen zu Syn ein und verwalte Accounts.</p>
 
       <div className="rounded-2xl border border-white/5 glass p-5 mb-6">
         <label className="text-xs uppercase tracking-wide text-neutral-500">Email-Adresse einladen</label>
