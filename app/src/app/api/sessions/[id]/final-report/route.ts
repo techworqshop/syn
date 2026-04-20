@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
 import { db } from "@/lib/db";
+import { publish } from "@/lib/redis";
 import { sessions, messages } from "@/db/schema";
 import { requireUser } from "@/lib/current-user";
 import { readState } from "@/lib/n8n";
@@ -144,6 +145,17 @@ function renderInlineBold(doc: InstanceType<typeof PDFDocument>, text: string, o
 
 const inFlight = new Set<string>();
 
+
+async function announce(sessionId: string, content: string) {
+  try {
+    const [row] = await db.insert(messages).values({
+      sessionId, role: "coordinator", content,
+      metadata: { kind: "report_status" }
+    }).returning();
+    await publish(`session:${sessionId}`, { type: "message", message: row });
+  } catch {}
+}
+
 export async function GET(_: Request, { params }: P) {
   const u = await requireUser();
   const { id } = await params;
@@ -156,6 +168,8 @@ export async function GET(_: Request, { params }: P) {
   }
   inFlight.add(id);
   setTimeout(() => inFlight.delete(id), 300000);
+
+  await announce(id, "\u23F3 Abschlussbericht wird erstellt... Opus liest alle Daten und schreibt den Report. Das dauert 1-3 Minuten. Das PDF startet automatisch als Download.");
 
   const [state, msgs] = await Promise.all([
     readState(id).catch(() => ({ personas: [] as Persona[], syntheses: [] as Synth[] })),
@@ -191,6 +205,7 @@ export async function GET(_: Request, { params }: P) {
     reportMd
   );
 
+  await announce(id, "\u2705 Abschlussbericht fertig. Das PDF ist im Download gelandet.");
   const safeName = sess.title.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40);
   return new Response(pdf, {
     headers: {
