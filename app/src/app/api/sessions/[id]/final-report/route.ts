@@ -6,6 +6,9 @@ import { requireUser } from "@/lib/current-user";
 import { readState } from "@/lib/n8n";
 import { and, eq, asc } from "drizzle-orm";
 
+export const maxDuration = 300;
+export const dynamic = "force-dynamic";
+
 type P = { params: Promise<{ id: string }> };
 
 const REPORT_HOOK = process.env.SYNWEB_FINAL_REPORT_WEBHOOK
@@ -43,7 +46,7 @@ function composeContext(personas: Persona[], syntheses: Synth[], msgs: Msg[]) {
 
   const relevantMsgs = msgs
     .filter(m => m.role === "persona" || m.role === "user")
-    .slice(-10)
+    .slice(-40)
     .map(m => {
       const who = m.role === "user" ? "User" : (m.personaName || "Persona");
       const round = m.roundNumber ? ` [R${m.roundNumber}]` : "";
@@ -152,7 +155,7 @@ export async function GET(_: Request, { params }: P) {
     return NextResponse.json({ error: "already generating" }, { status: 429 });
   }
   inFlight.add(id);
-  setTimeout(() => inFlight.delete(id), 90000);
+  setTimeout(() => inFlight.delete(id), 300000);
 
   const [state, msgs] = await Promise.all([
     readState(id).catch(() => ({ personas: [] as Persona[], syntheses: [] as Synth[] })),
@@ -161,7 +164,7 @@ export async function GET(_: Request, { params }: P) {
 
   const ctx = composeContext(state.personas, state.syntheses, msgs as Msg[]);
 
-  const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 90000); const hookRes = await fetch(REPORT_HOOK, { signal: ctrl.signal,
+  const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 300000); const hookRes = await fetch(REPORT_HOOK, { signal: ctrl.signal,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
