@@ -5,7 +5,8 @@ import { personaImages } from "@/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 
 const KEY = process.env.GOOGLE_AI_API_KEY!;
-const MODEL = "gemini-2.5-flash-image";
+const IMG_MODEL = "gemini-2.5-flash-image";
+const TEXT_MODEL = "gemini-2.5-flash";
 const DIR_BASE = "/app/uploads/personas";
 export const MAX_ATTEMPTS = 3;
 
@@ -17,15 +18,38 @@ export type PersonaInput = {
   profile?: string;
 };
 
-function buildPrompt(p: PersonaInput): string {
-  const role = (p.type && p.type.toLowerCase() !== "human")
-    ? p.type
-    : "professional";
-  return `Editorial headshot portrait photograph of a professional in the role: ${role}. Natural soft lighting, neutral uncluttered background, subject looking slightly off-camera with a thoughtful expression, realistic skin tones, warm editorial color grading, shallow depth of field. Square 1:1 framing, head and upper shoulders visible. No text, no logos, no watermarks.`;
+async function deriveVisualDescription(name: string, role: string): Promise<string> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${TEXT_MODEL}:generateContent?key=${KEY}`;
+  const prompt = `Persona: ${name}, role: ${role}. Produce ONE descriptive phrase (max 25 words) about their likely physical appearance for a portrait photograph. Include gender, age range, regional/ethnic features, hair, and general demeanor. NO names, NO profession labels. Output the phrase only.`;
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.4,
+      maxOutputTokens: 200,
+      thinkingConfig: { thinkingBudget: 0 }
+    }
+  };
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) return "a professional adult";
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    return text && text.length > 5 ? text : "a professional adult";
+  } catch {
+    return "a professional adult";
+  }
+}
+
+function buildPrompt(description: string, role: string): string {
+  return `Editorial headshot portrait photograph of ${description} The subject works as ${role}. Natural soft lighting, neutral uncluttered background, subject looking slightly off-camera with a thoughtful expression, realistic skin tones, warm editorial color grading, shallow depth of field. Square 1:1 framing, head and upper shoulders visible. No text, no logos, no watermarks.`;
 }
 
 async function callGemini(prompt: string) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${IMG_MODEL}:generateContent?key=${KEY}`;
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { responseModalities: ["TEXT", "IMAGE"] }
@@ -68,7 +92,9 @@ export async function generatePersonaImage(p: PersonaInput): Promise<"ready" | "
       sessionId: p.sessionId, slot: p.slot, status: "pending", attempts: 0
     });
   }
-  const result = await callGemini(buildPrompt(p));
+  const role = (p.type && p.type.toLowerCase() !== "human") ? p.type : "professional";
+  const description = await deriveVisualDescription(p.name, role);
+  const result = await callGemini(buildPrompt(description, role));
   if (!result.ok) {
     await db.update(personaImages).set({
       status: "failed",
