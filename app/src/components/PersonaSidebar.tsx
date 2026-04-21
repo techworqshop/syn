@@ -47,7 +47,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
   const bySlot: Record<number, PanelPersona> = {};
   for (const p of personas) {
     const slot = p.slack_slot ?? 0;
-    if (slot >= 1 && slot <= 5 && p.imageReady) bySlot[slot] = p;
+    if (slot >= 1 && slot <= 5) bySlot[slot] = p;
   }
 
   function changeRigidity(slot: number, value: number) {
@@ -73,7 +73,19 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
             <div className="flex items-stretch">
               <button onClick={() => onSelect(n)}
                 className="flex-1 text-left p-3 hover:bg-neutral-800/50 flex items-center gap-2.5">
-                {p ? <img src={`/api/persona-images/${sessionId}/${n}`} alt="" className="w-9 h-9 rounded-lg object-cover bg-neutral-900 shrink-0" onError={e => (e.currentTarget.style.display="none")} /> : null}
+                {p ? (
+                  p.imageReady ? (
+                    <img src={`/api/persona-images/${sessionId}/${n}`} alt="" className="w-9 h-9 rounded-lg object-cover bg-neutral-900 shrink-0" onError={e => (e.currentTarget.style.display="none")} />
+                  ) : (
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-700/60 to-neutral-800 shrink-0 flex items-center justify-center relative overflow-hidden" title="Portrait wird generiert">
+                      <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-neutral-600/20 to-transparent" />
+                      <svg className="w-4 h-4 animate-spin text-neutral-300 relative" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />
+                        <path d="M12 2 a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                  )
+                ) : null}
                 <div className="flex-1 min-w-0">
                 <div className="font-medium">{p?.name || `Slot ${n}`}</div>
                 <div className="text-xs text-neutral-500 mt-0.5 line-clamp-1">
