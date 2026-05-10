@@ -61,3 +61,16 @@
   }
   .btn-primary:active { transform: translateY(1px); }
 }
+
+/* Chat bubble wrap safety-net.
+   Targets every bubble (MessageBubble + AudiencePanel) by structural pattern,
+   so wrap-behavior survives stale component code in browser cache. */
+[class~="rounded-2xl"][class~="leading-relaxed"][class~="px-4"][class~="py-3"] {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
