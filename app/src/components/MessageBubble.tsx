@@ -14,7 +14,7 @@ const LABELS: Record<string, string> = {
 
 const BUBBLE: Record<string, string> = {
   user: "bg-gradient-to-br from-amber-700 via-orange-700 to-yellow-700 text-white shadow-[0_6px_20px_-6px_rgba(180,120,40,0.5)] bubble-glass",
-  coordinator: "bg-gradient-to-br from-purple-900 from-0% via-rose-700 via-20% to-red-800 to-100% text-white border border-rose-700/40 shadow-lg bubble-glass",
+  coordinator: "bg-gradient-to-br from-purple-900 from-0% via-rose-700 via-40% to-red-800 to-100% text-white border border-rose-700/40 shadow-lg bubble-glass",
   synthesis: "bg-gradient-to-br from-amber-700 via-yellow-700 to-orange-800 text-white border border-amber-600 shadow-md bubble-glass",
   system: "bg-amber-200 text-amber-950 border border-amber-400 text-sm font-medium"
 };
