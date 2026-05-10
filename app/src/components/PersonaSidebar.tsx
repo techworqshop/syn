@@ -104,16 +104,16 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
             {p && (() => {
               const current = localRigidity[n] ?? (typeof p.rigidity === "number" ? p.rigidity : 5);
               return (
-                <div className="border-t border-white/30 px-3 py-2 backdrop-blur-md bg-white/20">
-                  <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-stone-700 font-bold mb-1">
+                <div className="border-t border-white/30 px-3 py-2 backdrop-blur-md bg-black/15">
+                  <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-white font-bold mb-1">
                     <span>Haltung</span>
-                    <span className="text-rose-700 normal-case tracking-normal font-bold">{rigidityLabel(current)}</span>
+                    <span className="text-white normal-case tracking-normal font-bold">{rigidityLabel(current)}</span>
                   </div>
                   <input type="range" min={0} max={10} step={1} value={current}
                     onChange={e => changeRigidity(n, parseInt(e.target.value))}
-                    className="w-full accent-emerald-700 cursor-pointer"
+                    className="w-full accent-lime-300 cursor-pointer"
                     title={`Rigidity ${current}/10`} />
-                  <div className="flex justify-between text-[10px] text-stone-700 font-semibold mt-0.5">
+                  <div className="flex justify-between text-[10px] text-white/90 font-semibold mt-0.5">
                     <span>offen</span>
                     <span>standhaft</span>
                   </div>
