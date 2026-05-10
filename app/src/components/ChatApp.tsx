@@ -109,7 +109,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
     <div className="flex flex-1 min-h-0 overflow-hidden"
       >
       <div className="flex-1 flex flex-col min-w-0 relative">
-        <div className="border-b border-stone-300 px-6 py-3 flex items-center justify-between">
+        <div className="border-b border-white/40 px-6 py-3 glass flex items-center justify-between">
           <div>
             {editingTitle ? (
               <input autoFocus value={titleDraft}
@@ -150,7 +150,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
           <div ref={bottomRef} />
         </div>
         {(filesList.length > 0) && (
-          <div className="border-t border-stone-300 px-4 py-2 flex flex-wrap gap-2 text-xs">
+          <div className="border-t border-white/40 px-4 py-2 flex flex-wrap gap-2 text-xs backdrop-blur-md bg-white/20">
             {filesList.map(f => (
               <div key={f.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs ${f.category === "briefing" ? "bg-amber-200 border-amber-500 text-amber-950 shadow-sm" : f.category === "persona" ? "bg-rose-200 border-rose-500 text-rose-950 shadow-sm" : "bg-orange-200 border-orange-500 text-orange-950 shadow-sm"}`}>
                 <span className="text-[10px] uppercase tracking-wide opacity-70">{f.category === "briefing" ? "Briefing" : f.category === "persona" ? "Persona" : "Panel"}</span>
@@ -162,8 +162,8 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
             ))}
           </div>
         )}
-        <div className="border-t border-stone-300 p-4">
-          <div className="rounded-2xl border border-stone-300 bg-white/75 focus-within:border-fuchsia-500/50 focus-within:ring-2 focus-within:ring-fuchsia-500/10 transition-all">
+        <div className="border-t border-white/40 p-4 backdrop-blur-md bg-white/30">
+          <div className="rounded-2xl glass-card focus-within:border-rose-400/60 focus-within:ring-2 focus-within:ring-rose-400/15 transition-all">
             <textarea value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!waiting && !sending) send(); } }}

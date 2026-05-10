@@ -63,7 +63,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
   }
 
   return (
-    <aside className="w-72 border-l border-stone-300 bg-amber-50/50 p-3 space-y-2 overflow-y-auto">
+    <aside className="w-72 border-l border-white/40 glass-card p-3 space-y-2 overflow-y-auto">
       <div className="text-xs uppercase tracking-wide text-stone-500 mb-2 px-1">Personas</div>
       {[1,2,3,4,5].filter(n => bySlot[n]).map(n => {
         const p = bySlot[n];
@@ -104,7 +104,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
             {p && (() => {
               const current = localRigidity[n] ?? (typeof p.rigidity === "number" ? p.rigidity : 5);
               return (
-                <div className="border-t border-stone-300/60 px-3 py-2 bg-amber-50/40">
+                <div className="border-t border-white/30 px-3 py-2 backdrop-blur-md bg-white/20">
                   <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-stone-500 mb-1">
                     <span>Haltung</span>
                     <span className="text-stone-700 normal-case tracking-normal">{rigidityLabel(current)}</span>
@@ -121,7 +121,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
               );
             })()}
             {isExp && p && (
-              <div className="border-t border-stone-300 p-3 space-y-2 text-xs bg-amber-50/70">
+              <div className="border-t border-white/40 p-3 space-y-2 text-xs backdrop-blur-md bg-white/40">
                 {p.core_perspective && (
                   <div><div className="text-stone-500">Perspektive</div>
                     <div className="text-stone-800 whitespace-pre-wrap">{p.core_perspective}</div></div>
@@ -163,7 +163,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
                 <div className="font-semibold text-white">Runde {s.round_number}</div>
               </button>
               {synthOpen === s.round_number && (
-                <div className="border-t border-emerald-300 p-3 text-xs text-stone-800 bg-amber-50">
+                <div className="border-t border-white/40 p-3 text-xs text-stone-800 backdrop-blur-md bg-white/40">
                   {renderMarkdown(s.synthesis_text)}
                 </div>
               )}
