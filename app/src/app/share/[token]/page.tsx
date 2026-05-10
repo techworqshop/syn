@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { sessions, messages } from "@/db/schema";
+import { sessions, messages, files } from "@/db/schema";
 import { readState } from "@/lib/n8n";
 import { eq, asc } from "drizzle-orm";
 import MessageBubble from "@/components/MessageBubble";
@@ -16,7 +16,9 @@ export default async function SharePage({ params }: P) {
   if (!sess) return notFound();
   const msgs = await db.select().from(messages)
     .where(eq(messages.sessionId, sess.id)).orderBy(asc(messages.createdAt));
-  const state = await readState(sess.id).catch(() => ({ personas: [], syntheses: [] }));
+  const sessionFiles = await db.select().from(files)
+    .where(eq(files.sessionId, sess.id)).orderBy(asc(files.createdAt));
+  await readState(sess.id).catch(() => ({ personas: [], syntheses: [] }));
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -31,6 +33,41 @@ export default async function SharePage({ params }: P) {
       </header>
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto p-6 space-y-4">
+          {sessionFiles.length > 0 && (
+            <section className="rounded-2xl border border-stone-400/40 bg-stone-50 p-4 mb-2 shadow-sm">
+              <div className="text-xs uppercase tracking-wide text-amber-800 font-bold mb-3">Dateien ({sessionFiles.length})</div>
+              <ul className="space-y-2">
+                {sessionFiles.map(f => {
+                  const catLabel = f.category === "briefing" ? "Briefing" : f.category === "persona" ? "Persona-Daten" : "Panel-Review";
+                  const catTone = f.category === "briefing"
+                    ? "bg-yellow-200 text-yellow-950 border-yellow-700"
+                    : f.category === "persona"
+                      ? "bg-lime-200 text-lime-950 border-lime-700"
+                      : "bg-orange-200 text-orange-950 border-orange-700";
+                  const kb = Math.round(f.sizeBytes / 1024);
+                  const sizeLabel = kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`;
+                  return (
+                    <li key={f.id}>
+                      <a href={`/api/files/${f.id}`} target="_blank" rel="noopener"
+                        className="flex items-center gap-3 p-2.5 rounded-xl border border-stone-300 bg-white hover:bg-amber-50 hover:border-amber-700/50 transition-colors">
+                        <span className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-700 via-orange-700 to-red-800 flex items-center justify-center text-white shrink-0">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                          </svg>
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold text-stone-900 truncate">{f.fileName}</div>
+                          <div className="text-xs text-stone-700 font-medium">{sizeLabel}</div>
+                        </div>
+                        <span className={`text-[10px] uppercase tracking-wide px-2 py-1 rounded-full border font-bold ${catTone}`}>{catLabel}</span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
           {msgs.map(m => <MessageBubble key={m.id} m={m} />)}
           {msgs.length === 0 && (
             <div className="text-center text-stone-500 py-12">Noch keine Nachrichten.</div>
