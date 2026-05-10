@@ -1,0 +1,666 @@
+[
+  {
+    "updatedAt": "2026-05-10T21:06:33.798Z",
+    "createdAt": "2026-05-10T17:55:45.890Z",
+    "id": "ubm4FU2nKDKuvFgw",
+    "name": "SynWeb_RunRound",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "trigger",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "session_id"
+              },
+              {
+                "name": "round_number",
+                "type": "number"
+              },
+              {
+                "name": "problem_brief"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "get-personas",
+        "name": "Get Personas",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          240,
+          0
+        ],
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_personas"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.session_id }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "alwaysOutputData": true
+      },
+      {
+        "id": "build-payloads",
+        "name": "Build Payloads",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          480,
+          0
+        ],
+        "parameters": {
+          "jsCode": "var trig=$('Execute Workflow Trigger').first().json;var rows=$input.all();var out=[];for(var i=0;i<rows.length;i++){var p=rows[i].json;out.push({json:{session_id:trig.session_id,round_number:trig.round_number,problem_brief:trig.problem_brief,persona_id:p.persona_id||'',persona_profile:p.profile||'',rigidity:typeof p.rigidity==='number'?p.rigidity:5,slack_slot:p.slack_slot}});}return out;"
+        }
+      },
+      {
+        "id": "fan-out",
+        "name": "Fan-Out Personas",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          720,
+          0
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://n8n.worqshop.io/webhook/synweb/run-persona",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json) }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {
+            "timeout": 10000,
+            "batching": {
+              "batch": {
+                "batchSize": 5,
+                "batchInterval": 0
+              }
+            }
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "id": "wait-init",
+        "name": "Initial Buffer",
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          960,
+          0
+        ],
+        "parameters": {
+          "amount": 15,
+          "unit": "seconds"
+        },
+        "webhookId": "init-wait"
+      },
+      {
+        "id": "init-state",
+        "name": "Init Polling State",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1200,
+          0
+        ],
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "1",
+                "name": "iteration",
+                "value": "=0",
+                "type": "number"
+              },
+              {
+                "id": "2",
+                "name": "retries_done",
+                "value": "=0",
+                "type": "number"
+              },
+              {
+                "id": "3",
+                "name": "status_posted",
+                "value": "=false",
+                "type": "boolean"
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "check-status",
+        "name": "Check Persona Status",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1440,
+          0
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT COUNT(*) AS total, COUNT(CASE WHEN $1 = 1 AND round_1_response IS NOT NULL AND length(round_1_response) > 50 THEN 1 WHEN $1 = 2 AND round_2_response IS NOT NULL AND length(round_2_response) > 50 THEN 1 WHEN $1 = 3 AND round_3_response IS NOT NULL AND length(round_3_response) > 50 THEN 1 END) AS done FROM \"data_table_user_oAfVlk69fSh57ABR\" WHERE session_id = $2",
+          "options": {
+            "queryReplacement": "={{ $('Execute Workflow Trigger').item.json.round_number }},{{ $('Execute Workflow Trigger').item.json.session_id }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "if-complete",
+        "name": "All Done?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1680,
+          0
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "version": 2,
+              "leftValue": "",
+              "caseSensitive": true,
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ Number($json.done) }}",
+                "rightValue": "={{ Number($json.total) }}",
+                "operator": {
+                  "type": "number",
+                  "operation": "gte"
+                },
+                "id": "condition-1778447193762-budamet9l"
+              }
+            ],
+            "combinator": "and"
+          }
+        }
+      },
+      {
+        "id": "trigger-synth",
+        "name": "Trigger Synthesize",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1920,
+          -120
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://n8n.worqshop.io/webhook/synweb/synthesize",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({session_id: $('Execute Workflow Trigger').item.json.session_id, round_number: $('Execute Workflow Trigger').item.json.round_number, problem_brief: $('Execute Workflow Trigger').item.json.problem_brief}) }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {
+            "timeout": 180000
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "id": "done-set",
+        "name": "Round Complete",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2160,
+          -120
+        ],
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "1",
+                "name": "ok",
+                "value": "=true",
+                "type": "boolean"
+              },
+              {
+                "id": "2",
+                "name": "message",
+                "value": "=Round complete, synthesis triggered",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "decide-action",
+        "name": "Decide Retry/Wait",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1920,
+          120
+        ],
+        "parameters": {
+          "jsCode": "var statusRow=$('Check Persona Status').first().json;var state=$('Init Polling State').first().json;var iteration=(state.iteration||0)+1;var retriesDone=state.retries_done||0;var statusPosted=state.status_posted||false;var done=Number(statusRow.done||0);var total=Number(statusRow.total||0);var trig=$('Execute Workflow Trigger').first().json;var maxIter=40;var retryAt=[8,16,24];var statusAt=4;var shouldRetry=retryAt.indexOf(iteration)!==-1&&retriesDone<2&&done<total;var shouldStatus=iteration===statusAt&&!statusPosted&&done<total;var timedOut=iteration>=maxIter;return [{json:{iteration:iteration,retries_done:shouldRetry?retriesDone+1:retriesDone,status_posted:shouldStatus?true:statusPosted,should_retry:shouldRetry,should_status:shouldStatus,timed_out:timedOut,done:done,total:total,session_id:trig.session_id,round_number:trig.round_number,problem_brief:trig.problem_brief}}];"
+        }
+      },
+      {
+        "id": "if-timeout",
+        "name": "Timed Out?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          2160,
+          120
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "typeValidation": "strict",
+              "version": 2,
+              "leftValue": ""
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.timed_out }}",
+                "rightValue": "=true",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          }
+        }
+      },
+      {
+        "id": "post-status",
+        "name": "Post Status Message",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          2160,
+          240
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://syn.worqshop.io/api/n8n/callback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({sessionId: $json.session_id, kind: 'status', text: 'Runde dauert etwas laenger als erwartet...'}) }}",
+          "options": {
+            "timeout": 10000
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "id": "wait-loop",
+        "name": "Wait Before Recheck",
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          2400,
+          120
+        ],
+        "parameters": {
+          "amount": 8,
+          "unit": "seconds"
+        },
+        "webhookId": "loop-wait"
+      },
+      {
+        "id": "retry-personas",
+        "name": "Retry Missing Personas",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          2160,
+          360
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT persona_id, profile, slack_slot, COALESCE(rigidity, 5) AS rigidity FROM \"data_table_user_oAfVlk69fSh57ABR\" WHERE session_id = $1 AND (CASE WHEN $2 = 1 THEN round_1_response WHEN $2 = 2 THEN round_2_response ELSE round_3_response END IS NULL OR length(CASE WHEN $2 = 1 THEN round_1_response WHEN $2 = 2 THEN round_2_response ELSE round_3_response END) <= 50)",
+          "options": {
+            "queryReplacement": "={{ $('Execute Workflow Trigger').item.json.session_id }},{{ $('Execute Workflow Trigger').item.json.round_number }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "build-retry",
+        "name": "Build Retry Payloads",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2400,
+          360
+        ],
+        "parameters": {
+          "jsCode": "var trig=$('Execute Workflow Trigger').first().json;var rows=$input.all();var out=[];for(var i=0;i<rows.length;i++){var p=rows[i].json;out.push({json:{session_id:trig.session_id,round_number:trig.round_number,problem_brief:trig.problem_brief,persona_id:p.persona_id,persona_profile:p.profile,rigidity:p.rigidity}});}return out;"
+        }
+      },
+      {
+        "id": "refire",
+        "name": "Re-fire Missing Personas",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          2640,
+          360
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://n8n.worqshop.io/webhook/synweb/run-persona",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json) }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {
+            "timeout": 10000,
+            "batching": {
+              "batch": {
+                "batchSize": 5,
+                "batchInterval": 0
+              }
+            }
+          }
+        },
+        "continueOnFail": true
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Get Personas",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Personas": {
+        "main": [
+          [
+            {
+              "node": "Build Payloads",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Payloads": {
+        "main": [
+          [
+            {
+              "node": "Fan-Out Personas",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fan-Out Personas": {
+        "main": [
+          [
+            {
+              "node": "Initial Buffer",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Initial Buffer": {
+        "main": [
+          [
+            {
+              "node": "Init Polling State",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Init Polling State": {
+        "main": [
+          [
+            {
+              "node": "Check Persona Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Persona Status": {
+        "main": [
+          [
+            {
+              "node": "All Done?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "All Done?": {
+        "main": [
+          [
+            {
+              "node": "Trigger Synthesize",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Decide Retry/Wait",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Trigger Synthesize": {
+        "main": [
+          [
+            {
+              "node": "Round Complete",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Decide Retry/Wait": {
+        "main": [
+          [
+            {
+              "node": "Timed Out?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Timed Out?": {
+        "main": [
+          [
+            {
+              "node": "Trigger Synthesize",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Post Status Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Post Status Message": {
+        "main": [
+          [
+            {
+              "node": "Wait Before Recheck",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait Before Recheck": {
+        "main": [
+          [
+            {
+              "node": "Check Persona Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Retry Missing Personas": {
+        "main": [
+          [
+            {
+              "node": "Build Retry Payloads",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Retry Payloads": {
+        "main": [
+          [
+            {
+              "node": "Re-fire Missing Personas",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "e48992a3-3943-46f3-8902-4feab727d24c",
+    "activeVersionId": "e48992a3-3943-46f3-8902-4feab727d24c",
+    "versionCounter": 13,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-10T17:55:45.890Z",
+        "createdAt": "2026-05-10T17:55:45.890Z",
+        "role": "workflow:owner",
+        "workflowId": "ubm4FU2nKDKuvFgw",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

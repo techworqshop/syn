@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-19T21:41:24.842Z",
+    "updatedAt": "2026-05-10T19:54:46.026Z",
     "createdAt": "2026-04-16T22:10:03.276Z",
     "id": "XybiSig1oi3HquZd",
     "name": "SynWeb_RunPersona",
@@ -82,10 +82,10 @@
             "value": {
               "session_id": "={{ $('Execute Workflow Trigger').item.json.session_id }}",
               "persona_id": "={{ $('Execute Workflow Trigger').item.json.persona_id }}",
-              "round_1_response": "={{ $('Execute Workflow Trigger').item.json.round_number == 1 ? ($json.content ? $json.content[0].text : $json.output) : undefined }}",
-              "round_2_response": "={{ $('Execute Workflow Trigger').item.json.round_number == 2 ? ($json.content ? $json.content[0].text : $json.output) : undefined }}",
-              "round_3_response": "={{ $('Execute Workflow Trigger').item.json.round_number == 3 ? ($json.content ? $json.content[0].text : $json.output) : undefined }}",
-              "position_summary": "={{ ($json.content ? $json.content[0].text : ($json.output || '')).substring(0, 500) }}"
+              "round_1_response": "={{ $('Execute Workflow Trigger').item.json.round_number == 1 ? ($json.output || ($json.content ? $json.content[0].text : '')) : undefined }}",
+              "round_2_response": "={{ $('Execute Workflow Trigger').item.json.round_number == 2 ? ($json.output || ($json.content ? $json.content[0].text : '')) : undefined }}",
+              "round_3_response": "={{ $('Execute Workflow Trigger').item.json.round_number == 3 ? ($json.output || ($json.content ? $json.content[0].text : '')) : undefined }}",
+              "position_summary": "={{ (($json.output || ($json.content ? $json.content[0].text : ''))) }}"
             },
             "matchingColumns": [],
             "schema": [
@@ -257,7 +257,7 @@
       },
       {
         "parameters": {
-          "jsCode": "// Merge all downloaded file binaries into a single item\nconst triggerData = $('Execute Workflow Trigger').first().json;\nconst downloadedItems = $input.all();\n\nconst mergedBinary = {};\nconst keys = [];\nlet fileCount = 0;\n\nfor (const item of downloadedItems) {\n  if (item.binary) {\n    for (const [key, value] of Object.entries(item.binary)) {\n      const newKey = `file_${fileCount}`;\n      mergedBinary[newKey] = value;\n      keys.push(newKey);\n      fileCount++;\n    }\n  }\n}\n\nreturn [{\n  json: {\n    ...triggerData,\n    fileCount,\n    binaryKeys: keys.join(',')\n  },\n  binary: fileCount > 0 ? mergedBinary : undefined\n}];"
+          "jsCode": "var t=$('Execute Workflow Trigger').first().json;var d=$input.all();var rows=$('Get Session Files').all();var mb={};var ks=[];var fc=0;for(var i=0;i<d.length;i++){if(d[i].binary){var bk=Object.keys(d[i].binary);for(var k=0;k<bk.length;k++){var nk='file_'+fc;mb[nk]=d[i].binary[bk[k]];ks.push(nk);fc++;}}}var fp=[];for(var r=0;r<rows.length;r++){var j=rows[r].json||{};if(j.extracted_text){fp.push('=== Datei '+(r+1)+': '+(j.file_name||'?')+' ===\\n'+j.extracted_text);}}var fx=fp.join('\\n\\n---\\n\\n');var out=Object.assign({},t,{fileCount:fc,binaryKeys:ks.join(','),fileForensic:fx});return [{json:out,binary:fc>0?mb:undefined}];"
         },
         "id": "1489e8a4-3988-4b92-ab05-85effff79c11",
         "name": "Merge Files",
@@ -272,52 +272,19 @@
         "parameters": {
           "modelId": {
             "__rl": true,
-            "value": "claude-opus-4-7",
-            "mode": "list",
-            "cachedResultName": "claude-opus-4-7"
-          },
-          "messages": {
-            "values": [
-              {
-                "content": "=Du bist {{ $json.persona_id }} mit folgendem Profil:\n\n{{ $json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\n{{ $json.file_context ? 'FILE CONTEXT:\\n' + $json.file_context : '' }}\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\nHALTUNG: {{ ($json.rigidity ?? 5) <= 3 ? 'Du bist standhaft. Bleib bei deiner Position, selbst bei guten Gegenargumenten.' : ($json.rigidity ?? 5) <= 6 ? 'Ausgewogen. Update nur bei wirklich starken neuen Argumenten.' : 'Offen. Aktualisiere deine Position aktiv basierend auf neuen Infos.' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nDies ist Runde {{ $json.round_number }}.\n\nWenn Dateien angehaengt sind, analysiere sie gruendlich und beziehe sie in deine Antwort ein.\n\nFORMATTING: Kein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt.\n\nAnalysiere das Problem aus deiner spezifischen Perspektive. Sei direkt und substanziell. Max 400 Woerter."
-              }
-            ]
-          },
-          "addAttachments": true,
-          "attachmentsInputType": "binary",
-          "binaryPropertyName": "={{ $json.binaryKeys || 'data' }}",
-          "options": {}
-        },
-        "type": "@n8n/n8n-nodes-langchain.anthropic",
-        "typeVersion": 1,
-        "position": [
-          976,
-          176
-        ],
-        "id": "94ce06c4-71a3-4d67-bc70-5ba206fd867b",
-        "name": "Run Persona Analysis",
-        "credentials": {
-          "anthropicApi": {
-            "id": "xryPDagnAi6vifng",
-            "name": "Anthropic account"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "modelId": {
-            "__rl": true,
+            "value": "claude-sonnet-4-6",
             "mode": "id",
-            "value": "claude-sonnet-4-20250514"
+            "cachedResultName": "Claude Sonnet 4.6"
           },
           "messages": {
             "values": [
               {
-                "content": "=Du bist {{ $('Execute Workflow Trigger').item.json.persona_id }} mit folgendem Profil:\n\n{{ $('Execute Workflow Trigger').item.json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $('Execute Workflow Trigger').item.json.problem_brief }}\n\n{{ $json.file_context ? 'FILE CONTEXT:\\n' + $json.file_context : '' }}\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\nHALTUNG: {{ ($json.rigidity ?? 5) <= 3 ? 'Du bist standhaft. Bleib bei deiner Position, selbst bei guten Gegenargumenten.' : ($json.rigidity ?? 5) <= 6 ? 'Ausgewogen. Update nur bei wirklich starken neuen Argumenten.' : 'Offen. Aktualisiere deine Position aktiv basierend auf neuen Infos.' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nDies ist Runde {{ $('Execute Workflow Trigger').item.json.round_number }}.\n\nFORMATTING: Kein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt.\n\nAnalysiere das Problem aus deiner spezifischen Perspektive. Sei direkt und substanziell. Max 400 Woerter."
+                "content": "=Du bist {{ $('Execute Workflow Trigger').item.json.persona_id }} mit folgendem Profil:\n\n{{ $('Execute Workflow Trigger').item.json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $('Execute Workflow Trigger').item.json.problem_brief }}\n\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\nHALTUNG: {{ ($json.rigidity ?? 5) <= 3 ? 'Du bist offen. Aktualisiere deine Position aktiv basierend auf neuen Infos.' : ($json.rigidity ?? 5) <= 6 ? 'Ausgewogen. Update bei wirklich starken neuen Argumenten.' : 'Du bist standhaft. Bleib bei deiner Position, selbst bei guten Gegenargumenten.' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nDies ist Runde {{ $('Execute Workflow Trigger').item.json.round_number }}.\n\nFORMATTING: Kein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt.\n\nAnalysiere das Problem aus deiner spezifischen Perspektive. Sei direkt und substanziell. Schreib so ausfuehrlich wie noetig - keine Wortbegrenzung, aber kein Geschwafel."
               }
             ]
           },
           "options": {
+            "maxTokens": 20000,
             "temperature": 0.7
           }
         },
@@ -334,7 +301,10 @@
             "id": "xryPDagnAi6vifng",
             "name": "Anthropic account"
           }
-        }
+        },
+        "retryOnFail": true,
+        "maxTries": 5,
+        "waitBetweenTries": 3000
       },
       {
         "parameters": {
@@ -397,12 +367,111 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').item.json.session_id, personaId: $('Execute Workflow Trigger').item.json.persona_id, kind: 'persona_round', roundNumber: $('Execute Workflow Trigger').item.json.round_number, text: ($('Run Persona Analysis').isExecuted ? ($('Run Persona Analysis').first().json.content?.[0]?.text || '') : ($('Run Persona No Files').first().json.content?.[0]?.text || ''))}) }}",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').item.json.session_id, personaId: $('Execute Workflow Trigger').item.json.persona_id, kind: 'persona_round', roundNumber: $('Execute Workflow Trigger').item.json.round_number, text: ($('Run Persona Agent').isExecuted ? ($('Run Persona Agent').first().json.output || '') : ($('Run Persona No Files').first().json.content?.[0]?.text || ''))}) }}",
           "options": {
             "timeout": 15000
           }
         },
         "continueOnFail": true
+      },
+      {
+        "id": "rp-chat-model",
+        "name": "Persona Chat Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+        "typeVersion": 1.3,
+        "position": [
+          976,
+          50
+        ],
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "claude-sonnet-4-6",
+            "mode": "id",
+            "cachedResultName": "Claude Sonnet 4.6"
+          },
+          "options": {
+            "maxTokensToSample": 20000,
+            "temperature": 0.7
+          }
+        },
+        "credentials": {
+          "anthropicApi": {
+            "id": "xryPDagnAi6vifng",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "id": "rp-ask-vision",
+        "name": "Ask Vision",
+        "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+        "typeVersion": 2.2,
+        "position": [
+          1180,
+          50
+        ],
+        "parameters": {
+          "description": "Stelle eine gezielte Frage zu visuellen Details der angehaengten Bilder/PDFs. Nutze dieses Tool, wenn du auf konkrete Bilddetails verweisen willst, die die Vorab-Forensik nicht ausreichend abgedeckt hat. Beispiele: 'Wie sieht das Logo auf dem Trail Pant exakt aus?', 'Welche Farbe hat das Hoodie auf Bild 2 genau?', 'Welcher Text steht im Kleingedruckten?'. Inputs: question (deine konkrete Frage).",
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "jMQEQggtVPu7XOwK"
+          },
+          "workflowInputs": {
+            "schema": [
+              {
+                "id": "session_id",
+                "displayName": "session_id",
+                "type": "string",
+                "required": true,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              },
+              {
+                "id": "question",
+                "displayName": "question",
+                "type": "string",
+                "required": true,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              }
+            ],
+            "mappingMode": "defineBelow",
+            "value": {
+              "session_id": "={{ $('Execute Workflow Trigger').item.json.session_id }}",
+              "question": "={{ $fromAI('question', 'Konkrete Frage zu visuellen Details der angehaengten Bilder/PDFs') }}"
+            }
+          }
+        }
+      },
+      {
+        "id": "rp-agent",
+        "name": "Run Persona Agent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          976,
+          176
+        ],
+        "parameters": {
+          "promptType": "define",
+          "text": "=Beziehe Stellung zum Problem-Brief in Runde {{ $json.round_number }} aus deiner Persona-Perspektive. Sei substanziell und ausfuehrlich. Schau dir die angehaengten Bilder direkt an oder nutze das Ask Vision Tool fuer Detail-Fragen.",
+          "hasOutputParser": false,
+          "needsFallback": false,
+          "options": {
+            "maxIterations": 25,
+            "passthroughBinaryImages": true,
+            "systemMessage": "=Du bist {{ $json.persona_id }} mit folgendem Profil:\n\n{{ $json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\n{{ $json.fileForensic ? 'BILD-FORENSIK (Vorab-Analyse vom Vision-Spezialist Gemini 3.1 Pro - praezise Beobachtungen):\\n\\n' + $json.fileForensic + '\\n\\nDie Original-Bilder sind ebenfalls angehaengt. Du kannst sie selbst anschauen oder das Ask Vision Tool aufrufen, wenn du gezielte Detail-Fragen hast (z.B. exakte Logo-Form, Klein-Text, Farbnuancen). Bei Diskrepanz zwischen deiner Wahrnehmung und der Forensik vertraue der Forensik.\\n' : '' }}\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\nHALTUNG: {{ ($json.rigidity ?? 5) <= 3 ? 'Du bist offen. Update deine Position bei guten Argumenten.' : ($json.rigidity ?? 5) <= 6 ? 'Ausgewogen. Update bei wirklich starken Argumenten.' : 'Du bist standhaft. Bleib bei deiner Position.' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nFORMATTING: Kein Markdown. Plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt. Keine Wortbegrenzung.\n\nWICHTIG - OUTPUT-FORMAT:\n- Sprich DIREKT als die Persona. Keine Meta-Kommentare ueber Tool-Aufrufe, keine \"Jetzt schreibe ich...\", keine Selbstreflexion vor der Antwort.\n- Wenn du Ask Vision benutzt, integriere die Erkenntnisse in deine Antwort, ohne den Vorgang zu erwaehnen.\n- Keine Pre-Text-Zeilen, keine \"---\" Separatoren am Anfang. Die erste Zeile MUSS die erste Zeile deiner inhaltlichen Antwort sein."
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 5,
+        "waitBetweenTries": 3000
       }
     ],
     "connections": {
@@ -428,33 +497,11 @@
           ]
         ]
       },
-      "Run Persona Analysis": {
-        "main": [
-          [
-            {
-              "node": "Save Response",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
       "Get Session Files": {
         "main": [
           [
             {
               "node": "If",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Merge Files": {
-        "main": [
-          [
-            {
-              "node": "Run Persona Analysis",
               "type": "main",
               "index": 0
             }
@@ -500,6 +547,50 @@
             }
           ]
         ]
+      },
+      "Persona Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Run Persona Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ask Vision": {
+        "ai_tool": [
+          [
+            {
+              "node": "Run Persona Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge Files": {
+        "main": [
+          [
+            {
+              "node": "Run Persona Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Run Persona Agent": {
+        "main": [
+          [
+            {
+              "node": "Save Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "settings": {
@@ -519,9 +610,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "484d22c5-b5d4-46bb-ae72-5bb388ae4bfc",
-    "activeVersionId": "484d22c5-b5d4-46bb-ae72-5bb388ae4bfc",
-    "versionCounter": 14,
+    "versionId": "24fc053d-87f2-4a9c-b893-b8d6a6517270",
+    "activeVersionId": "24fc053d-87f2-4a9c-b893-b8d6a6517270",
+    "versionCounter": 60,
     "triggerCount": 0,
     "tags": [],
     "shared": [

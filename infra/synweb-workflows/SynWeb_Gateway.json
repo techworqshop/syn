@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-19T21:43:02.774Z",
+    "updatedAt": "2026-04-20T19:16:48.441Z",
     "createdAt": "2026-04-16T22:10:51.612Z",
     "id": "V0CpwraeTYxQh6BM",
     "name": "SynWeb_Gateway",
@@ -207,7 +207,7 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({ sessionId: $('Extract Body').item.json.sessionId, kind: 'error', text: '⚠️ Da ist was schiefgelaufen. Probier bitte nochmal.' }) }}",
+          "jsonBody": "={{ JSON.stringify({ sessionId: $('Extract Body').item.json.sessionId, kind: 'error', text: '\u26a0\ufe0f Da ist was schiefgelaufen. Probier bitte nochmal.' }) }}",
           "options": {
             "timeout": 10000
           }
@@ -231,12 +231,12 @@
         "main": [
           [
             {
-              "node": "Route by Target",
+              "node": "Respond OK",
               "type": "main",
               "index": 0
             },
             {
-              "node": "Respond OK",
+              "node": "Route by Target",
               "type": "main",
               "index": 0
             }
@@ -300,7 +300,7 @@
     "pinData": null,
     "versionId": "e8dc67e2-a968-4a9c-9607-645ea0e0be04",
     "activeVersionId": "e8dc67e2-a968-4a9c-9607-645ea0e0be04",
-    "versionCounter": 14,
+    "versionCounter": 18,
     "triggerCount": 1,
     "tags": [],
     "shared": [
