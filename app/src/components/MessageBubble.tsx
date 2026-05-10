@@ -147,7 +147,7 @@ type ReportMeta = { kind?: string; reportId?: string; filename?: string; generat
 
 export default function MessageBubble({ m }: { m: Message }) {
   const COLLAPSE_AT = 600;
-  const isLong = m.role !== "synthesis" && m.role !== "user" && m.content.length > COLLAPSE_AT;
+  const isLong = m.role === "persona" && m.content.length > COLLAPSE_AT;
   const [expanded, setExpanded] = useState(false);
   const meta = (typeof m.metadata === "object" && m.metadata !== null ? m.metadata : {}) as ReportMeta;
   const isError = meta.kind === "error" || meta.kind === "report_error";
@@ -205,8 +205,9 @@ export default function MessageBubble({ m }: { m: Message }) {
                   <p key={i} className={`whitespace-pre-wrap ${i < arr.length - 1 ? "mb-3" : ""}`}>{para}</p>
                 ))}
                 {isLong && (
-                  <button onClick={() => setExpanded(e => !e)} className="mt-2 text-xs text-rose-300 hover:text-rose-200 font-medium underline-offset-2 hover:underline">
-                    {expanded ? "Weniger anzeigen" : "Mehr lesen"}
+                  <button onClick={() => setExpanded(e => !e)} className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-500/20 hover:bg-rose-500/35 border border-rose-400/40 text-rose-100 text-[12px] font-semibold transition-colors">
+                    <span>{expanded ? "Weniger anzeigen" : "Mehr lesen"}</span>
+                    <svg className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                   </button>
                 )}
               </>
