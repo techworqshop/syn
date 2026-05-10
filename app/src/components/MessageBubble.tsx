@@ -22,17 +22,17 @@ const BUBBLE: Record<string, string> = {
 const PERSONA_BUBBLE: Record<number, string> = {
   1: "bg-gradient-to-br from-rose-600 via-pink-600 to-fuchsia-700 text-white border border-rose-400 shadow-md bubble-glass",
   2: "bg-gradient-to-br from-amber-600 via-orange-600 to-red-600 text-white border border-amber-500 shadow-md bubble-glass",
-  3: "bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 text-white border border-emerald-500 shadow-md bubble-glass",
+  3: "bg-gradient-to-br from-green-700 via-emerald-700 to-lime-700 text-white border border-green-500 shadow-md bubble-glass",
   4: "bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-700 text-white border border-violet-400 shadow-md bubble-glass",
-  5: "bg-gradient-to-br from-orange-600 via-amber-600 to-rose-600 text-white border border-orange-400 shadow-md bubble-glass"
+  5: "bg-gradient-to-br from-red-800 via-rose-900 to-pink-800 text-white border border-rose-500 shadow-md bubble-glass"
 };
 
 const PERSONA_AVATAR: Record<number, string> = {
   1: "bg-gradient-to-br from-rose-400 to-pink-600",
   2: "bg-gradient-to-br from-amber-400 to-orange-600",
-  3: "bg-gradient-to-br from-emerald-400 to-lime-600",
+  3: "bg-gradient-to-br from-green-500 to-lime-700",
   4: "bg-gradient-to-br from-violet-400 to-purple-600",
-  5: "bg-gradient-to-br from-orange-400 to-rose-600"
+  5: "bg-gradient-to-br from-red-600 to-rose-800"
 };
 
 function Avatar({ role, name, slot, sessionId }: { role: string; name?: string | null; slot?: number | null; sessionId?: string | null }) {
@@ -138,9 +138,9 @@ function fmtTime(d: string | Date) {
 const NAME_COLOR: Record<number, string> = {
   1: "text-rose-700",
   2: "text-amber-700",
-  3: "text-emerald-700",
+  3: "text-green-800",
   4: "text-violet-700",
-  5: "text-orange-700"
+  5: "text-rose-800"
 };
 
 type ReportMeta = { kind?: string; reportId?: string; filename?: string; generatedAt?: string };
