@@ -31,6 +31,13 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
   const [showUpload, setShowUpload] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // Fokusgruppe ist abgeschlossen sobald Runde 3 durch ist ODER ein Report existiert.
+  const hasReport = msgs.some(m => {
+    const md = (typeof m.metadata === "object" && m.metadata !== null ? m.metadata : {}) as { kind?: string };
+    return md.kind === "report" || md.kind === "report_text";
+  });
+  const isClosed = currentRound >= 3 || hasReport;
+
   useEffect(() => {
     const es = new EventSource(`/api/sessions/${sessionId}/stream`);
     es.onmessage = (ev) => {
@@ -126,7 +133,9 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
                 title="Klick zum Umbenennen">{title}</button>
             )}
             <div className="text-xs text-stone-500">
-              Runde {currentRound} - {personaCount} Personas - {filesList.length} Dateien
+              {isClosed
+                ? <><span className="text-emerald-700 font-semibold">Runde 3 abgeschlossen</span> · {personaCount} Personas · {filesList.length} Dateien</>
+                : <>Runde {currentRound} · {personaCount} Personas · {filesList.length} Dateien</>}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -162,6 +171,24 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
             ))}
           </div>
         )}
+        {isClosed ? (
+          <div className="border-t border-white/40 p-4 backdrop-blur-md bg-white/40">
+            <div className="rounded-2xl bg-emerald-50 border border-emerald-700/40 p-4 shadow-sm flex gap-3 items-start">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 mt-0.5 shrink-0">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+              <div className="text-sm leading-relaxed text-stone-800">
+                <div className="font-semibold text-emerald-800 mb-1">Diskussion abgeschlossen</div>
+                Der Haupt-Chat ist beendet. Du kannst weiterhin:
+                <ul className="list-disc pl-5 mt-1.5 space-y-0.5 text-stone-700">
+                  <li>Den <span className="font-semibold text-stone-900">Abschlussbericht</span> ueber das <span className="font-semibold">3-Punkte-Menue</span> rechts oben generieren (Text-Bubble + PDF-Download)</li>
+                  <li>Einzelne Personas in der Sidebar anklicken und im <span className="font-semibold">1:1-Chat</span> weiter befragen</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        ) : (
         <div className="border-t border-white/40 p-4 backdrop-blur-md bg-white/30">
           <div className="rounded-2xl glass-card focus-within:border-rose-400/60 focus-within:ring-2 focus-within:ring-rose-400/15 transition-all">
             <textarea value={input}
@@ -192,6 +219,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
             </div>
           </div>
         </div>
+        )}
       </div>
       <PersonaSidebar sessionId={sessionId} refreshToken={refreshToken} onSelect={setOpenSlot} />
       {openSlot != null && (

@@ -20,6 +20,16 @@ export async function POST(req: Request, { params }: P) {
   const [sess] = await db.select().from(sessions)
     .where(and(eq(sessions.id, id), eq(sessions.userId, u.id))).limit(1);
   if (!sess) return NextResponse.json({ error: "not found" }, { status: 404 });
+  // Sperre: nach Runde 3 oder nach Abschlussbericht keine neuen Haupt-Chat-Messages mehr
+  const existing = await db.select().from(messages).where(eq(messages.sessionId, id));
+  const hasReport = existing.some(m => {
+    const md = (typeof m.metadata === "object" && m.metadata !== null ? m.metadata : {}) as { kind?: string };
+    return md.kind === "report" || md.kind === "report_text";
+  });
+  if ((sess.currentRound ?? 0) >= 3 || hasReport) {
+    return NextResponse.json({ error: "Fokusgruppe abgeschlossen. Generiere den Abschlussbericht ueber das 3-Punkte-Menue oder befrage einzelne Personas in der Sidebar." }, { status: 423 });
+  }
+
   const [userMsg] = await db.insert(messages).values({
     sessionId: id, role: "user", content: text
   }).returning();
