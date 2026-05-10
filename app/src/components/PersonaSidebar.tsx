@@ -77,9 +77,9 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
                   p.imageReady ? (
                     <img src={`/api/persona-images/${sessionId}/${n}`} alt="" className="w-9 h-9 rounded-lg object-cover bg-stone-50 shrink-0" onError={e => (e.currentTarget.style.display="none")} />
                   ) : (
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-700/60 to-neutral-800 shrink-0 flex items-center justify-center relative overflow-hidden" title="Portrait wird generiert">
-                      <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-neutral-600/20 to-transparent" />
-                      <svg className="w-4 h-4 animate-spin text-stone-700 relative" viewBox="0 0 24 24" fill="none">
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-stone-100 via-stone-50 to-stone-200 shrink-0 flex items-center justify-center relative overflow-hidden ring-1 ring-white/40" title="Portrait wird generiert">
+                      <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+                      <svg className="w-4 h-4 animate-spin text-stone-800 relative" viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />
                         <path d="M12 2 a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
                       </svg>
