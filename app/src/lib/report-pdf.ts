@@ -64,8 +64,12 @@ export function renderReportPDF(
     drawRule(doc, "#a16207", 1);
     doc.moveDown(1.2);
 
-    // Body
-    const lines = reportMd.split(/\r?\n/);
+    // Body — strip trailing whitespace/separators so we don't bleed onto blank pages
+    const trimmed = reportMd
+      .replace(/\s+$/, "")           // hard trim trailing whitespace
+      .replace(/(\n\s*---+\s*)+$/g, "") // trailing markdown rules
+      .replace(/(\n\s*){3,}/g, "\n\n"); // collapse 3+ blank lines to one
+    const lines = trimmed.split(/\r?\n/);
     let inList = false;
     for (const raw of lines) {
       const line = raw;

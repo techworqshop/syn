@@ -130,6 +130,16 @@ export async function POST(req: Request) {
       await fs.writeFile(path.join(dir, reportId + ".pdf"), pdf);
       const safeName = sess.title.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40);
       const filename = "syn-bericht-" + safeName + ".pdf";
+
+      // 1) Post the report content as a normal coordinator text bubble (readable inline)
+      const [textRow] = await db.insert(messages).values({
+        sessionId: b.sessionId, role: "coordinator",
+        content: reportMd,
+        metadata: { kind: "report_text" }
+      }).returning();
+      await publish(`session:${b.sessionId}`, { type: "message", message: textRow });
+
+      // 2) Post the download card right after
       const [row] = await db.insert(messages).values({
         sessionId: b.sessionId, role: "coordinator",
         content: "📄 Abschlussbericht",
