@@ -131,7 +131,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
                     </span>
                     <span className="text-xs text-neutral-600">{fmtTime(m.createdAt)}</span>
                   </div>
-                  <div className={`rounded-2xl px-4 py-3 whitespace-pre-wrap text-[14px] leading-relaxed inline-block max-w-full ${
+                  <div className={`rounded-2xl px-4 py-3 whitespace-pre-wrap text-[14px] leading-relaxed w-full min-w-0 overflow-hidden [overflow-wrap:anywhere] [word-break:break-word] ${
                     isUser
                       ? "bg-gradient-to-br from-sky-500 via-indigo-500 to-violet-500 text-white shadow-[0_6px_20px_-6px_rgba(99,102,241,0.5)]"
                       : bubbleColor
