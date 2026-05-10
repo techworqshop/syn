@@ -134,7 +134,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
             <SessionMenu sessionId={sessionId} afterDelete={() => window.location.href = "/app/dashboard"} />
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto px-6 py-6"><div className="max-w-4xl mx-auto space-y-4">
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
           {msgs.length === 0 && (
             <div className="text-neutral-500 text-center py-12">
               Starte die Fokusgruppe. Beschreib dein Thema (du kannst auch Dateien reinziehen), und Syn fuehrt dich durch.
@@ -147,7 +147,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
               <span className="italic">{status || "Syn denkt nach..."}</span>
             </div>
           )}
-          <div ref={bottomRef} /></div>
+          <div ref={bottomRef} />
         </div>
         {(filesList.length > 0) && (
           <div className="border-t border-neutral-800 px-4 py-2 flex flex-wrap gap-2 text-xs">
@@ -162,7 +162,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
             ))}
           </div>
         )}
-        <div className="border-t border-neutral-800 p-4"><div className="max-w-4xl mx-auto">
+        <div className="border-t border-neutral-800 p-4">
           <div className="rounded-2xl border border-white/10 bg-neutral-900/60 focus-within:border-fuchsia-500/50 focus-within:ring-2 focus-within:ring-fuchsia-500/10 transition-all">
             <textarea value={input}
               onChange={e => setInput(e.target.value)}
@@ -191,7 +191,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
               </button>
             </div>
           </div>
-        </div></div>
+        </div>
       </div>
       <PersonaSidebar sessionId={sessionId} refreshToken={refreshToken} onSelect={setOpenSlot} />
       {openSlot != null && (
