@@ -14,9 +14,9 @@ const LABELS: Record<string, string> = {
 
 const BUBBLE: Record<string, string> = {
   user: "bg-gradient-to-br from-rose-400 via-orange-400 to-amber-400 text-white shadow-[0_6px_20px_-6px_rgba(244,114,82,0.5)]",
-  coordinator: "bg-gradient-to-br from-rose-950/60 via-orange-950/50 to-neutral-900/70 text-neutral-100 border border-rose-800/40",
-  synthesis: "bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-rose-500/15 text-neutral-100 border border-amber-500/30",
-  system: "bg-amber-950/40 text-amber-100 border border-amber-800/40 text-sm"
+  coordinator: "bg-gradient-to-br from-rose-100 via-orange-100 to-amber-50 text-stone-900 border border-rose-300/70 shadow-sm",
+  synthesis: "bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-rose-500/15 text-stone-900 border border-amber-500/30",
+  system: "bg-amber-100/70 text-amber-900 border border-amber-300 text-sm"
 };
 
 const PERSONA_BUBBLE: Record<number, string> = {
@@ -136,11 +136,11 @@ function fmtTime(d: string | Date) {
 }
 
 const NAME_COLOR: Record<number, string> = {
-  1: "text-rose-300",
-  2: "text-amber-300",
-  3: "text-emerald-300",
-  4: "text-violet-300",
-  5: "text-orange-300"
+  1: "text-rose-700",
+  2: "text-amber-700",
+  3: "text-emerald-700",
+  4: "text-violet-700",
+  5: "text-orange-700"
 };
 
 type ReportMeta = { kind?: string; reportId?: string; filename?: string; generatedAt?: string };
@@ -154,29 +154,29 @@ export default function MessageBubble({ m }: { m: Message }) {
   const isReport = meta.kind === "report" && !!meta.reportId;
   let color = BUBBLE[m.role] ?? BUBBLE.system;
   if (m.role === "persona" && m.personaSlot && PERSONA_BUBBLE[m.personaSlot]) {
-    color = PERSONA_BUBBLE[m.personaSlot] + " text-neutral-100";
+    color = PERSONA_BUBBLE[m.personaSlot] + " text-stone-900";
   }
   if (isError) {
-    color = "bg-gradient-to-br from-red-950/60 via-rose-950/50 to-neutral-900/60 text-rose-100 border border-red-700/50";
+    color = "bg-gradient-to-br from-red-100 via-rose-100 to-amber-50 text-red-900 border border-red-300";
   }
   let label: string = LABELS[m.role] ?? m.role;
   if (m.role === "persona") label = m.personaName || (m.personaSlot ? `Persona ${m.personaSlot}` : "Persona");
   if (m.role === "synthesis" && m.roundNumber) label = `Synthese Runde ${m.roundNumber}`;
   if (isError) label = "Fehler";
-  let labelColor = "text-neutral-200";
-  if (m.role === "coordinator") labelColor = "text-fuchsia-300";
-  if (m.role === "synthesis") labelColor = "text-amber-300";
-  if (m.role === "user") labelColor = "text-orange-300";
+  let labelColor = "text-stone-800";
+  if (m.role === "coordinator") labelColor = "text-rose-700";
+  if (m.role === "synthesis") labelColor = "text-amber-700";
+  if (m.role === "user") labelColor = "text-orange-700";
   if (m.role === "persona" && m.personaSlot && NAME_COLOR[m.personaSlot]) labelColor = NAME_COLOR[m.personaSlot];
-  if (isError) labelColor = "text-red-300";
+  if (isError) labelColor = "text-red-700";
 
   return (
-    <div className="flex gap-3 items-start group hover:bg-white/[0.015] rounded-xl -mx-2 px-2 py-1 transition-colors">
+    <div className="flex gap-3 items-start group hover:bg-stone-100/50 rounded-xl -mx-2 px-2 py-1 transition-colors">
       <Avatar role={m.role} name={m.personaName} slot={m.personaSlot} sessionId={m.sessionId} />
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 mb-1">
           <span className={`font-semibold text-[15px] leading-tight ${labelColor}`}>{label}</span>
-          <span className="text-xs text-neutral-600">{fmtTime(m.createdAt)}</span>
+          <span className="text-xs text-stone-400">{fmtTime(m.createdAt)}</span>
         </div>
         {isReport ? (
           <a href={`/api/reports/${m.sessionId}/${meta.reportId}`}

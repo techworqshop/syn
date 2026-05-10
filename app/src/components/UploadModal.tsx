@@ -99,13 +99,13 @@ export default function UploadModal({ sessionId, onClose, onUploaded }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="w-full max-w-2xl max-h-[85vh] glass border border-white/10 rounded-2xl flex flex-col overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
+      <div className="w-full max-w-2xl max-h-[85vh] glass border border-stone-300 rounded-2xl flex flex-col overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
           <div>
             <div className="font-semibold tracking-tight">Dateien hochladen</div>
-            <div className="text-xs text-neutral-500 mt-0.5">Drag + Drop oder Klick zum Auswaehlen. Mehrere Dateien moeglich.</div>
+            <div className="text-xs text-stone-500 mt-0.5">Drag + Drop oder Klick zum Auswaehlen. Mehrere Dateien moeglich.</div>
           </div>
-          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-100 text-sm">Schliessen</button>
+          <button onClick={onClose} className="text-stone-600 hover:text-stone-900 text-sm">Schliessen</button>
         </div>
 
         <div className="p-5 space-y-4 overflow-y-auto flex-1">
@@ -114,9 +114,9 @@ export default function UploadModal({ sessionId, onClose, onUploaded }: Props) {
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
             onClick={() => inputRef.current?.click()}
-            className={`rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${dragOver ? "border-rose-500 bg-rose-500/5" : "border-white/10 hover:border-white/20 bg-white/[0.02]"}`}>
-            <div className="text-neutral-300 font-medium">Dateien hierher ziehen</div>
-            <div className="text-sm text-neutral-500 mt-1">oder klicken zum Auswaehlen</div>
+            className={`rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${dragOver ? "border-rose-500 bg-rose-500/5" : "border-stone-300 hover:border-white/20 bg-white/[0.02]"}`}>
+            <div className="text-stone-700 font-medium">Dateien hierher ziehen</div>
+            <div className="text-sm text-stone-500 mt-1">oder klicken zum Auswaehlen</div>
             <input ref={inputRef} type="file" multiple className="hidden"
               onChange={e => { if (e.target.files) addFiles(e.target.files); e.target.value=""; }} />
           </div>
@@ -124,33 +124,33 @@ export default function UploadModal({ sessionId, onClose, onUploaded }: Props) {
           {pendings.length > 0 && (
             <ul className="space-y-2">
               {pendings.map(p => (
-                <li key={p.id} className="rounded-xl border border-white/5 bg-neutral-900/50 p-3">
+                <li key={p.id} className="rounded-xl border border-stone-200 bg-stone-50/50 p-3">
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">{p.file.name}</div>
-                      <div className="text-xs text-neutral-500">{Math.round(p.file.size/1024)} KB</div>
+                      <div className="text-xs text-stone-500">{Math.round(p.file.size/1024)} KB</div>
                     </div>
                     <select value={p.category}
                       disabled={p.status === "uploading" || p.status === "done"}
                       onChange={e => setCategory(p.id, e.target.value as Pending["category"])}
-                      className="text-xs bg-neutral-900 border border-white/10 rounded-lg px-2 py-1.5 focus:outline-none focus:border-rose-500/60">
+                      className="text-xs bg-stone-50 border border-stone-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-rose-500/60">
                       <option value="briefing">Briefing</option>
                       <option value="persona">Persona-Daten</option>
                       <option value="panel">Panel-Review</option>
                     </select>
                     {p.status !== "done" && p.status !== "uploading" && (
                       <button onClick={() => remove(p.id)}
-                        className="text-neutral-500 hover:text-red-400 text-xs px-2 py-1">
+                        className="text-stone-500 hover:text-red-400 text-xs px-2 py-1">
                         X
                       </button>
                     )}
                   </div>
                   {p.status !== "pending" && (
                     <div className="mt-2">
-                      <div className="h-1.5 rounded-full bg-neutral-800 overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-stone-200 overflow-hidden">
                         <div className={`h-full transition-all ${p.status === "error" ? "bg-red-500" : p.status === "done" ? "bg-emerald-500" : "bg-rose-500"}`} style={{ width: `${p.progress}%` }} />
                       </div>
-                      <div className="text-xs text-neutral-500 mt-1">
+                      <div className="text-xs text-stone-500 mt-1">
                         {p.status === "uploading" && `${p.progress}%`}
                         {p.status === "done" && "Hochgeladen - wird analysiert..."}
                         {p.status === "error" && `Fehler: ${p.error}`}
@@ -163,8 +163,8 @@ export default function UploadModal({ sessionId, onClose, onUploaded }: Props) {
           )}
         </div>
 
-        <div className="border-t border-white/5 px-5 py-3 flex items-center justify-between">
-          <div className="text-xs text-neutral-500">
+        <div className="border-t border-stone-200 px-5 py-3 flex items-center justify-between">
+          <div className="text-xs text-stone-500">
             {pendings.length === 0 ? "Keine Dateien ausgewaehlt" : pendings.length + " Dateien"}
           </div>
           <div className="flex gap-2">

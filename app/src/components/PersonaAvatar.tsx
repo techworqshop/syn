@@ -23,7 +23,7 @@ export default function PersonaAvatar({ sessionId, slot, initials, tintClass, si
       src={`/api/persona-images/${sessionId}/${slot}`}
       alt={initials}
       onError={() => setFailed(true)}
-      className={`${size} rounded-xl object-cover ring-1 ring-white/10 shrink-0 bg-neutral-900`}
+      className={`${size} rounded-xl object-cover ring-1 ring-white/10 shrink-0 bg-stone-50`}
     />
   );
 }

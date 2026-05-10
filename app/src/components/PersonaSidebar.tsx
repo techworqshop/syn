@@ -63,23 +63,23 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
   }
 
   return (
-    <aside className="w-72 border-l border-neutral-800 bg-neutral-900/30 p-3 space-y-2 overflow-y-auto">
-      <div className="text-xs uppercase tracking-wide text-neutral-500 mb-2 px-1">Personas</div>
+    <aside className="w-72 border-l border-stone-300 bg-amber-50/50 p-3 space-y-2 overflow-y-auto">
+      <div className="text-xs uppercase tracking-wide text-stone-500 mb-2 px-1">Personas</div>
       {[1,2,3,4,5].filter(n => bySlot[n]).map(n => {
         const p = bySlot[n];
         const isExp = expanded === n;
         return (
-          <div key={n} className={`rounded-2xl border bg-gradient-to-br ${TILE_GRADIENT[n] || "from-neutral-900/60 to-neutral-900/40 border-neutral-800"} overflow-hidden transition-all hover:shadow-lg`}>
+          <div key={n} className={`rounded-2xl border bg-gradient-to-br ${TILE_GRADIENT[n] || "from-neutral-900/60 to-neutral-900/40 border-stone-300"} overflow-hidden transition-all hover:shadow-lg`}>
             <div className="flex items-stretch">
               <button onClick={() => onSelect(n)}
-                className="flex-1 text-left p-3 hover:bg-neutral-800/50 flex items-center gap-2.5">
+                className="flex-1 text-left p-3 hover:bg-stone-200/50 flex items-center gap-2.5">
                 {p ? (
                   p.imageReady ? (
-                    <img src={`/api/persona-images/${sessionId}/${n}`} alt="" className="w-9 h-9 rounded-lg object-cover bg-neutral-900 shrink-0" onError={e => (e.currentTarget.style.display="none")} />
+                    <img src={`/api/persona-images/${sessionId}/${n}`} alt="" className="w-9 h-9 rounded-lg object-cover bg-stone-50 shrink-0" onError={e => (e.currentTarget.style.display="none")} />
                   ) : (
                     <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-700/60 to-neutral-800 shrink-0 flex items-center justify-center relative overflow-hidden" title="Portrait wird generiert">
                       <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-neutral-600/20 to-transparent" />
-                      <svg className="w-4 h-4 animate-spin text-neutral-300 relative" viewBox="0 0 24 24" fill="none">
+                      <svg className="w-4 h-4 animate-spin text-stone-700 relative" viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity="0.25" />
                         <path d="M12 2 a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
                       </svg>
@@ -88,14 +88,14 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
                 ) : null}
                 <div className="flex-1 min-w-0">
                 <div className="font-medium">{p?.name || `Slot ${n}`}</div>
-                <div className="text-xs text-neutral-500 mt-0.5 line-clamp-1">
+                <div className="text-xs text-stone-500 mt-0.5 line-clamp-1">
                   {p ? (p.type && p.type.toLowerCase() !== "human" ? p.type : null) : "Noch nicht zugewiesen"}
                 </div>
                 </div>
               </button>
               {p && (
                 <button onClick={() => setExpanded(isExp ? null : n)}
-                  className="px-3 border-l border-neutral-800 text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800/50"
+                  className="px-3 border-l border-stone-300 text-stone-500 hover:text-stone-800 hover:bg-stone-200/50"
                   title={isExp ? "Zuklappen" : "Details"}>
                   {isExp ? "▾" : "▸"}
                 </button>
@@ -104,16 +104,16 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
             {p && (() => {
               const current = localRigidity[n] ?? (typeof p.rigidity === "number" ? p.rigidity : 5);
               return (
-                <div className="border-t border-neutral-800/60 px-3 py-2 bg-neutral-950/30">
-                  <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-neutral-500 mb-1">
+                <div className="border-t border-stone-300/60 px-3 py-2 bg-amber-50/40">
+                  <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-stone-500 mb-1">
                     <span>Haltung</span>
-                    <span className="text-neutral-300 normal-case tracking-normal">{rigidityLabel(current)}</span>
+                    <span className="text-stone-700 normal-case tracking-normal">{rigidityLabel(current)}</span>
                   </div>
                   <input type="range" min={0} max={10} step={1} value={current}
                     onChange={e => changeRigidity(n, parseInt(e.target.value))}
                     className="w-full accent-fuchsia-500 cursor-pointer"
                     title={`Rigidity ${current}/10`} />
-                  <div className="flex justify-between text-[9px] text-neutral-600 mt-0.5">
+                  <div className="flex justify-between text-[9px] text-stone-400 mt-0.5">
                     <span>offen</span>
                     <span>standhaft</span>
                   </div>
@@ -121,18 +121,18 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
               );
             })()}
             {isExp && p && (
-              <div className="border-t border-neutral-800 p-3 space-y-2 text-xs bg-neutral-950/50">
+              <div className="border-t border-stone-300 p-3 space-y-2 text-xs bg-amber-50/70">
                 {p.core_perspective && (
-                  <div><div className="text-neutral-500">Perspektive</div>
-                    <div className="text-neutral-200 whitespace-pre-wrap">{p.core_perspective}</div></div>
+                  <div><div className="text-stone-500">Perspektive</div>
+                    <div className="text-stone-800 whitespace-pre-wrap">{p.core_perspective}</div></div>
                 )}
                 {p.profile && (
-                  <div><div className="text-neutral-500">Profil</div>
-                    <div className="text-neutral-300 whitespace-pre-wrap">{p.profile}</div></div>
+                  <div><div className="text-stone-500">Profil</div>
+                    <div className="text-stone-700 whitespace-pre-wrap">{p.profile}</div></div>
                 )}
                 {p.position_summary && (
-                  <div><div className="text-neutral-500">Aktuelle Position</div>
-                    <div className="text-neutral-200 whitespace-pre-wrap">{p.position_summary}</div></div>
+                  <div><div className="text-stone-500">Aktuelle Position</div>
+                    <div className="text-stone-800 whitespace-pre-wrap">{p.position_summary}</div></div>
                 )}
                 {[1,2,3].map(r => {
                   const key = `round_${r}_response` as keyof PanelPersona;
@@ -142,7 +142,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
                       <summary className="text-amber-400 cursor-pointer hover:text-amber-300">
                         Runde {r}
                       </summary>
-                      <div className="mt-1 text-neutral-300 whitespace-pre-wrap pl-2 border-l-2 border-amber-800">
+                      <div className="mt-1 text-stone-700 whitespace-pre-wrap pl-2 border-l-2 border-amber-800">
                         {resp}
                       </div>
                     </details>
@@ -154,8 +154,8 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
         );
       })}
       {syntheses.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-neutral-800">
-          <div className="text-xs uppercase tracking-wide text-neutral-500 mb-2 px-1">Synthesen</div>
+        <div className="mt-4 pt-4 border-t border-stone-300">
+          <div className="text-xs uppercase tracking-wide text-stone-500 mb-2 px-1">Synthesen</div>
           {syntheses.sort((a,b) => a.round_number - b.round_number).map(s => (
             <div key={s.round_number} className="rounded border border-emerald-900/50 bg-emerald-950/20 mb-2 overflow-hidden">
               <button onClick={() => setSynthOpen(synthOpen === s.round_number ? null : s.round_number)}
@@ -163,7 +163,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
                 <div className="font-medium text-emerald-300">Runde {s.round_number}</div>
               </button>
               {synthOpen === s.round_number && (
-                <div className="border-t border-emerald-900/50 p-3 text-xs text-neutral-200 bg-neutral-950/50">
+                <div className="border-t border-emerald-900/50 p-3 text-xs text-stone-800 bg-amber-50/70">
                   {renderMarkdown(s.synthesis_text)}
                 </div>
               )}

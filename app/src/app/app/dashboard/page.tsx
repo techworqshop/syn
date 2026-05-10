@@ -24,7 +24,7 @@ export default async function Dashboard() {
       <div className="flex items-end justify-between mb-8">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Fokusgruppen</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <p className="text-sm text-stone-500 mt-1">
             Deine synthetischen Panels. Klick auf eine Session um fortzusetzen.
           </p>
         </div>
@@ -35,10 +35,10 @@ export default async function Dashboard() {
         </form>
       </div>
       {rows.length === 0 ? (
-        <div className="rounded-2xl border border-white/5 glass p-12 text-center">
+        <div className="rounded-2xl border border-stone-200 glass p-12 text-center">
           <img src="/api/assets/syn-avatar" alt="" className="w-14 h-14 mx-auto mb-4 rounded-full" />
-          <div className="text-neutral-300 mb-1">Noch keine Fokusgruppe.</div>
-          <div className="text-sm text-neutral-500">Klick oben auf Neue Fokusgruppe um zu starten.</div>
+          <div className="text-stone-700 mb-1">Noch keine Fokusgruppe.</div>
+          <div className="text-sm text-stone-500">Klick oben auf Neue Fokusgruppe um zu starten.</div>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">

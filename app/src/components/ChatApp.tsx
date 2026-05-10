@@ -109,7 +109,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
     <div className="flex flex-1 min-h-0 overflow-hidden"
       >
       <div className="flex-1 flex flex-col min-w-0 relative">
-        <div className="border-b border-neutral-800 px-6 py-3 flex items-center justify-between">
+        <div className="border-b border-stone-300 px-6 py-3 flex items-center justify-between">
           <div>
             {editingTitle ? (
               <input autoFocus value={titleDraft}
@@ -125,24 +125,24 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
                 className="font-medium hover:text-fuchsia-300 transition-colors text-left"
                 title="Klick zum Umbenennen">{title}</button>
             )}
-            <div className="text-xs text-neutral-500">
+            <div className="text-xs text-stone-500">
               {session.status} - Runde {currentRound} - {personaCount} Personas - {filesList.length} Dateien
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/app/dashboard" className="text-sm text-neutral-400 hover:text-neutral-100">Alle Sessions</Link>
+            <Link href="/app/dashboard" className="text-sm text-stone-600 hover:text-stone-900">Alle Sessions</Link>
             <SessionMenu sessionId={sessionId} afterDelete={() => window.location.href = "/app/dashboard"} />
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
           {msgs.length === 0 && (
-            <div className="text-neutral-500 text-center py-12">
+            <div className="text-stone-500 text-center py-12">
               Starte die Fokusgruppe. Beschreib dein Thema (du kannst auch Dateien reinziehen), und Syn fuehrt dich durch.
             </div>
           )}
           {msgs.map(m => <MessageBubble key={m.id} m={m} />)}
           {waiting && (
-            <div className="flex items-center gap-2 text-neutral-500 text-sm">
+            <div className="flex items-center gap-2 text-stone-500 text-sm">
               <span className="inline-block w-2 h-2 bg-fuchsia-500 rounded-full animate-pulse" />
               <span className="italic">{status || "Syn denkt nach..."}</span>
             </div>
@@ -150,7 +150,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
           <div ref={bottomRef} />
         </div>
         {(filesList.length > 0) && (
-          <div className="border-t border-neutral-800 px-4 py-2 flex flex-wrap gap-2 text-xs">
+          <div className="border-t border-stone-300 px-4 py-2 flex flex-wrap gap-2 text-xs">
             {filesList.map(f => (
               <div key={f.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs ${f.category === "briefing" ? "bg-amber-950/30 border-amber-700/50 text-amber-100" : f.category === "persona" ? "bg-rose-950/30 border-rose-700/50 text-rose-100" : "bg-orange-950/30 border-orange-700/50 text-orange-100"}`}>
                 <span className="text-[10px] uppercase tracking-wide opacity-70">{f.category === "briefing" ? "Briefing" : f.category === "persona" ? "Persona" : "Panel"}</span>
@@ -162,25 +162,25 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
             ))}
           </div>
         )}
-        <div className="border-t border-neutral-800 p-4">
-          <div className="rounded-2xl border border-white/10 bg-neutral-900/60 focus-within:border-fuchsia-500/50 focus-within:ring-2 focus-within:ring-fuchsia-500/10 transition-all">
+        <div className="border-t border-stone-300 p-4">
+          <div className="rounded-2xl border border-stone-300 bg-white/75 focus-within:border-fuchsia-500/50 focus-within:ring-2 focus-within:ring-fuchsia-500/10 transition-all">
             <textarea value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!waiting && !sending) send(); } }}
               rows={2}
               placeholder={waiting ? "Syn arbeitet — du kannst schon vorschreiben, senden geht gleich wieder ..." : "Nachricht an Syn..."}
-              className="block w-full px-4 pt-3 pb-1 bg-transparent focus:outline-none resize-none text-[14px] leading-relaxed placeholder:text-neutral-500" />
+              className="block w-full px-4 pt-3 pb-1 bg-transparent focus:outline-none resize-none text-[14px] leading-relaxed placeholder:text-stone-500" />
             <div className="flex items-center justify-between px-2 py-2">
               <button onClick={() => setShowUpload(true)}
                 title="Dateien hochladen"
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-neutral-400 hover:text-neutral-100 hover:bg-white/5 transition-colors">
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
                   <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 0 1 17.99 8.85L9.42 17.42a2 2 0 0 1-2.83-2.83l8.49-8.48" />
                 </svg>
               </button>
               <button disabled={sending || waiting || !input.trim()} onClick={send}
                 title="Senden"
-                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${(!input.trim() || sending || waiting) ? "text-neutral-600 bg-neutral-800/50 cursor-not-allowed" : "btn-primary text-white"}`}>
+                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${(!input.trim() || sending || waiting) ? "text-stone-400 bg-stone-200/50 cursor-not-allowed" : "btn-primary text-white"}`}>
                 {sending ? (
                   <span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
                 ) : (
