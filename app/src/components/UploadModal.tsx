@@ -99,13 +99,13 @@ export default function UploadModal({ sessionId, onClose, onUploaded }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="w-full max-w-2xl max-h-[85vh] glass border border-stone-300 rounded-2xl flex flex-col overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
+      <div className="w-full max-w-2xl max-h-[85vh] bg-stone-50 border border-stone-400/40 rounded-2xl flex flex-col overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-stone-300 px-5 py-4 bg-stone-100/70">
           <div>
             <div className="font-semibold tracking-tight">Dateien hochladen</div>
-            <div className="text-xs text-stone-500 mt-0.5">Drag + Drop oder Klick zum Auswaehlen. Mehrere Dateien moeglich.</div>
+            <div className="text-xs text-stone-700 mt-0.5 font-medium">Drag + Drop oder Klick zum Auswaehlen. Mehrere Dateien moeglich.</div>
           </div>
-          <button onClick={onClose} className="text-stone-600 hover:text-stone-900 text-sm">Schliessen</button>
+          <button onClick={onClose} className="text-stone-700 hover:text-stone-900 font-medium text-sm">Schliessen</button>
         </div>
 
         <div className="p-5 space-y-4 overflow-y-auto flex-1">
@@ -114,9 +114,9 @@ export default function UploadModal({ sessionId, onClose, onUploaded }: Props) {
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
             onClick={() => inputRef.current?.click()}
-            className={`rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${dragOver ? "border-rose-500 bg-rose-500/5" : "border-stone-300 hover:border-white/20 bg-white/[0.02]"}`}>
-            <div className="text-stone-700 font-medium">Dateien hierher ziehen</div>
-            <div className="text-sm text-stone-500 mt-1">oder klicken zum Auswaehlen</div>
+            className={`rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${dragOver ? "border-emerald-700 bg-emerald-100/60" : "border-stone-400 hover:border-emerald-700/50 bg-white/60"}`}>
+            <div className="text-stone-900 font-semibold">Dateien hierher ziehen</div>
+            <div className="text-sm text-stone-700 mt-1">oder klicken zum Auswaehlen</div>
             <input ref={inputRef} type="file" multiple className="hidden"
               onChange={e => { if (e.target.files) addFiles(e.target.files); e.target.value=""; }} />
           </div>
@@ -124,16 +124,16 @@ export default function UploadModal({ sessionId, onClose, onUploaded }: Props) {
           {pendings.length > 0 && (
             <ul className="space-y-2">
               {pendings.map(p => (
-                <li key={p.id} className="rounded-xl border border-stone-200 bg-stone-50/50 p-3">
+                <li key={p.id} className="rounded-xl border border-stone-300 bg-white/70 p-3">
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">{p.file.name}</div>
-                      <div className="text-xs text-stone-500">{Math.round(p.file.size/1024)} KB</div>
+                      <div className="text-sm font-semibold text-stone-900 truncate">{p.file.name}</div>
+                      <div className="text-xs text-stone-700 font-medium">{Math.round(p.file.size/1024)} KB</div>
                     </div>
                     <select value={p.category}
                       disabled={p.status === "uploading" || p.status === "done"}
                       onChange={e => setCategory(p.id, e.target.value as Pending["category"])}
-                      className="text-xs bg-stone-50 border border-stone-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-rose-500/60">
+                      className="text-xs bg-white border border-stone-400 text-stone-900 rounded-lg px-2 py-1.5 focus:outline-none focus:border-emerald-700/60">
                       <option value="briefing">Briefing</option>
                       <option value="persona">Persona-Daten</option>
                       <option value="panel">Panel-Review</option>
@@ -150,7 +150,7 @@ export default function UploadModal({ sessionId, onClose, onUploaded }: Props) {
                       <div className="h-1.5 rounded-full bg-stone-200 overflow-hidden">
                         <div className={`h-full transition-all ${p.status === "error" ? "bg-red-500" : p.status === "done" ? "bg-emerald-500" : "bg-rose-500"}`} style={{ width: `${p.progress}%` }} />
                       </div>
-                      <div className="text-xs text-stone-500 mt-1">
+                      <div className="text-xs text-stone-700 font-medium mt-1">
                         {p.status === "uploading" && `${p.progress}%`}
                         {p.status === "done" && "Hochgeladen - wird analysiert..."}
                         {p.status === "error" && `Fehler: ${p.error}`}
@@ -163,14 +163,14 @@ export default function UploadModal({ sessionId, onClose, onUploaded }: Props) {
           )}
         </div>
 
-        <div className="border-t border-stone-200 px-5 py-3 flex items-center justify-between">
-          <div className="text-xs text-stone-500">
+        <div className="border-t border-stone-300 px-5 py-3 flex items-center justify-between bg-stone-100/70">
+          <div className="text-xs text-stone-700 font-medium">
             {pendings.length === 0 ? "Keine Dateien ausgewaehlt" : pendings.length + " Dateien"}
           </div>
           <div className="flex gap-2">
             {allDone ? (
               <button onClick={onClose}
-                className="px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-lime-500 text-sm font-medium">
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-600 to-lime-600 text-white text-sm font-medium">
                 Fertig
               </button>
             ) : (
