@@ -13,13 +13,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <header className="glass border-b border-stone-200 px-6 py-3 flex items-center justify-between sticky top-0 z-20">
         <Link href="/app/dashboard" className="flex items-center gap-2.5 group">
           <img src="/api/assets/syn-avatar" alt="" className="w-7 h-7 rounded-full ring-1 ring-white/10" />
-          <div className="font-semibold tracking-tight text-stone-900 group-hover:text-white">Syn</div>
+          <div className="font-semibold tracking-tight text-rose-600 group-hover:text-rose-700">Syn</div>
         </Link>
-        <div className="text-sm text-stone-600 flex items-center gap-4">
-          <span className="hidden sm:inline text-stone-500">{u.email}</span>
-          {u.isAdmin && <Link href="/app/users" className="hidden sm:inline text-stone-500 hover:text-stone-800 transition-colors">User</Link>}
+        <div className="text-sm text-stone-800 flex items-center gap-4">
+          <span className="hidden sm:inline text-stone-700">{u.email}</span>
+          {u.isAdmin && <Link href="/app/users" className="hidden sm:inline text-stone-700 hover:text-rose-600 transition-colors">User</Link>}
           <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
-            <button className="text-stone-600 hover:text-stone-900 transition-colors">Logout</button>
+            <button className="text-stone-700 hover:text-rose-600 transition-colors">Logout</button>
           </form>
         </div>
       </header>

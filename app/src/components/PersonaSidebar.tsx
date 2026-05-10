@@ -16,11 +16,11 @@ function rigidityLabel(r: number): string {
 }
 
 const TILE_GRADIENT: Record<number,string> = {
-  1: "from-rose-200 via-pink-200 to-fuchsia-200 border-rose-400",
-  2: "from-amber-200 via-orange-200 to-red-200 border-amber-400",
-  3: "from-emerald-200 via-teal-200 to-emerald-300 border-emerald-400",
-  4: "from-violet-200 via-purple-200 to-fuchsia-200 border-violet-400",
-  5: "from-orange-200 via-amber-200 to-rose-200 border-orange-400"
+  1: "from-rose-600 via-pink-600 to-fuchsia-700 border-rose-300 text-white shadow-md",
+  2: "from-amber-600 via-orange-600 to-red-600 border-amber-300 text-white shadow-md",
+  3: "from-emerald-600 via-teal-600 to-emerald-700 border-emerald-300 text-white shadow-md",
+  4: "from-violet-600 via-purple-600 to-fuchsia-700 border-violet-300 text-white shadow-md",
+  5: "from-orange-600 via-amber-600 to-rose-600 border-orange-300 text-white shadow-md"
 };
 
 export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Props) {
@@ -88,14 +88,14 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
                 ) : null}
                 <div className="flex-1 min-w-0">
                 <div className="font-medium">{p?.name || `Slot ${n}`}</div>
-                <div className="text-xs text-stone-500 mt-0.5 line-clamp-1">
+                <div className="text-xs text-white/85 mt-0.5 line-clamp-1">
                   {p ? (p.type && p.type.toLowerCase() !== "human" ? p.type : null) : "Noch nicht zugewiesen"}
                 </div>
                 </div>
               </button>
               {p && (
                 <button onClick={() => setExpanded(isExp ? null : n)}
-                  className="px-3 border-l border-stone-300 text-stone-500 hover:text-stone-800 hover:bg-stone-200/50"
+                  className="px-3 border-l border-white/30 text-white/80 hover:text-white hover:bg-white/15"
                   title={isExp ? "Zuklappen" : "Details"}>
                   {isExp ? "▾" : "▸"}
                 </button>
@@ -157,13 +157,13 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
         <div className="mt-4 pt-4 border-t border-stone-300">
           <div className="text-xs uppercase tracking-wide text-stone-500 mb-2 px-1">Synthesen</div>
           {syntheses.sort((a,b) => a.round_number - b.round_number).map(s => (
-            <div key={s.round_number} className="rounded border border-emerald-900/50 bg-emerald-950/20 mb-2 overflow-hidden">
+            <div key={s.round_number} className="rounded-xl border border-emerald-300 bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 mb-2 overflow-hidden shadow-md">
               <button onClick={() => setSynthOpen(synthOpen === s.round_number ? null : s.round_number)}
-                className="w-full text-left p-3 hover:bg-emerald-950/40">
-                <div className="font-medium text-emerald-300">Runde {s.round_number}</div>
+                className="w-full text-left p-3 hover:bg-white/10">
+                <div className="font-semibold text-white">Runde {s.round_number}</div>
               </button>
               {synthOpen === s.round_number && (
-                <div className="border-t border-emerald-900/50 p-3 text-xs text-stone-800 bg-amber-50/70">
+                <div className="border-t border-emerald-300 p-3 text-xs text-stone-800 bg-amber-50">
                   {renderMarkdown(s.synthesis_text)}
                 </div>
               )}

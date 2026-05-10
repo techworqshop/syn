@@ -152,11 +152,11 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
         {(filesList.length > 0) && (
           <div className="border-t border-stone-300 px-4 py-2 flex flex-wrap gap-2 text-xs">
             {filesList.map(f => (
-              <div key={f.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs ${f.category === "briefing" ? "bg-amber-950/30 border-amber-700/50 text-amber-100" : f.category === "persona" ? "bg-rose-950/30 border-rose-700/50 text-rose-100" : "bg-orange-950/30 border-orange-700/50 text-orange-100"}`}>
+              <div key={f.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs ${f.category === "briefing" ? "bg-amber-200 border-amber-500 text-amber-950 shadow-sm" : f.category === "persona" ? "bg-rose-200 border-rose-500 text-rose-950 shadow-sm" : "bg-orange-200 border-orange-500 text-orange-950 shadow-sm"}`}>
                 <span className="text-[10px] uppercase tracking-wide opacity-70">{f.category === "briefing" ? "Briefing" : f.category === "persona" ? "Persona" : "Panel"}</span>
                 <span className="max-w-[200px] truncate">{f.fileName}</span>
                 <span className="opacity-60">{Math.round(f.sizeBytes/1024)}K</span>
-                {f.summary ? <span className="text-emerald-400">✓</span> : <span className="opacity-60">…</span>}
+                {f.summary ? <span className="text-emerald-700 font-bold">✓</span> : <span className="opacity-60">…</span>}
                 <button onClick={() => deleteFile(f.id)} className="ml-1 opacity-50 hover:opacity-100 hover:text-red-400 transition-opacity" title="Datei loeschen">×</button>
               </div>
             ))}
