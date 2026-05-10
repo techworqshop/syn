@@ -13,18 +13,18 @@ const LABELS: Record<string, string> = {
 };
 
 const BUBBLE: Record<string, string> = {
-  user: "bg-gradient-to-br from-rose-500 via-orange-500 to-amber-600 text-white shadow-[0_6px_20px_-6px_rgba(244,114,82,0.5)]",
-  coordinator: "bg-gradient-to-br from-violet-900 via-fuchsia-800 to-rose-900 text-white border border-violet-700/40 shadow-lg",
-  synthesis: "bg-gradient-to-br from-amber-600 via-orange-600 to-rose-600 text-white border border-amber-500 shadow-md",
+  user: "bg-gradient-to-br from-rose-500 via-orange-500 to-amber-600 text-white shadow-[0_6px_20px_-6px_rgba(244,114,82,0.5)] bubble-glass",
+  coordinator: "bg-gradient-to-br from-violet-900 via-fuchsia-800 to-rose-900 text-white border border-violet-700/40 shadow-lg bubble-glass",
+  synthesis: "bg-gradient-to-br from-amber-600 via-orange-600 to-rose-600 text-white border border-amber-500 shadow-md bubble-glass",
   system: "bg-amber-200 text-amber-950 border border-amber-400 text-sm font-medium"
 };
 
 const PERSONA_BUBBLE: Record<number, string> = {
-  1: "bg-gradient-to-br from-rose-600 via-pink-600 to-fuchsia-700 text-white border border-rose-400 shadow-md",
-  2: "bg-gradient-to-br from-amber-600 via-orange-600 to-red-600 text-white border border-amber-500 shadow-md",
-  3: "bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 text-white border border-emerald-500 shadow-md",
-  4: "bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-700 text-white border border-violet-400 shadow-md",
-  5: "bg-gradient-to-br from-orange-600 via-amber-600 to-rose-600 text-white border border-orange-400 shadow-md"
+  1: "bg-gradient-to-br from-rose-600 via-pink-600 to-fuchsia-700 text-white border border-rose-400 shadow-md bubble-glass",
+  2: "bg-gradient-to-br from-amber-600 via-orange-600 to-red-600 text-white border border-amber-500 shadow-md bubble-glass",
+  3: "bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 text-white border border-emerald-500 shadow-md bubble-glass",
+  4: "bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-700 text-white border border-violet-400 shadow-md bubble-glass",
+  5: "bg-gradient-to-br from-orange-600 via-amber-600 to-rose-600 text-white border border-orange-400 shadow-md bubble-glass"
 };
 
 const PERSONA_AVATAR: Record<number, string> = {
