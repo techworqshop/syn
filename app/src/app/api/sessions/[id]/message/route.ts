@@ -41,7 +41,9 @@ export async function POST(req: Request, { params }: P) {
           mimeType: f.mimeType, fileUrl: `${PUBLIC_BASE}/api/files/${f.id}`, uploadOrder: 1
         });
         await db.update(files).set({ summary: "[analysiert]" }).where(eq(files.id, f.id));
-      } catch {}
+      } catch {
+        await db.update(files).set({ summary: null }).where(eq(files.id, f.id));
+      }
     }));
     await publish(`session:${id}`, { type: "status", text: "Dateien fertig analysiert. Coordinator startet ..." });
   }
