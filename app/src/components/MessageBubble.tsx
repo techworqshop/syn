@@ -1,4 +1,6 @@
+"use client";
 import type React from "react";
+import { useState } from "react";
 import type { Message } from "./types";
 import PersonaAvatar from "./PersonaAvatar";
 
@@ -144,6 +146,9 @@ const NAME_COLOR: Record<number, string> = {
 type ReportMeta = { kind?: string; reportId?: string; filename?: string; generatedAt?: string };
 
 export default function MessageBubble({ m }: { m: Message }) {
+  const COLLAPSE_AT = 600;
+  const isLong = m.role !== "synthesis" && m.role !== "user" && m.content.length > COLLAPSE_AT;
+  const [expanded, setExpanded] = useState(false);
   const meta = (typeof m.metadata === "object" && m.metadata !== null ? m.metadata : {}) as ReportMeta;
   const isError = meta.kind === "error" || meta.kind === "report_error";
   const isReport = meta.kind === "report" && !!meta.reportId;
@@ -195,9 +200,16 @@ export default function MessageBubble({ m }: { m: Message }) {
         ) : (
           <div className={`rounded-2xl px-4 py-3 text-[14px] leading-relaxed w-full min-w-0 overflow-hidden [overflow-wrap:anywhere] [word-break:break-word] ${color}`}>
             {m.role === "synthesis" ? renderMarkdown(m.content) : (
-              m.content.split(/\n\n+/).map((para, i, arr) => (
-                <p key={i} className={`whitespace-pre-wrap ${i < arr.length - 1 ? "mb-3" : ""}`}>{para}</p>
-              ))
+              <>
+                {(expanded || !isLong ? m.content : m.content.slice(0, COLLAPSE_AT).replace(/\s+\S*$/,"") + " …").split(/\n\n+/).map((para, i, arr) => (
+                  <p key={i} className={`whitespace-pre-wrap ${i < arr.length - 1 ? "mb-3" : ""}`}>{para}</p>
+                ))}
+                {isLong && (
+                  <button onClick={() => setExpanded(e => !e)} className="mt-2 text-xs text-rose-300 hover:text-rose-200 font-medium underline-offset-2 hover:underline">
+                    {expanded ? "Weniger anzeigen" : "Mehr lesen"}
+                  </button>
+                )}
+              </>
             )}
           </div>
         )}
