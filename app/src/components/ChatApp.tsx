@@ -109,7 +109,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
     <div className="flex flex-1 min-h-0 overflow-hidden"
       >
       <div className="flex-1 flex flex-col min-w-0 relative">
-        <div className="border-b border-white/40 px-6 py-3 glass flex items-center justify-between">
+        <div className="relative z-30 border-b border-white/40 px-6 py-3 glass flex items-center justify-between">
           <div>
             {editingTitle ? (
               <input autoFocus value={titleDraft}
