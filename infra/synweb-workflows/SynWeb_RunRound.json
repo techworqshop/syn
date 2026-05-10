@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-05-10T22:48:48.961Z",
+    "updatedAt": "2026-05-10T22:49:59.198Z",
     "createdAt": "2026-05-10T17:55:45.890Z",
     "id": "ubm4FU2nKDKuvFgw",
     "name": "SynWeb_RunRound",
@@ -441,6 +441,40 @@
           }
         },
         "continueOnFail": true
+      },
+      {
+        "id": "post-synth-status",
+        "name": "Post Synthesis Status",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1920,
+          -240
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://syn.worqshop.io/api/n8n/callback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').first().json.session_id, kind: 'status', text: 'Alle Stimmen sind da - die Synthese entsteht gerade...'}) }}",
+          "options": {
+            "timeout": 10000
+          }
+        },
+        "continueOnFail": true
       }
     ],
     "connections": {
@@ -525,7 +559,7 @@
         "main": [
           [
             {
-              "node": "Trigger Synthesize",
+              "node": "Post Synthesis Status",
               "type": "main",
               "index": 0
             }
@@ -622,6 +656,17 @@
             }
           ]
         ]
+      },
+      "Post Synthesis Status": {
+        "main": [
+          [
+            {
+              "node": "Trigger Synthesize",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "settings": {
@@ -634,9 +679,9 @@
     "staticData": null,
     "meta": null,
     "pinData": null,
-    "versionId": "78439a0e-b28c-4b4e-bdbb-531eb718c838",
-    "activeVersionId": "78439a0e-b28c-4b4e-bdbb-531eb718c838",
-    "versionCounter": 20,
+    "versionId": "e8836f50-3912-446d-b408-793402b6c518",
+    "activeVersionId": "e8836f50-3912-446d-b408-793402b6c518",
+    "versionCounter": 23,
     "triggerCount": 0,
     "tags": [],
     "shared": [
