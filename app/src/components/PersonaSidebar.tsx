@@ -18,9 +18,9 @@ function rigidityLabel(r: number): string {
 const TILE_GRADIENT: Record<number,string> = {
   1: "from-rose-500/15 via-pink-500/10 to-fuchsia-500/15 border-rose-400/30",
   2: "from-amber-500/15 via-orange-500/10 to-red-500/15 border-amber-400/30",
-  3: "from-emerald-500/15 via-teal-500/10 to-cyan-500/15 border-emerald-400/30",
+  3: "from-emerald-500/15 via-lime-500/10 to-yellow-500/15 border-emerald-400/30",
   4: "from-violet-500/15 via-purple-500/10 to-fuchsia-500/15 border-violet-400/30",
-  5: "from-sky-500/15 via-blue-500/10 to-indigo-500/15 border-sky-400/30"
+  5: "from-orange-500/15 via-amber-500/10 to-rose-500/15 border-orange-400/30"
 };
 
 export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Props) {
@@ -139,10 +139,10 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
                   const resp = p[key] as string | undefined;
                   return resp ? (
                     <details key={r}>
-                      <summary className="text-sky-400 cursor-pointer hover:text-sky-300">
+                      <summary className="text-amber-400 cursor-pointer hover:text-amber-300">
                         Runde {r}
                       </summary>
-                      <div className="mt-1 text-neutral-300 whitespace-pre-wrap pl-2 border-l-2 border-sky-800">
+                      <div className="mt-1 text-neutral-300 whitespace-pre-wrap pl-2 border-l-2 border-amber-800">
                         {resp}
                       </div>
                     </details>

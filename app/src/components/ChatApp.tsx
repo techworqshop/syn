@@ -152,7 +152,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
         {(filesList.length > 0) && (
           <div className="border-t border-neutral-800 px-4 py-2 flex flex-wrap gap-2 text-xs">
             {filesList.map(f => (
-              <div key={f.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs ${f.category === "briefing" ? "bg-amber-950/30 border-amber-700/50 text-amber-100" : f.category === "persona" ? "bg-rose-950/30 border-rose-700/50 text-rose-100" : "bg-sky-950/30 border-sky-700/50 text-sky-100"}`}>
+              <div key={f.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs ${f.category === "briefing" ? "bg-amber-950/30 border-amber-700/50 text-amber-100" : f.category === "persona" ? "bg-rose-950/30 border-rose-700/50 text-rose-100" : "bg-orange-950/30 border-orange-700/50 text-orange-100"}`}>
                 <span className="text-[10px] uppercase tracking-wide opacity-70">{f.category === "briefing" ? "Briefing" : f.category === "persona" ? "Persona" : "Panel"}</span>
                 <span className="max-w-[200px] truncate">{f.fileName}</span>
                 <span className="opacity-60">{Math.round(f.sizeBytes/1024)}K</span>

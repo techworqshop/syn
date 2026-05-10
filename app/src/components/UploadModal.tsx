@@ -114,7 +114,7 @@ export default function UploadModal({ sessionId, onClose, onUploaded }: Props) {
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
             onClick={() => inputRef.current?.click()}
-            className={`rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${dragOver ? "border-sky-500 bg-sky-500/5" : "border-white/10 hover:border-white/20 bg-white/[0.02]"}`}>
+            className={`rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${dragOver ? "border-rose-500 bg-rose-500/5" : "border-white/10 hover:border-white/20 bg-white/[0.02]"}`}>
             <div className="text-neutral-300 font-medium">Dateien hierher ziehen</div>
             <div className="text-sm text-neutral-500 mt-1">oder klicken zum Auswaehlen</div>
             <input ref={inputRef} type="file" multiple className="hidden"
@@ -133,7 +133,7 @@ export default function UploadModal({ sessionId, onClose, onUploaded }: Props) {
                     <select value={p.category}
                       disabled={p.status === "uploading" || p.status === "done"}
                       onChange={e => setCategory(p.id, e.target.value as Pending["category"])}
-                      className="text-xs bg-neutral-900 border border-white/10 rounded-lg px-2 py-1.5 focus:outline-none focus:border-sky-500/60">
+                      className="text-xs bg-neutral-900 border border-white/10 rounded-lg px-2 py-1.5 focus:outline-none focus:border-rose-500/60">
                       <option value="briefing">Briefing</option>
                       <option value="persona">Persona-Daten</option>
                       <option value="panel">Panel-Review</option>
@@ -148,7 +148,7 @@ export default function UploadModal({ sessionId, onClose, onUploaded }: Props) {
                   {p.status !== "pending" && (
                     <div className="mt-2">
                       <div className="h-1.5 rounded-full bg-neutral-800 overflow-hidden">
-                        <div className={`h-full transition-all ${p.status === "error" ? "bg-red-500" : p.status === "done" ? "bg-emerald-500" : "bg-sky-500"}`} style={{ width: `${p.progress}%` }} />
+                        <div className={`h-full transition-all ${p.status === "error" ? "bg-red-500" : p.status === "done" ? "bg-emerald-500" : "bg-rose-500"}`} style={{ width: `${p.progress}%` }} />
                       </div>
                       <div className="text-xs text-neutral-500 mt-1">
                         {p.status === "uploading" && `${p.progress}%`}
@@ -170,7 +170,7 @@ export default function UploadModal({ sessionId, onClose, onUploaded }: Props) {
           <div className="flex gap-2">
             {allDone ? (
               <button onClick={onClose}
-                className="px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-sm font-medium">
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-lime-500 text-sm font-medium">
                 Fertig
               </button>
             ) : (

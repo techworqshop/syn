@@ -8,17 +8,17 @@ type Props = { sessionId: string; slot: number; onClose: () => void };
 const PERSONA_BUBBLE: Record<number, string> = {
   1: "bg-gradient-to-br from-rose-500/20 via-pink-500/15 to-fuchsia-500/20 border border-rose-400/30",
   2: "bg-gradient-to-br from-amber-500/20 via-orange-500/15 to-red-500/20 border border-amber-400/30",
-  3: "bg-gradient-to-br from-emerald-500/20 via-teal-500/15 to-cyan-500/20 border border-emerald-400/30",
+  3: "bg-gradient-to-br from-emerald-500/20 via-lime-500/15 to-yellow-500/20 border border-emerald-400/30",
   4: "bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/20 border border-violet-400/30",
-  5: "bg-gradient-to-br from-sky-500/20 via-blue-500/15 to-indigo-500/20 border border-sky-400/30"
+  5: "bg-gradient-to-br from-orange-500/20 via-amber-500/15 to-rose-500/20 border border-orange-400/30"
 };
 
 const PERSONA_AVATAR: Record<number, string> = {
   1: "bg-gradient-to-br from-rose-400 to-pink-600",
   2: "bg-gradient-to-br from-amber-400 to-orange-600",
-  3: "bg-gradient-to-br from-emerald-400 to-teal-600",
+  3: "bg-gradient-to-br from-emerald-400 to-lime-600",
   4: "bg-gradient-to-br from-violet-400 to-purple-600",
-  5: "bg-gradient-to-br from-sky-400 to-cyan-600"
+  5: "bg-gradient-to-br from-orange-400 to-rose-600"
 };
 
 const NAME_COLOR: Record<number, string> = {
@@ -26,7 +26,7 @@ const NAME_COLOR: Record<number, string> = {
   2: "text-amber-300",
   3: "text-emerald-300",
   4: "text-violet-300",
-  5: "text-sky-300"
+  5: "text-orange-300"
 };
 
 function fmtTime(d: string | Date) {
@@ -44,7 +44,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
   const [persona, setPersona] = useState<PanelPersona | null>(null);
   const displayName = persona?.name || `Slot ${slot}`;
   const initials = (persona?.name ?? "P").split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase();
-  const tint = PERSONA_AVATAR[slot] || "bg-gradient-to-br from-indigo-400 to-violet-600";
+  const tint = PERSONA_AVATAR[slot] || "bg-gradient-to-br from-rose-400 to-amber-500";
   const bubbleColor = PERSONA_BUBBLE[slot] + " text-neutral-100";
   const nameColor = NAME_COLOR[slot] || "text-neutral-200";
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -118,7 +118,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
             return (
               <div key={m.id} className="flex gap-3 items-start group">
                 {isUser ? (
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white text-base font-semibold ring-1 ring-white/10 shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-rose-400 to-orange-500 flex items-center justify-center text-white text-base font-semibold ring-1 ring-white/10 shrink-0">
                     Du
                   </div>
                 ) : (
@@ -126,14 +126,14 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2 mb-1">
-                    <span className={`font-semibold text-[15px] leading-tight ${isUser ? "text-sky-300" : nameColor}`}>
+                    <span className={`font-semibold text-[15px] leading-tight ${isUser ? "text-orange-300" : nameColor}`}>
                       {isUser ? "Du" : displayName}
                     </span>
                     <span className="text-xs text-neutral-600">{fmtTime(m.createdAt)}</span>
                   </div>
                   <div className={`rounded-2xl px-4 py-3 whitespace-pre-wrap text-[14px] leading-relaxed w-full min-w-0 overflow-hidden [overflow-wrap:anywhere] [word-break:break-word] ${
                     isUser
-                      ? "bg-gradient-to-br from-sky-500 via-indigo-500 to-violet-500 text-white shadow-[0_6px_20px_-6px_rgba(99,102,241,0.5)]"
+                      ? "bg-gradient-to-br from-rose-400 via-orange-400 to-amber-400 text-white shadow-[0_6px_20px_-6px_rgba(244,114,82,0.5)]"
                       : bubbleColor
                   }`}>
                     {m.content}
