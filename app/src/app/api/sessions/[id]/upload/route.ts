@@ -40,21 +40,10 @@ export async function POST(req: Request, { params }: P) {
   // count existing files for uploadOrder
   const existing = await db.select().from(files).where(eq(files.sessionId, id));
   const uploadOrder = existing.length;
-  // fire-and-wait ingest (so we get summary back)
-  try {
-    const out = await ingestFile({
-      sessionId: id, fileId: row.id, fileName: safeName,
-      mimeType: row.mimeType, fileUrl: publicUrl, uploadOrder
-    });
-    if (out && typeof out === "object") {
-      const summary = (out as { summary?: string }).summary ||
-                      (Array.isArray((out as { content?: unknown[] }).content) ?
-                        ((out as { content: { text?: string }[] }).content[0]?.text ?? "") : "");
-      if (summary) {
-        await db.update(files).set({ summary: String(summary).slice(0,2000) })
-          .where(eq(files.id, row.id));
-      }
-    }
-  } catch {}
+    // fire-and-forget ingest - Gemini takes 60-90s, we return immediately
+  ingestFile({
+    sessionId: id, fileId: row.id, fileName: safeName,
+    mimeType: row.mimeType, fileUrl: publicUrl, uploadOrder
+  }).catch(() => {});
   return NextResponse.json({ file: { ...row, publicUrl } });
 }
