@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-05-10T21:06:33.798Z",
+    "updatedAt": "2026-05-10T22:48:48.961Z",
     "createdAt": "2026-05-10T17:55:45.890Z",
     "id": "ubm4FU2nKDKuvFgw",
     "name": "SynWeb_RunRound",
@@ -348,7 +348,7 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({sessionId: $json.session_id, kind: 'status', text: 'Runde dauert etwas laenger als erwartet...'}) }}",
+          "jsonBody": "={{ JSON.stringify({sessionId: $json.session_id, kind: 'status', text: 'Die Runde laeuft - das kann einen Augenblick dauern. Hol dir gerne in der Zwischenzeit einen Kaffee.'}) }}",
           "options": {
             "timeout": 10000
           }
@@ -634,9 +634,9 @@
     "staticData": null,
     "meta": null,
     "pinData": null,
-    "versionId": "e48992a3-3943-46f3-8902-4feab727d24c",
-    "activeVersionId": "e48992a3-3943-46f3-8902-4feab727d24c",
-    "versionCounter": 13,
+    "versionId": "78439a0e-b28c-4b4e-bdbb-531eb718c838",
+    "activeVersionId": "78439a0e-b28c-4b4e-bdbb-531eb718c838",
+    "versionCounter": 20,
     "triggerCount": 0,
     "tags": [],
     "shared": [
