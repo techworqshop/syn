@@ -126,7 +126,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
                 title="Klick zum Umbenennen">{title}</button>
             )}
             <div className="text-xs text-stone-500">
-              {session.status} - Runde {currentRound} - {personaCount} Personas - {filesList.length} Dateien
+              Runde {currentRound} - {personaCount} Personas - {filesList.length} Dateien
             </div>
           </div>
           <div className="flex items-center gap-2">
