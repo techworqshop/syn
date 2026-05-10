@@ -5,7 +5,6 @@ import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
 import { sessions, files } from "@/db/schema";
 import { requireUser } from "@/lib/current-user";
-import { ingestFile } from "@/lib/n8n";
 import { and, eq } from "drizzle-orm";
 
 type P = { params: Promise<{ id: string }> };
@@ -40,10 +39,6 @@ export async function POST(req: Request, { params }: P) {
   // count existing files for uploadOrder
   const existing = await db.select().from(files).where(eq(files.sessionId, id));
   const uploadOrder = existing.length;
-    // fire-and-forget ingest - Gemini takes 60-90s, we return immediately
-  ingestFile({
-    sessionId: id, fileId: row.id, fileName: safeName,
-    mimeType: row.mimeType, fileUrl: publicUrl, uploadOrder
-  }).catch(() => {});
+  
   return NextResponse.json({ file: { ...row, publicUrl } });
 }
