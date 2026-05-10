@@ -114,20 +114,25 @@ export function renderReportPDF(
       }
     }
 
-    // Footer
+    // Footer — writing near the bottom triggers PDFKit's auto-page-break
+    // which silently adds blank pages. Workaround: zero the bottom margin
+    // for the duration of each footer write, then restore.
     const range = doc.bufferedPageRange();
-    for (let i = 0; i < range.count; i++) {
+    const totalPages = range.count;
+    for (let i = 0; i < totalPages; i++) {
       doc.switchToPage(range.start + i);
+      const savedBottom = doc.page.margins.bottom;
+      doc.page.margins.bottom = 0;
       const bottomY = doc.page.height - 32;
+      const contentW = doc.page.width - doc.page.margins.left - doc.page.margins.right;
       doc.font("Helvetica").fontSize(8).fillColor(C_FAINT)
         .text(`Syn - ${title}`, doc.page.margins.left, bottomY, {
-          width: doc.page.width - doc.page.margins.left - doc.page.margins.right,
-          align: "left", lineBreak: false
+          width: contentW, align: "left", lineBreak: false
+        })
+        .text(`Seite ${i + 1} / ${totalPages}`, doc.page.margins.left, bottomY, {
+          width: contentW, align: "right", lineBreak: false
         });
-      doc.text(`Seite ${i + 1} / ${range.count}`, doc.page.margins.left, bottomY, {
-        width: doc.page.width - doc.page.margins.left - doc.page.margins.right,
-        align: "right", lineBreak: false
-      });
+      doc.page.margins.bottom = savedBottom;
     }
     doc.end();
   });
