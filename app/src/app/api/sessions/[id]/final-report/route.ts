@@ -75,17 +75,17 @@ function renderPDF(
     doc.on("end", () => resolve(Buffer.concat(chunks)));
 
     // Cover
-    doc.fontSize(10).fillColor("#6b7280").text("Syn - Abschlussbericht", { align: "left" });
+    doc.fontSize(10).fillColor("#7c2d12").text("Syn - Abschlussbericht", { align: "left", characterSpacing: 1.2 });
     doc.moveDown(0.3);
-    doc.fontSize(28).fillColor("#111827").text(title, { align: "left" });
+    doc.fontSize(28).fillColor("#3f1f0f").text(title, { align: "left" });
     doc.moveDown(0.5);
     const created = new Date(meta.createdAt);
-    doc.fontSize(10).fillColor("#6b7280")
+    doc.fontSize(10).fillColor("#52525b")
       .text(`Erstellt: ${created.toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" })}`);
     doc.text(`${meta.personaCount} Personas / ${meta.currentRound} Runden`);
     doc.text(`Export: ${new Date().toLocaleString("de-DE")}`);
     doc.moveDown(1.5);
-    doc.moveTo(56, doc.y).lineTo(539, doc.y).strokeColor("#d4d4d8").lineWidth(1).stroke();
+    doc.moveTo(56, doc.y).lineTo(539, doc.y).strokeColor("#a16207").lineWidth(1).stroke();
     doc.moveDown(1.2);
 
     // Body - parse markdown
@@ -96,17 +96,17 @@ function renderPDF(
       if (/^#\s+/.test(line)) {
         if (inList) { inList = false; doc.moveDown(0.3); }
         doc.moveDown(0.6);
-        doc.fontSize(20).fillColor("#7c3aed").text(line.replace(/^#\s+/, ""));
+        doc.fontSize(20).fillColor("#9f1239").text(line.replace(/^#\s+/, ""));
         doc.moveDown(0.4);
       } else if (/^##\s+/.test(line)) {
         if (inList) { inList = false; doc.moveDown(0.3); }
         doc.moveDown(0.5);
-        doc.fontSize(15).fillColor("#9333ea").text(line.replace(/^##\s+/, ""));
+        doc.fontSize(15).fillColor("#7c2d12").text(line.replace(/^##\s+/, ""));
         doc.moveDown(0.3);
       } else if (/^###\s+/.test(line)) {
         if (inList) { inList = false; doc.moveDown(0.2); }
         doc.moveDown(0.3);
-        doc.fontSize(12).fillColor("#b45309").text(line.replace(/^###\s+/, ""));
+        doc.fontSize(12).fillColor("#3f6212").text(line.replace(/^###\s+/, ""));
         doc.moveDown(0.2);
       } else if (/^\s*[-*]\s+/.test(line)) {
         inList = true;
@@ -129,7 +129,7 @@ function renderInlineBold(doc: InstanceType<typeof PDFDocument>, text: string, o
   const parts = text.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
   const indent = opts.bullet ? 16 : 0;
   if (opts.bullet) {
-    doc.fontSize(11).fillColor("#9333ea").text("-", { continued: true, indent: 4 })
+    doc.fontSize(11).fillColor("#a16207").text("-", { continued: true, indent: 4 })
       .fillColor("#1f2937").text(" ", { continued: true });
   }
   for (let i = 0; i < parts.length; i++) {

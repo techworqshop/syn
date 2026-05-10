@@ -183,18 +183,18 @@ export default function MessageBubble({ m }: { m: Message }) {
         </div>
         {isReport ? (
           <a href={`/api/reports/${m.sessionId}/${meta.reportId}`}
-            className="group/card inline-flex items-center gap-3 rounded-2xl px-4 py-3 bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-rose-500/15 border border-amber-500/40 hover:border-amber-400/70 hover:from-amber-500/25 transition-all max-w-full">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 flex items-center justify-center text-white shrink-0">
+            className="group/card inline-flex items-center gap-3 rounded-2xl px-4 py-3 bg-amber-100 border border-amber-700/40 hover:bg-amber-200 hover:border-amber-700/70 transition-all max-w-full shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-700 via-orange-700 to-red-800 flex items-center justify-center text-white shrink-0 shadow-sm">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
               </svg>
             </div>
             <div className="min-w-0">
-              <div className="font-medium text-amber-100 truncate">Abschlussbericht</div>
-              <div className="text-xs text-amber-300/70 truncate">{meta.filename || "Bericht.pdf"}</div>
+              <div className="font-semibold text-stone-900 truncate">Abschlussbericht</div>
+              <div className="text-xs text-stone-700 font-medium truncate">{meta.filename || "Bericht.pdf"}</div>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-amber-200 shrink-0 ml-2 opacity-70 group-hover/card:opacity-100 transition-opacity">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-stone-700 shrink-0 ml-2 opacity-70 group-hover/card:opacity-100 transition-opacity">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
