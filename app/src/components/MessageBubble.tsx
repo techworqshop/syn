@@ -14,17 +14,17 @@ const LABELS: Record<string, string> = {
 
 const BUBBLE: Record<string, string> = {
   user: "bg-gradient-to-br from-rose-400 via-orange-400 to-amber-400 text-white shadow-[0_6px_20px_-6px_rgba(244,114,82,0.5)]",
-  coordinator: "bg-gradient-to-br from-rose-100 via-orange-100 to-amber-50 text-stone-900 border border-rose-300/70 shadow-sm",
-  synthesis: "bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-rose-500/15 text-stone-900 border border-amber-500/30",
-  system: "bg-amber-100/70 text-amber-900 border border-amber-300 text-sm"
+  coordinator: "bg-gradient-to-br from-violet-900 via-fuchsia-800 to-rose-900 text-white border border-violet-700/40 shadow-lg",
+  synthesis: "bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 text-white border border-amber-300/50 shadow-md",
+  system: "bg-amber-200 text-amber-950 border border-amber-400 text-sm font-medium"
 };
 
 const PERSONA_BUBBLE: Record<number, string> = {
-  1: "bg-gradient-to-br from-rose-500/20 via-pink-500/15 to-fuchsia-500/20 border border-rose-400/30",
-  2: "bg-gradient-to-br from-amber-500/20 via-orange-500/15 to-red-500/20 border border-amber-400/30",
-  3: "bg-gradient-to-br from-emerald-500/20 via-lime-500/15 to-yellow-500/20 border border-emerald-400/30",
-  4: "bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/20 border border-violet-400/30",
-  5: "bg-gradient-to-br from-orange-500/20 via-amber-500/15 to-rose-500/20 border border-orange-400/30"
+  1: "bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-500 text-white border border-rose-300/50 shadow-md",
+  2: "bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-white border border-amber-300/50 shadow-md",
+  3: "bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 text-white border border-emerald-300/50 shadow-md",
+  4: "bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 text-white border border-violet-300/50 shadow-md",
+  5: "bg-gradient-to-br from-orange-500 via-amber-500 to-rose-500 text-white border border-orange-300/50 shadow-md"
 };
 
 const PERSONA_AVATAR: Record<number, string> = {
@@ -154,7 +154,7 @@ export default function MessageBubble({ m }: { m: Message }) {
   const isReport = meta.kind === "report" && !!meta.reportId;
   let color = BUBBLE[m.role] ?? BUBBLE.system;
   if (m.role === "persona" && m.personaSlot && PERSONA_BUBBLE[m.personaSlot]) {
-    color = PERSONA_BUBBLE[m.personaSlot] + " text-stone-900";
+    color = PERSONA_BUBBLE[m.personaSlot];
   }
   if (isError) {
     color = "bg-gradient-to-br from-red-100 via-rose-100 to-amber-50 text-red-900 border border-red-300";
