@@ -164,7 +164,7 @@ export default function MessageBubble({ m }: { m: Message }) {
   if (m.role === "synthesis" && m.roundNumber) label = `Synthese Runde ${m.roundNumber}`;
   if (isError) label = "Fehler";
   let labelColor = "text-stone-800";
-  if (m.role === "coordinator") labelColor = "text-rose-700";
+  if (m.role === "coordinator") labelColor = "text-red-700";
   if (m.role === "synthesis") labelColor = "text-amber-700";
   if (m.role === "user") labelColor = "text-orange-700";
   if (m.role === "persona" && m.personaSlot && NAME_COLOR[m.personaSlot]) labelColor = NAME_COLOR[m.personaSlot];
