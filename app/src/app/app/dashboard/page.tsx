@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { sessions } from "@/db/schema";
+import { sessions, messages } from "@/db/schema";
 import { requireUser } from "@/lib/current-user";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray, and, sql } from "drizzle-orm";
 import SessionCard from "@/components/SessionCard";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +19,15 @@ export default async function Dashboard() {
   const rows = await db.select().from(sessions)
     .where(eq(sessions.userId, u.id))
     .orderBy(desc(sessions.updatedAt));
+  const ids = rows.map(r => r.id);
+  const reportRows = ids.length
+    ? await db.select({ sessionId: messages.sessionId }).from(messages)
+        .where(and(
+          inArray(messages.sessionId, ids),
+          sql`(${messages.metadata}->>'kind') IN ('report','report_text')`
+        ))
+    : [];
+  const closedIds = new Set(reportRows.map(r => r.sessionId));
   return (
     <div className="max-w-5xl mx-auto w-full p-6">
       <div className="flex items-end justify-between mb-8">
@@ -42,7 +51,7 @@ export default async function Dashboard() {
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
-          {rows.map(s => <SessionCard key={s.id} s={s} />)}
+          {rows.map(s => <SessionCard key={s.id} s={s} closed={closedIds.has(s.id) || s.currentRound >= 3} />)}
         </div>
       )}
     </div>
