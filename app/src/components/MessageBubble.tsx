@@ -208,7 +208,7 @@ export default function MessageBubble({ m }: { m: Message }) {
                   <p key={i} className={`whitespace-pre-wrap ${i < arr.length - 1 ? "mb-3" : ""}`}>{para}</p>
                 ))}
                 {isLong && (
-                  <button onClick={() => setExpanded(e => !e)} className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-stone-50 text-stone-900 text-[12px] font-bold shadow-md transition-colors">
+                  <button onClick={() => setExpanded(e => !e)} className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-950 text-[12px] font-bold shadow-md ring-1 ring-amber-700/20 transition-colors">
                     <span>{expanded ? "Weniger anzeigen" : "Mehr lesen"}</span>
                     <svg className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                   </button>
