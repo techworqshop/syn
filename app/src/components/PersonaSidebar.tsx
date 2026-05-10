@@ -10,9 +10,9 @@ type Props = {
 };
 
 function rigidityLabel(r: number): string {
-  if (r <= 3) return "standhaft";
+  if (r <= 3) return "offen";
   if (r <= 6) return "ausgewogen";
-  return "offen";
+  return "standhaft";
 }
 
 const TILE_GRADIENT: Record<number,string> = {
@@ -114,8 +114,8 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
                     className="w-full accent-fuchsia-500 cursor-pointer"
                     title={`Rigidity ${current}/10`} />
                   <div className="flex justify-between text-[9px] text-neutral-600 mt-0.5">
-                    <span>standhaft</span>
                     <span>offen</span>
+                    <span>standhaft</span>
                   </div>
                 </div>
               );
