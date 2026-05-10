@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-20T00:07:11.453Z",
+    "updatedAt": "2026-05-10T23:18:34.866Z",
     "createdAt": "2026-04-19T23:47:02.938Z",
     "id": "vJ1K27VranwixXK1",
     "name": "SynWeb_FinalReport",
@@ -20,7 +20,7 @@
         "parameters": {
           "path": "synweb/final-report",
           "httpMethod": "POST",
-          "responseMode": "lastNode"
+          "responseMode": "onReceived"
         },
         "webhookId": "2adbc14a-5656-4ec8-b1c4-79af25b0aaeb"
       },
@@ -48,8 +48,8 @@
             ]
           },
           "options": {
-            "maxTokens": 6000,
-            "systemMessage": "Du bist Senior Research Analyst. Du schreibst prazise, substanzielle Abschlussberichte fuer Fokusgruppen. Weise Ideen namentlich zu. Keine vorgetaeuschten Konsense. Nur Markdown-Output, keine Einleitung vor dem #-Header."
+            "maxTokens": 20000,
+            "systemMessage": "Du bist Senior Research Analyst. Du schreibst prazise, substanzielle Abschlussberichte fuer Fokusgruppen. Weise Ideen namentlich zu. Keine vorgetaeuschten Konsense. Nur Markdown-Output, keine Einleitung vor dem #-Header. Keine Laengenbegrenzung."
           }
         },
         "credentials": {
@@ -57,7 +57,10 @@
             "id": "xryPDagnAi6vifng",
             "name": "Anthropic account"
           }
-        }
+        },
+        "retryOnFail": true,
+        "maxTries": 5,
+        "waitBetweenTries": 3000
       },
       {
         "id": "out",
@@ -81,6 +84,40 @@
           },
           "options": {}
         }
+      },
+      {
+        "id": "web-cb",
+        "name": "Web Callback",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          940,
+          300
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://syn.worqshop.io/api/n8n/callback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Webhook').first().json.body.sessionId, kind: 'final_report', text: $json.report}) }}",
+          "options": {
+            "timeout": 60000
+          }
+        },
+        "continueOnFail": true
       }
     ],
     "connections": {
@@ -105,6 +142,17 @@
             }
           ]
         ]
+      },
+      "Extract": {
+        "main": [
+          [
+            {
+              "node": "Web Callback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "settings": {
@@ -115,9 +163,9 @@
     "staticData": null,
     "meta": null,
     "pinData": null,
-    "versionId": "459d97d4-427e-4798-9e49-c53a7a72461d",
-    "activeVersionId": "459d97d4-427e-4798-9e49-c53a7a72461d",
-    "versionCounter": 15,
+    "versionId": "fb2e58e7-a2d7-4fe0-9771-d3c80ef7ffaf",
+    "activeVersionId": "fb2e58e7-a2d7-4fe0-9771-d3c80ef7ffaf",
+    "versionCounter": 37,
     "triggerCount": 1,
     "tags": [],
     "shared": [

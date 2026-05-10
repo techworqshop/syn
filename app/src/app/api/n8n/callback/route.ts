@@ -7,6 +7,12 @@ import { suggestTitle } from "@/lib/title-gen";
 import { generatePersonaImage, MAX_ATTEMPTS } from "@/lib/persona-image-gen";
 import { personaImages } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
+import fs from "node:fs/promises";
+import path from "node:path";
+import crypto from "node:crypto";
+import { renderReportPDF } from "@/lib/report-pdf";
+
+const REPORTS_DIR = "/app/uploads/reports";
 
 const SECRET = process.env.N8N_CALLBACK_SECRET!;
 
@@ -106,6 +112,39 @@ export async function POST(req: Request) {
     // progressively - kick off image-gen for any that exist but have no image yet,
     // and signal the sidebar to refetch so new tiles pop in.
     syncPanelAndImages(b.sessionId, sess).catch(()=>{});
+    return NextResponse.json({ ok: true });
+  }
+
+  if (b.kind === "final_report") {
+    const reportMd = (text && text.trim()) || "# Abschlussbericht\n\nReport konnte nicht generiert werden.";
+    try {
+      const pdf = await renderReportPDF(
+        sess.title,
+        { createdAt: sess.createdAt, personaCount: sess.personaCount, currentRound: sess.currentRound },
+        [],
+        reportMd
+      );
+      const reportId = crypto.randomUUID();
+      const dir = path.join(REPORTS_DIR, b.sessionId);
+      await fs.mkdir(dir, { recursive: true });
+      await fs.writeFile(path.join(dir, reportId + ".pdf"), pdf);
+      const safeName = sess.title.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40);
+      const filename = "syn-bericht-" + safeName + ".pdf";
+      const [row] = await db.insert(messages).values({
+        sessionId: b.sessionId, role: "coordinator",
+        content: "📄 Abschlussbericht",
+        metadata: { kind: "report", reportId, filename, generatedAt: new Date().toISOString() }
+      }).returning();
+      await publish(`session:${b.sessionId}`, { type: "message", message: row });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "unknown";
+      const [errRow] = await db.insert(messages).values({
+        sessionId: b.sessionId, role: "coordinator",
+        content: "⚠️ Abschlussbericht konnte nicht erstellt werden: " + msg,
+        metadata: { kind: "error" }
+      }).returning();
+      await publish(`session:${b.sessionId}`, { type: "message", message: errRow });
+    }
     return NextResponse.json({ ok: true });
   }
 

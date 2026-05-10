@@ -1,8 +1,4 @@
 import { NextResponse } from "next/server";
-import PDFDocument from "pdfkit";
-import fs from "node:fs/promises";
-import path from "node:path";
-import crypto from "node:crypto";
 import { db } from "@/lib/db";
 import { publish } from "@/lib/redis";
 import { sessions, messages } from "@/db/schema";
@@ -10,12 +6,10 @@ import { requireUser } from "@/lib/current-user";
 import { readState } from "@/lib/n8n";
 import { and, eq, asc } from "drizzle-orm";
 
-export const maxDuration = 300;
+export const maxDuration = 30;
 export const dynamic = "force-dynamic";
 
 type P = { params: Promise<{ id: string }> };
-
-const REPORTS_DIR = "/app/uploads/reports";
 
 const REPORT_HOOK = process.env.SYNWEB_FINAL_REPORT_WEBHOOK
   || "https://n8n.worqshop.io/webhook/synweb/final-report";
@@ -62,104 +56,7 @@ function composeContext(personas: Persona[], syntheses: Synth[], msgs: Msg[]) {
   return { personasContext, synthesesContext, messagesContext: relevantMsgs };
 }
 
-function renderPDF(
-  title: string,
-  meta: { createdAt: Date | string; personaCount: number; currentRound: number },
-  personas: Persona[],
-  reportMd: string
-): Promise<Buffer> {
-  return new Promise(resolve => {
-    const doc = new PDFDocument({ size: "A4", margin: 56 });
-    const chunks: Buffer[] = [];
-    doc.on("data", c => chunks.push(c));
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
-
-    // Cover
-    doc.fontSize(10).fillColor("#7c2d12").text("Syn - Abschlussbericht", { align: "left", characterSpacing: 1.2 });
-    doc.moveDown(0.3);
-    doc.fontSize(28).fillColor("#3f1f0f").text(title, { align: "left" });
-    doc.moveDown(0.5);
-    const created = new Date(meta.createdAt);
-    doc.fontSize(10).fillColor("#52525b")
-      .text(`Erstellt: ${created.toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" })}`);
-    doc.text(`${meta.personaCount} Personas / ${meta.currentRound} Runden`);
-    doc.text(`Export: ${new Date().toLocaleString("de-DE")}`);
-    doc.moveDown(1.5);
-    doc.moveTo(56, doc.y).lineTo(539, doc.y).strokeColor("#a16207").lineWidth(1).stroke();
-    doc.moveDown(1.2);
-
-    // Body - parse markdown
-    const lines = reportMd.split(/\r?\n/);
-    let inList = false;
-    for (const raw of lines) {
-      const line = raw;
-      if (/^#\s+/.test(line)) {
-        if (inList) { inList = false; doc.moveDown(0.3); }
-        doc.moveDown(0.6);
-        doc.fontSize(20).fillColor("#9f1239").text(line.replace(/^#\s+/, ""));
-        doc.moveDown(0.4);
-      } else if (/^##\s+/.test(line)) {
-        if (inList) { inList = false; doc.moveDown(0.3); }
-        doc.moveDown(0.5);
-        doc.fontSize(15).fillColor("#7c2d12").text(line.replace(/^##\s+/, ""));
-        doc.moveDown(0.3);
-      } else if (/^###\s+/.test(line)) {
-        if (inList) { inList = false; doc.moveDown(0.2); }
-        doc.moveDown(0.3);
-        doc.fontSize(12).fillColor("#3f6212").text(line.replace(/^###\s+/, ""));
-        doc.moveDown(0.2);
-      } else if (/^\s*[-*]\s+/.test(line)) {
-        inList = true;
-        const text = line.replace(/^\s*[-*]\s+/, "");
-        renderInlineBold(doc, text, { bullet: true });
-      } else if (line.trim() === "") {
-        if (inList) { inList = false; doc.moveDown(0.3); }
-        doc.moveDown(0.3);
-      } else {
-        if (inList) { inList = false; doc.moveDown(0.2); }
-        renderInlineBold(doc, line, { bullet: false });
-      }
-    }
-
-    doc.end();
-  });
-}
-
-function renderInlineBold(doc: InstanceType<typeof PDFDocument>, text: string, opts: { bullet: boolean }) {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
-  const indent = opts.bullet ? 16 : 0;
-  if (opts.bullet) {
-    doc.fontSize(11).fillColor("#a16207").text("-", { continued: true, indent: 4 })
-      .fillColor("#1f2937").text(" ", { continued: true });
-  }
-  for (let i = 0; i < parts.length; i++) {
-    const p = parts[i];
-    const isLast = i === parts.length - 1;
-    const isBold = /^\*\*[^*]+\*\*$/.test(p);
-    const clean = isBold ? p.replace(/^\*\*|\*\*$/g, "") : p;
-    if (isBold) {
-      doc.font("Helvetica-Bold").fontSize(11).fillColor("#111827").text(clean, { continued: !isLast, indent: opts.bullet ? 0 : indent });
-    } else {
-      doc.font("Helvetica").fontSize(11).fillColor("#1f2937").text(clean, { continued: !isLast, indent: opts.bullet ? 0 : indent });
-    }
-  }
-  doc.font("Helvetica");
-  if (opts.bullet) doc.moveDown(0.2);
-  else doc.moveDown(0.4);
-}
-
 const inFlight = new Set<string>();
-
-
-async function announce(sessionId: string, content: string, metadata: object = { kind: "report_status" }) {
-  try {
-    const [row] = await db.insert(messages).values({
-      sessionId, role: "coordinator", content,
-      metadata
-    }).returning();
-    await publish(`session:${sessionId}`, { type: "message", message: row });
-  } catch {}
-}
 
 export async function POST(_: Request, { params }: P) {
   const u = await requireUser();
@@ -172,21 +69,28 @@ export async function POST(_: Request, { params }: P) {
     return NextResponse.json({ error: "already generating" }, { status: 429 });
   }
   inFlight.add(id);
-  setTimeout(() => inFlight.delete(id), 300000);
+  setTimeout(() => inFlight.delete(id), 600000);
 
-  await announce(id, "\u23F3 Abschlussbericht wird erstellt... Das kann ein paar Minuten dauern. Du kannst weiterarbeiten - das PDF landet hier im Chat wenn er fertig ist.");
+  // Status message — visible immediately in chat
+  const [statusRow] = await db.insert(messages).values({
+    sessionId: id, role: "coordinator",
+    content: "⏳ Abschlussbericht wird erstellt... Das kann ein paar Minuten dauern. Du kannst das Fenster ruhig schliessen - der Bericht landet hier im Chat sobald er fertig ist.",
+    metadata: { kind: "report_status" }
+  }).returning();
+  await publish(`session:${id}`, { type: "message", message: statusRow });
 
   const [state, msgs] = await Promise.all([
     readState(id).catch(() => ({ personas: [] as Persona[], syntheses: [] as Synth[] })),
     db.select().from(messages).where(eq(messages.sessionId, id)).orderBy(asc(messages.createdAt))
   ]);
-
   const ctx = composeContext(state.personas, state.syntheses, msgs as Msg[]);
 
-  const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 300000); const hookRes = await fetch(REPORT_HOOK, { signal: ctrl.signal,
+  // Fire-and-forget: n8n workflow will POST back to /api/n8n/callback when done.
+  fetch(REPORT_HOOK, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      sessionId: id,
       title: sess.title,
       createdAt: sess.createdAt,
       problemBrief: sess.problemBrief,
@@ -195,34 +99,16 @@ export async function POST(_: Request, { params }: P) {
       messagesContext: ctx.messagesContext,
       filesContext: ""
     })
+  }).catch(async (e) => {
+    // If we cannot even start the workflow, surface it.
+    const [errRow] = await db.insert(messages).values({
+      sessionId: id, role: "coordinator",
+      content: `⚠️ Abschlussbericht konnte nicht gestartet werden: ${e instanceof Error ? e.message : "unknown"}`,
+      metadata: { kind: "error" }
+    }).returning();
+    await publish(`session:${id}`, { type: "message", message: errRow });
+    inFlight.delete(id);
   });
 
-  clearTimeout(to); if (!hookRes.ok) {
-    return NextResponse.json({ error: "report generation failed" }, { status: 502 });
-  }
-  const payload = await hookRes.json().catch(() => ({ report: "" }));
-  const reportMd: string = payload.report || "# Abschlussbericht\n\nReport konnte nicht generiert werden.";
-
-  const pdf = await renderPDF(
-    sess.title,
-    { createdAt: sess.createdAt, personaCount: sess.personaCount, currentRound: sess.currentRound },
-    state.personas,
-    reportMd
-  );
-
-
-  const reportId = crypto.randomUUID();
-  const dir = path.join(REPORTS_DIR, id);
-  await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(path.join(dir, `${reportId}.pdf`), pdf);
-  const safeName = sess.title.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40);
-  const filename = `syn-bericht-${safeName}.pdf`;
-
-  await announce(id, "\u{1F4C4} Abschlussbericht", {
-    kind: "report", reportId, filename,
-    generatedAt: new Date().toISOString()
-  });
-
-  inFlight.delete(id);
   return NextResponse.json({ ok: true });
 }
