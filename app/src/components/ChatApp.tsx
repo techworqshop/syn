@@ -168,8 +168,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!waiting && !sending) send(); } }}
               rows={2}
-              disabled={waiting || sending}
-              placeholder={waiting ? "Syn arbeitet ..." : "Nachricht an Syn..."}
+              placeholder={waiting ? "Syn arbeitet — du kannst schon vorschreiben, senden geht gleich wieder ..." : "Nachricht an Syn..."}
               className="block w-full px-4 pt-3 pb-1 bg-transparent focus:outline-none resize-none text-[14px] leading-relaxed placeholder:text-neutral-500" />
             <div className="flex items-center justify-between px-2 py-2">
               <button onClick={() => setShowUpload(true)}
