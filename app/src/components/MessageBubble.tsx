@@ -202,7 +202,7 @@ export default function MessageBubble({ m }: { m: Message }) {
           </a>
         ) : (
           <div className={`rounded-2xl px-4 py-3 text-[14px] leading-relaxed w-full min-w-0 overflow-hidden [overflow-wrap:anywhere] [word-break:break-word] ${color}`}>
-            {m.role === "synthesis" ? renderMarkdown(m.content) : (
+            {(m.role === "synthesis" || meta.kind === "report_text") ? renderMarkdown(m.content) : (
               <>
                 {(expanded || !isLong ? m.content : m.content.slice(0, COLLAPSE_AT).replace(/\s+\S*$/,"") + " …").split(/\n\n+/).map((para, i, arr) => (
                   <p key={i} className={`whitespace-pre-wrap ${i < arr.length - 1 ? "mb-3" : ""}`}>{para}</p>
