@@ -14,7 +14,7 @@ const LABELS: Record<string, string> = {
 
 const BUBBLE: Record<string, string> = {
   user: "bg-gradient-to-br from-amber-700 via-orange-700 to-yellow-700 text-white shadow-[0_6px_20px_-6px_rgba(180,120,40,0.5)] bubble-glass",
-  coordinator: "bg-gradient-to-br from-emerald-800 via-green-800 to-emerald-900 text-white border border-emerald-700/50 shadow-lg bubble-glass",
+  coordinator: "bg-gradient-to-br from-violet-700 via-purple-700 to-violet-800 text-white border border-violet-600/50 shadow-lg bubble-glass",
   synthesis: "bg-gradient-to-br from-amber-700 via-yellow-700 to-orange-800 text-white border border-amber-600 shadow-md bubble-glass",
   system: "bg-amber-200 text-amber-950 border border-amber-400 text-sm font-medium"
 };
@@ -164,7 +164,7 @@ export default function MessageBubble({ m }: { m: Message }) {
   if (m.role === "synthesis" && m.roundNumber) label = `Synthese Runde ${m.roundNumber}`;
   if (isError) label = "Fehler";
   let labelColor = "text-stone-800";
-  if (m.role === "coordinator") labelColor = "text-rose-700";
+  if (m.role === "coordinator") labelColor = "text-violet-700";
   if (m.role === "synthesis") labelColor = "text-amber-700";
   if (m.role === "user") labelColor = "text-orange-700";
   if (m.role === "persona" && m.personaSlot && NAME_COLOR[m.personaSlot]) labelColor = NAME_COLOR[m.personaSlot];

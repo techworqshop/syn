@@ -63,8 +63,8 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
   }
 
   return (
-    <aside className="w-72 border-l border-white/40 glass-card p-3 space-y-2 overflow-y-auto">
-      <div className="text-xs uppercase tracking-wide text-stone-500 mb-2 px-1">Personas</div>
+    <aside className="w-72 glass-card-dark p-3 space-y-2 overflow-y-auto">
+      <div className="text-xs uppercase tracking-wide text-stone-100/90 font-bold mb-2 px-1">Personas</div>
       {[1,2,3,4,5].filter(n => bySlot[n]).map(n => {
         const p = bySlot[n];
         const isExp = expanded === n;
@@ -121,18 +121,18 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
               );
             })()}
             {isExp && p && (
-              <div className="border-t border-white/40 p-3 space-y-2 text-xs backdrop-blur-md bg-white/40">
+              <div className="border-t border-white/10 p-3 space-y-2 text-xs backdrop-blur-md bg-black/20">
                 {p.core_perspective && (
-                  <div><div className="text-stone-500">Perspektive</div>
-                    <div className="text-stone-800 whitespace-pre-wrap">{p.core_perspective}</div></div>
+                  <div><div className="text-stone-200/80">Perspektive</div>
+                    <div className="text-stone-50 whitespace-pre-wrap">{p.core_perspective}</div></div>
                 )}
                 {p.profile && (
-                  <div><div className="text-stone-500">Profil</div>
-                    <div className="text-stone-700 whitespace-pre-wrap">{p.profile}</div></div>
+                  <div><div className="text-stone-200/80">Profil</div>
+                    <div className="text-stone-100 whitespace-pre-wrap">{p.profile}</div></div>
                 )}
                 {p.position_summary && (
-                  <div><div className="text-stone-500">Aktuelle Position</div>
-                    <div className="text-stone-800 whitespace-pre-wrap">{p.position_summary}</div></div>
+                  <div><div className="text-stone-200/80">Aktuelle Position</div>
+                    <div className="text-stone-50 whitespace-pre-wrap">{p.position_summary}</div></div>
                 )}
                 {[1,2,3].map(r => {
                   const key = `round_${r}_response` as keyof PanelPersona;
@@ -142,7 +142,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
                       <summary className="text-amber-400 cursor-pointer hover:text-amber-300">
                         Runde {r}
                       </summary>
-                      <div className="mt-1 text-stone-700 whitespace-pre-wrap pl-2 border-l-2 border-amber-800">
+                      <div className="mt-1 text-stone-100 whitespace-pre-wrap pl-2 border-l-2 border-amber-500">
                         {resp}
                       </div>
                     </details>
@@ -154,8 +154,8 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
         );
       })}
       {syntheses.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-stone-300">
-          <div className="text-xs uppercase tracking-wide text-stone-500 mb-2 px-1">Synthesen</div>
+        <div className="mt-4 pt-4 border-t border-white/20">
+          <div className="text-xs uppercase tracking-wide text-stone-100/90 font-bold mb-2 px-1">Synthesen</div>
           {syntheses.sort((a,b) => a.round_number - b.round_number).map(s => (
             <div key={s.round_number} className="rounded-xl border border-emerald-400 bg-gradient-to-br from-emerald-700 via-green-700 to-lime-700 mb-2 overflow-hidden shadow-md bubble-glass">
               <button onClick={() => setSynthOpen(synthOpen === s.round_number ? null : s.round_number)}

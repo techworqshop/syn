@@ -22,11 +22,11 @@ const PERSONA_AVATAR: Record<number, string> = {
 };
 
 const NAME_COLOR: Record<number, string> = {
-  1: "text-orange-200",
-  2: "text-amber-200",
-  3: "text-lime-200",
-  4: "text-amber-100",
-  5: "text-red-200"
+  1: "text-orange-800",
+  2: "text-amber-800",
+  3: "text-green-800",
+  4: "text-amber-950",
+  5: "text-red-800"
 };
 
 function fmtTime(d: string | Date) {
@@ -95,7 +95,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
             <PersonaAvatar sessionId={sessionId} slot={slot} initials={initials} tintClass={tint} />
             <div className="min-w-0">
               <div className={`font-semibold truncate ${nameColor}`}>{displayName}</div>
-              <div className="text-xs text-stone-500 truncate">{persona?.type && persona.type.toLowerCase() !== "human" ? persona.type : "1:1 Interview"}</div>
+              <div className="text-xs text-stone-700 font-medium truncate">{persona?.type && persona.type.toLowerCase() !== "human" ? persona.type : "1:1 Interview"}</div>
             </div>
           </div>
           <button onClick={onClose}
@@ -109,7 +109,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
         </div>
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
           {msgs.length === 0 && (
-            <div className="text-stone-500 text-sm text-center py-12">
+            <div className="text-stone-700 text-sm text-center py-12 font-medium">
               Stell {displayName} deine Frage. Dies ist ein 1:1-Gespraech parallel zur Hauptdiskussion.
             </div>
           )}
@@ -118,7 +118,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
             return (
               <div key={m.id} className="flex gap-3 items-start group">
                 {isUser ? (
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-rose-400 to-orange-500 flex items-center justify-center text-white text-base font-semibold ring-1 ring-white/10 shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-600 to-orange-700 flex items-center justify-center text-white text-base font-semibold ring-1 ring-white/10 shrink-0">
                     Du
                   </div>
                 ) : (
@@ -126,14 +126,14 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2 mb-1">
-                    <span className={`font-semibold text-[15px] leading-tight ${isUser ? "text-orange-300" : nameColor}`}>
+                    <span className={`font-semibold text-[15px] leading-tight ${isUser ? "text-amber-800" : nameColor}`}>
                       {isUser ? "Du" : displayName}
                     </span>
                     <span className="text-xs text-stone-400">{fmtTime(m.createdAt)}</span>
                   </div>
                   <div className={`rounded-2xl px-4 py-3 whitespace-pre-wrap text-[14px] leading-relaxed w-full min-w-0 overflow-hidden [overflow-wrap:anywhere] [word-break:break-word] ${
                     isUser
-                      ? "bg-gradient-to-br from-rose-400 via-orange-400 to-amber-400 text-white shadow-[0_6px_20px_-6px_rgba(244,114,82,0.5)]"
+                      ? "bg-gradient-to-br from-amber-700 via-orange-700 to-yellow-700 text-white shadow-[0_6px_20px_-6px_rgba(180,120,40,0.5)]"
                       : bubbleColor
                   }`}>
                     {m.content}
