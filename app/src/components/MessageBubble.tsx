@@ -104,17 +104,20 @@ function renderMarkdown(text: string) {
   lines.forEach((raw, idx) => {
     const line = raw;
     if (/^\s*---+\s*$/.test(line)) {
+      // Trennzeichen werden ausgeblendet; Section-Header bringen ihren eigenen Divider
       flushBullets();
-      out.push(<hr key={`hr-${idx}`} className="border-amber-700/40 my-2" />);
       return;
     }
     const h = line.match(/^(#{1,3})\s+(.+)$/);
     if (h) {
       flushBullets();
       const level = h[1].length;
+      const isNumberedSection = level === 2 && /^\s*\d+\.\s/.test(h[2]);
       const cls = level === 1 ? "text-[16px] font-bold text-amber-200 mt-1"
-        : level === 2 ? "text-[15px] font-semibold text-amber-200 mt-2"
-        : "text-[14px] font-semibold text-amber-300 mt-1";
+        : level === 2 ? (isNumberedSection
+            ? "text-[15px] font-bold text-white mt-5 pt-4 border-t-2 border-amber-300/70 uppercase tracking-wide"
+            : "text-[15px] font-semibold text-amber-200 mt-3")
+        : "text-[14px] font-semibold text-amber-300 mt-2";
       out.push(<div key={`h-${idx}`} className={cls}>{renderInline(h[2], `h${idx}`)}</div>);
       return;
     }
