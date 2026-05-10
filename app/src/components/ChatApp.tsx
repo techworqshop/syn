@@ -89,7 +89,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
   }
 
   async function send() {
-    if (!input.trim() || sending) return;
+    if (!input.trim() || sending || waiting) return;
     setSending(true);
     setWaiting(true);
     const text = input;
@@ -166,9 +166,10 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
           <div className="rounded-2xl border border-white/10 bg-neutral-900/60 focus-within:border-fuchsia-500/50 focus-within:ring-2 focus-within:ring-fuchsia-500/10 transition-all">
             <textarea value={input}
               onChange={e => setInput(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!waiting && !sending) send(); } }}
               rows={2}
-              placeholder="Nachricht an Syn..."
+              disabled={waiting || sending}
+              placeholder={waiting ? "Syn arbeitet ..." : "Nachricht an Syn..."}
               className="block w-full px-4 pt-3 pb-1 bg-transparent focus:outline-none resize-none text-[14px] leading-relaxed placeholder:text-neutral-500" />
             <div className="flex items-center justify-between px-2 py-2">
               <button onClick={() => setShowUpload(true)}
@@ -178,9 +179,9 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
                   <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 0 1 17.99 8.85L9.42 17.42a2 2 0 0 1-2.83-2.83l8.49-8.48" />
                 </svg>
               </button>
-              <button disabled={sending || !input.trim()} onClick={send}
+              <button disabled={sending || waiting || !input.trim()} onClick={send}
                 title="Senden"
-                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${(!input.trim() || sending) ? "text-neutral-600 bg-neutral-800/50 cursor-not-allowed" : "btn-primary text-white"}`}>
+                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${(!input.trim() || sending || waiting) ? "text-neutral-600 bg-neutral-800/50 cursor-not-allowed" : "btn-primary text-white"}`}>
                 {sending ? (
                   <span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
                 ) : (
