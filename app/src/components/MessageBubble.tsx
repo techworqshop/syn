@@ -13,26 +13,26 @@ const LABELS: Record<string, string> = {
 };
 
 const BUBBLE: Record<string, string> = {
-  user: "bg-gradient-to-br from-rose-500 via-orange-500 to-amber-600 text-white shadow-[0_6px_20px_-6px_rgba(244,114,82,0.5)] bubble-glass",
-  coordinator: "bg-gradient-to-br from-violet-900 via-fuchsia-800 to-rose-900 text-white border border-violet-700/40 shadow-lg bubble-glass",
-  synthesis: "bg-gradient-to-br from-amber-600 via-orange-600 to-rose-600 text-white border border-amber-500 shadow-md bubble-glass",
+  user: "bg-gradient-to-br from-amber-700 via-orange-700 to-yellow-700 text-white shadow-[0_6px_20px_-6px_rgba(180,120,40,0.5)] bubble-glass",
+  coordinator: "bg-gradient-to-br from-emerald-800 via-green-800 to-emerald-900 text-white border border-emerald-700/50 shadow-lg bubble-glass",
+  synthesis: "bg-gradient-to-br from-amber-700 via-yellow-700 to-orange-800 text-white border border-amber-600 shadow-md bubble-glass",
   system: "bg-amber-200 text-amber-950 border border-amber-400 text-sm font-medium"
 };
 
 const PERSONA_BUBBLE: Record<number, string> = {
-  1: "bg-gradient-to-br from-rose-600 via-pink-600 to-fuchsia-700 text-white border border-rose-400 shadow-md bubble-glass",
-  2: "bg-gradient-to-br from-amber-600 via-orange-600 to-red-600 text-white border border-amber-500 shadow-md bubble-glass",
-  3: "bg-gradient-to-br from-green-700 via-emerald-700 to-lime-700 text-white border border-green-500 shadow-md bubble-glass",
-  4: "bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-700 text-white border border-violet-400 shadow-md bubble-glass",
-  5: "bg-gradient-to-br from-red-800 via-rose-900 to-pink-800 text-white border border-rose-500 shadow-md bubble-glass"
+  1: "bg-gradient-to-br from-orange-700 via-red-700 to-orange-800 text-white border border-orange-600 shadow-md bubble-glass",
+  2: "bg-gradient-to-br from-yellow-600 via-amber-600 to-orange-700 text-white border border-amber-500 shadow-md bubble-glass",
+  3: "bg-gradient-to-br from-lime-700 via-green-600 to-emerald-700 text-white border border-lime-500 shadow-md bubble-glass",
+  4: "bg-gradient-to-br from-amber-900 via-orange-950 to-red-950 text-white border border-amber-700 shadow-md bubble-glass",
+  5: "bg-gradient-to-br from-red-800 via-orange-900 to-amber-900 text-white border border-red-700 shadow-md bubble-glass"
 };
 
 const PERSONA_AVATAR: Record<number, string> = {
-  1: "bg-gradient-to-br from-rose-400 to-pink-600",
-  2: "bg-gradient-to-br from-amber-400 to-orange-600",
-  3: "bg-gradient-to-br from-green-500 to-lime-700",
-  4: "bg-gradient-to-br from-violet-400 to-purple-600",
-  5: "bg-gradient-to-br from-red-600 to-rose-800"
+  1: "bg-gradient-to-br from-orange-600 to-red-800",
+  2: "bg-gradient-to-br from-yellow-500 to-orange-700",
+  3: "bg-gradient-to-br from-lime-600 to-emerald-800",
+  4: "bg-gradient-to-br from-amber-800 to-red-950",
+  5: "bg-gradient-to-br from-red-700 to-amber-900"
 };
 
 function Avatar({ role, name, slot, sessionId }: { role: string; name?: string | null; slot?: number | null; sessionId?: string | null }) {
@@ -44,7 +44,7 @@ function Avatar({ role, name, slot, sessionId }: { role: string; name?: string |
   }
   if (role === "persona") {
     const initials = (name ?? "P").split(" ").map(s => s[0]).slice(0,2).join("").toUpperCase();
-    const bg = slot && PERSONA_AVATAR[slot] ? PERSONA_AVATAR[slot] : "bg-gradient-to-br from-rose-400 to-amber-500";
+    const bg = slot && PERSONA_AVATAR[slot] ? PERSONA_AVATAR[slot] : "bg-gradient-to-br from-emerald-600 to-amber-700";
     if (slot && sessionId) {
       return <PersonaAvatar sessionId={sessionId} slot={slot} initials={initials} tintClass={bg} />;
     }
@@ -56,14 +56,14 @@ function Avatar({ role, name, slot, sessionId }: { role: string; name?: string |
   }
   if (role === "synthesis") {
     return (
-      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 flex items-center justify-center text-white font-bold ring-1 ring-amber-400/30 shrink-0">
+      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-600 via-yellow-600 to-orange-700 flex items-center justify-center text-white font-bold ring-1 ring-amber-500/30 shrink-0">
         &Sigma;
       </div>
     );
   }
   if (role === "user") {
     return (
-      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-rose-400 to-orange-500 flex items-center justify-center text-white text-base font-semibold ring-1 ring-white/10 shrink-0">
+      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-600 to-orange-700 flex items-center justify-center text-white text-base font-semibold ring-1 ring-white/10 shrink-0">
         Du
       </div>
     );
@@ -136,11 +136,11 @@ function fmtTime(d: string | Date) {
 }
 
 const NAME_COLOR: Record<number, string> = {
-  1: "text-rose-700",
-  2: "text-amber-700",
+  1: "text-orange-800",
+  2: "text-amber-800",
   3: "text-green-800",
-  4: "text-violet-700",
-  5: "text-rose-800"
+  4: "text-amber-950",
+  5: "text-red-800"
 };
 
 type ReportMeta = { kind?: string; reportId?: string; filename?: string; generatedAt?: string };

@@ -16,11 +16,11 @@ function rigidityLabel(r: number): string {
 }
 
 const TILE_GRADIENT: Record<number,string> = {
-  1: "from-rose-600 via-pink-600 to-fuchsia-700 border-rose-300 text-white shadow-md bubble-glass",
-  2: "from-amber-600 via-orange-600 to-red-600 border-amber-300 text-white shadow-md bubble-glass",
-  3: "from-green-700 via-emerald-700 to-lime-700 border-green-300 text-white shadow-md bubble-glass",
-  4: "from-violet-600 via-purple-600 to-fuchsia-700 border-violet-300 text-white shadow-md bubble-glass",
-  5: "from-red-800 via-rose-900 to-pink-800 border-rose-300 text-white shadow-md bubble-glass"
+  1: "from-orange-700 via-red-700 to-orange-800 border-orange-400 text-white shadow-md bubble-glass",
+  2: "from-yellow-600 via-amber-600 to-orange-700 border-amber-400 text-white shadow-md bubble-glass",
+  3: "from-lime-700 via-green-600 to-emerald-700 border-lime-400 text-white shadow-md bubble-glass",
+  4: "from-amber-900 via-orange-950 to-red-950 border-amber-600 text-white shadow-md bubble-glass",
+  5: "from-red-800 via-orange-900 to-amber-900 border-red-600 text-white shadow-md bubble-glass"
 };
 
 export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Props) {
@@ -111,7 +111,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
                   </div>
                   <input type="range" min={0} max={10} step={1} value={current}
                     onChange={e => changeRigidity(n, parseInt(e.target.value))}
-                    className="w-full accent-fuchsia-500 cursor-pointer"
+                    className="w-full accent-emerald-700 cursor-pointer"
                     title={`Rigidity ${current}/10`} />
                   <div className="flex justify-between text-[10px] text-stone-700 font-semibold mt-0.5">
                     <span>offen</span>
@@ -157,7 +157,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
         <div className="mt-4 pt-4 border-t border-stone-300">
           <div className="text-xs uppercase tracking-wide text-stone-500 mb-2 px-1">Synthesen</div>
           {syntheses.sort((a,b) => a.round_number - b.round_number).map(s => (
-            <div key={s.round_number} className="rounded-xl border border-emerald-300 bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 mb-2 overflow-hidden shadow-md bubble-glass">
+            <div key={s.round_number} className="rounded-xl border border-emerald-400 bg-gradient-to-br from-emerald-700 via-green-700 to-lime-700 mb-2 overflow-hidden shadow-md bubble-glass">
               <button onClick={() => setSynthOpen(synthOpen === s.round_number ? null : s.round_number)}
                 className="w-full text-left p-3 hover:bg-white/10">
                 <div className="font-semibold text-white">Runde {s.round_number}</div>

@@ -119,10 +119,10 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
                   if (e.key === 'Escape') { setEditingTitle(false); setTitleDraft(title); }
                 }}
                 onBlur={saveTitle}
-                className="font-medium bg-transparent border-b border-fuchsia-500/60 focus:outline-none" />
+                className="font-medium bg-transparent border-b border-amber-700/60 focus:outline-none" />
             ) : (
               <button onClick={() => setEditingTitle(true)}
-                className="font-medium hover:text-fuchsia-300 transition-colors text-left"
+                className="font-medium hover:text-emerald-700 transition-colors text-left"
                 title="Klick zum Umbenennen">{title}</button>
             )}
             <div className="text-xs text-stone-500">
@@ -143,7 +143,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
           {msgs.map(m => <MessageBubble key={m.id} m={m} />)}
           {waiting && (
             <div className="flex items-center gap-2 text-stone-500 text-sm">
-              <span className="inline-block w-2 h-2 bg-fuchsia-500 rounded-full animate-pulse" />
+              <span className="inline-block w-2 h-2 bg-emerald-600 rounded-full animate-pulse" />
               <span className="italic">{status || "Syn denkt nach..."}</span>
             </div>
           )}
@@ -152,7 +152,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
         {(filesList.length > 0) && (
           <div className="border-t border-white/40 px-4 py-2 flex flex-wrap gap-2 text-xs backdrop-blur-md bg-white/20">
             {filesList.map(f => (
-              <div key={f.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs ${f.category === "briefing" ? "bg-amber-200 border-amber-500 text-amber-950 shadow-sm" : f.category === "persona" ? "bg-rose-200 border-rose-500 text-rose-950 shadow-sm" : "bg-orange-200 border-orange-500 text-orange-950 shadow-sm"}`}>
+              <div key={f.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs ${f.category === "briefing" ? "bg-yellow-200 border-yellow-600 text-yellow-950 shadow-sm" : f.category === "persona" ? "bg-lime-200 border-lime-600 text-lime-950 shadow-sm" : "bg-orange-200 border-orange-700 text-orange-950 shadow-sm"}`}>
                 <span className="text-[10px] uppercase tracking-wide opacity-70">{f.category === "briefing" ? "Briefing" : f.category === "persona" ? "Persona" : "Panel"}</span>
                 <span className="max-w-[200px] truncate">{f.fileName}</span>
                 <span className="opacity-60">{Math.round(f.sizeBytes/1024)}K</span>

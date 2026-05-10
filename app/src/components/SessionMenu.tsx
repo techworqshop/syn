@@ -52,7 +52,7 @@ export default function SessionMenu({ sessionId, afterDelete }: { sessionId: str
         <>
           <div className="fixed inset-0 z-30" onClick={() => setMenu(false)} />
           <div className="absolute top-9 right-0 z-40 rounded-xl border border-stone-300 glass shadow-2xl min-w-[200px] overflow-hidden text-sm">
-            <button onClick={finalReport} className="w-full text-left px-3 py-2 hover:bg-fuchsia-500/10 text-fuchsia-200 font-medium">Abschlussbericht (PDF)</button><div className="h-px bg-white/10"></div><button onClick={duplicate} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-stone-100 disabled:opacity-50">Duplizieren</button>
+            <button onClick={finalReport} className="w-full text-left px-3 py-2 hover:bg-emerald-700/10 text-emerald-800 font-medium">Abschlussbericht (PDF)</button><div className="h-px bg-white/10"></div><button onClick={duplicate} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-stone-100 disabled:opacity-50">Duplizieren</button>
             <button onClick={exportPdf} className="w-full text-left px-3 py-2 hover:bg-stone-100">Chat-Verlauf PDF</button>
             <button onClick={share} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-stone-100 disabled:opacity-50">Teilen</button>
             <div className="h-px bg-white/10"></div>

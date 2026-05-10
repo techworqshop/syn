@@ -53,12 +53,12 @@ export default function InvitePage() {
     );
   }
 
-  const inp = "w-full px-4 py-2.5 rounded-xl bg-white/80 border border-stone-300 focus:outline-none focus:border-fuchsia-500/50";
+  const inp = "w-full px-4 py-2.5 rounded-xl bg-white/80 border border-stone-300 focus:outline-none focus:border-emerald-700/50";
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
       <form onSubmit={submit} className="w-full max-w-md space-y-4 p-8 rounded-2xl border border-stone-200 glass shadow-2xl">
         <div className="flex items-center justify-center mb-4">
-          <img src="/api/assets/syn-avatar" alt="" className="w-14 h-14 rounded-full ring-2 ring-fuchsia-500/20" />
+          <img src="/api/assets/syn-avatar" alt="" className="w-14 h-14 rounded-full ring-2 ring-emerald-600/30" />
         </div>
         <div className="text-center mb-4">
           <h1 className="text-2xl font-semibold tracking-tight">Willkommen bei Syn</h1>

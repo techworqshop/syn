@@ -59,7 +59,7 @@ export default function UsersManager({ currentUserId }: { currentUserId: string 
           <input value={email} onChange={e => setEmail(e.target.value)}
             placeholder="kollege@firma.com" type="email"
             onKeyDown={e => { if (e.key === "Enter") create(); }}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-white/80 border border-stone-300 focus:outline-none focus:border-fuchsia-500/50" />
+            className="flex-1 px-4 py-2.5 rounded-xl bg-white/80 border border-stone-300 focus:outline-none focus:border-emerald-700/50" />
           <button onClick={create} disabled={busy || !email.trim()}
             className="btn-primary px-5 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50">
             {busy ? "..." : "Einladen"}
@@ -68,7 +68,7 @@ export default function UsersManager({ currentUserId }: { currentUserId: string 
         {msg && (
           <div className="mt-3 p-3 rounded-lg bg-white/80 border border-stone-200 text-sm">
             <div className="text-stone-800">{msg.text}</div>
-            {msg.url && <div className="mt-1 text-xs text-fuchsia-300 break-all">{msg.url}</div>}
+            {msg.url && <div className="mt-1 text-xs text-emerald-700 break-all">{msg.url}</div>}
           </div>
         )}
       </div>
@@ -82,7 +82,7 @@ export default function UsersManager({ currentUserId }: { currentUserId: string 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-medium truncate">{u.name || u.email}</span>
-                  {u.isAdmin && <span className="text-[10px] uppercase px-2 py-0.5 rounded-full bg-fuchsia-900/50 text-fuchsia-200 border border-fuchsia-500/30">Admin</span>}
+                  {u.isAdmin && <span className="text-[10px] uppercase px-2 py-0.5 rounded-full bg-emerald-800/80 text-emerald-800 border border-emerald-600/40">Admin</span>}
                   {isSelf && <span className="text-[10px] uppercase px-2 py-0.5 rounded-full bg-stone-200 text-stone-600">Du</span>}
                 </div>
                 <div className="text-xs text-stone-500 mt-0.5 truncate">{u.email}</div>

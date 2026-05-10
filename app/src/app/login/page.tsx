@@ -2,7 +2,7 @@
 import { useActionState } from "react";
 import { loginAction } from "./actions";
 
-const inp = "w-full px-4 py-2.5 rounded-xl bg-white/80 border border-stone-300 focus:outline-none focus:border-rose-500/60 focus:ring-2 focus:ring-rose-500/10 transition-all placeholder:text-stone-500";
+const inp = "w-full px-4 py-2.5 rounded-xl bg-white/80 border border-stone-300 focus:outline-none focus:border-emerald-700/60 focus:ring-2 focus:ring-emerald-700/10 transition-all placeholder:text-stone-500";
 
 export default function LoginPage() {
   const [state, action, pending] = useActionState(loginAction, { error: null });
@@ -10,7 +10,7 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center px-4">
       <form action={action} className="w-full max-w-sm space-y-4 p-8 rounded-2xl border border-stone-200 glass shadow-2xl shadow-black/50">
         <div className="flex items-center justify-center mb-4">
-          <img src="/api/assets/syn-avatar" alt="" className="w-14 h-14 rounded-full ring-2 ring-rose-500/20" />
+          <img src="/api/assets/syn-avatar" alt="" className="w-14 h-14 rounded-full ring-2 ring-emerald-600/30" />
         </div>
         <div className="text-center space-y-1 mb-2">
           <h1 className="text-2xl font-semibold tracking-tight">Syn</h1>
@@ -19,7 +19,7 @@ export default function LoginPage() {
         <input name="email" type="email" required placeholder="Email" className={inp} />
         <input name="password" type="password" required placeholder="Passwort" className={inp} />
         {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
-        <button disabled={pending} className="w-full py-2.5 rounded-xl btn-primary disabled:opacity-50 font-medium transition-all shadow-lg shadow-rose-900/30">
+        <button disabled={pending} className="w-full py-2.5 rounded-xl btn-primary disabled:opacity-50 font-medium transition-all shadow-lg shadow-emerald-900/30">
           {pending ? "..." : "Einloggen"}
         </button>
       </form>

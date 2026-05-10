@@ -6,27 +6,27 @@ import PersonaAvatar from "./PersonaAvatar";
 type Props = { sessionId: string; slot: number; onClose: () => void };
 
 const PERSONA_BUBBLE: Record<number, string> = {
-  1: "bg-gradient-to-br from-rose-500/20 via-pink-500/15 to-fuchsia-500/20 border border-rose-400/30",
-  2: "bg-gradient-to-br from-amber-500/20 via-orange-500/15 to-red-500/20 border border-amber-400/30",
-  3: "bg-gradient-to-br from-emerald-500/20 via-lime-500/15 to-yellow-500/20 border border-emerald-400/30",
-  4: "bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-fuchsia-500/20 border border-violet-400/30",
-  5: "bg-gradient-to-br from-orange-500/20 via-amber-500/15 to-rose-500/20 border border-orange-400/30"
+  1: "bg-gradient-to-br from-orange-700 via-red-700 to-orange-800 text-white border border-orange-600 shadow-md bubble-glass",
+  2: "bg-gradient-to-br from-yellow-600 via-amber-600 to-orange-700 text-white border border-amber-500 shadow-md bubble-glass",
+  3: "bg-gradient-to-br from-lime-700 via-green-600 to-emerald-700 text-white border border-lime-500 shadow-md bubble-glass",
+  4: "bg-gradient-to-br from-amber-900 via-orange-950 to-red-950 text-white border border-amber-700 shadow-md bubble-glass",
+  5: "bg-gradient-to-br from-red-800 via-orange-900 to-amber-900 text-white border border-red-700 shadow-md bubble-glass"
 };
 
 const PERSONA_AVATAR: Record<number, string> = {
-  1: "bg-gradient-to-br from-rose-400 to-pink-600",
-  2: "bg-gradient-to-br from-amber-400 to-orange-600",
-  3: "bg-gradient-to-br from-emerald-400 to-lime-600",
-  4: "bg-gradient-to-br from-violet-400 to-purple-600",
-  5: "bg-gradient-to-br from-orange-400 to-rose-600"
+  1: "bg-gradient-to-br from-orange-600 to-red-800",
+  2: "bg-gradient-to-br from-yellow-500 to-orange-700",
+  3: "bg-gradient-to-br from-lime-600 to-emerald-800",
+  4: "bg-gradient-to-br from-amber-800 to-red-950",
+  5: "bg-gradient-to-br from-red-700 to-amber-900"
 };
 
 const NAME_COLOR: Record<number, string> = {
-  1: "text-rose-300",
-  2: "text-amber-300",
-  3: "text-emerald-300",
-  4: "text-violet-300",
-  5: "text-orange-300"
+  1: "text-orange-200",
+  2: "text-amber-200",
+  3: "text-lime-200",
+  4: "text-amber-100",
+  5: "text-red-200"
 };
 
 function fmtTime(d: string | Date) {
@@ -144,14 +144,14 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
           })}
           {waiting && (
             <div className="flex items-center gap-2 text-stone-500 text-sm pl-14">
-              <span className="inline-block w-2 h-2 bg-fuchsia-500 rounded-full animate-pulse" />
+              <span className="inline-block w-2 h-2 bg-emerald-600 rounded-full animate-pulse" />
               <span className="italic">{displayName} denkt nach...</span>
             </div>
           )}
           <div ref={bottomRef} />
         </div>
         <div className="border-t border-stone-300 p-4">
-          <div className="rounded-2xl border border-stone-300 bg-white/75 focus-within:border-fuchsia-500/50 focus-within:ring-2 focus-within:ring-fuchsia-500/10 transition-all">
+          <div className="rounded-2xl border border-stone-300 bg-white/75 focus-within:border-emerald-700/50 focus-within:ring-2 focus-within:ring-emerald-700/10 transition-all">
             <textarea value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
