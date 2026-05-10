@@ -13,7 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <header className="glass border-b border-stone-200 px-6 py-3 flex items-center justify-between sticky top-0 z-20">
         <Link href="/app/dashboard" className="flex items-center gap-2.5 group">
           <img src="/api/assets/syn-avatar" alt="" className="w-7 h-7 rounded-full ring-1 ring-white/10" />
-          <div className="font-semibold tracking-tight text-violet-700 group-hover:text-violet-800">Syn</div>
+          <div className="font-semibold tracking-tight text-purple-700 group-hover:text-rose-700">Syn</div>
         </Link>
         <div className="text-sm text-stone-800 flex items-center gap-4">
           <span className="hidden sm:inline text-stone-700">{u.email}</span>
