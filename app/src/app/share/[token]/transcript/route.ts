@@ -18,11 +18,13 @@ export async function GET(_: Request, { params }: P) {
     .where(eq(sessions.shareToken, token)).limit(1);
   if (!sess) return new Response("not found", { status: 404 });
 
-  const [msgs, sessionFiles, state] = await Promise.all([
+  type Persona = { name?: string; type?: string; core_perspective?: string; profile?: string; slack_slot?: number; rigidity?: number };
+  const [msgs, sessionFiles, stateRaw] = await Promise.all([
     db.select().from(messages).where(eq(messages.sessionId, sess.id)).orderBy(asc(messages.createdAt)),
     db.select().from(files).where(eq(files.sessionId, sess.id)).orderBy(asc(files.createdAt)),
-    readState(sess.id).catch(() => ({ personas: [] as Array<{ name?: string; type?: string; core_perspective?: string; profile?: string; slack_slot?: number; rigidity?: number }>, syntheses: [] as Array<{ round_number: number; synthesis_text: string }> }))
+    readState(sess.id).catch(() => ({ personas: [], syntheses: [] }))
   ]);
+  const state = stateRaw as { personas: Persona[]; syntheses: Array<{ round_number: number; synthesis_text: string }> };
 
   const created = new Date(sess.createdAt);
   const out: string[] = [];
