@@ -193,7 +193,7 @@ export default function MessageBubble({ m }: { m: Message }) {
             </svg>
           </a>
         ) : (
-          <div className={`rounded-2xl px-4 py-3 text-[14px] leading-relaxed inline-block max-w-full ${m.role === "synthesis" ? "" : "whitespace-pre-wrap"} ${color}`}>
+          <div className={`rounded-2xl px-4 py-3 text-[14px] leading-relaxed max-w-full overflow-hidden break-words ${m.role === "synthesis" ? "" : "whitespace-pre-wrap"} ${color}`}>
             {m.role === "synthesis" ? renderMarkdown(m.content) : m.content}
           </div>
         )}
