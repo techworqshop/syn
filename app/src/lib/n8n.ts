@@ -14,17 +14,35 @@ export async function forwardToGateway(payload: {
     targetPersona: payload.targetPersona != null ? String(payload.targetPersona) : "",
     hasFiles: !!payload.hasFiles
   };
-  const res = await fetch(HOOK, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    throw new Error(`n8n gateway responded ${res.status}`);
+  // n8n's responseNode mode keeps the upstream connection open while the
+  // workflow keeps running (~several minutes). Caddy buffers the body,
+  // undici hits its 300s bodyTimeout, and we see "fetch failed" even
+  // though Respond OK already fired in milliseconds. Hard-cap the call
+  // at 15s and don't bother reading the body — we only need the 200.
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15_000);
+  try {
+    const res = await fetch(HOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: ctrl.signal
+    });
+    if (!res.ok) {
+      throw new Error(`n8n gateway responded ${res.status}`);
+    }
+    return {};
+  } catch (e) {
+    // If the abort fired AFTER the webhook accepted the request, the
+    // workflow IS running — silently succeed instead of polluting chat
+    // with a misleading "Gateway-Fehler".
+    if (e instanceof Error && e.name === "AbortError") {
+      return {};
+    }
+    throw e;
+  } finally {
+    clearTimeout(timer);
   }
-  const raw = await res.text();
-  if (!raw) return {};
-  try { return JSON.parse(raw); } catch { return { raw }; }
 }
 
 const READSTATE = process.env.SYNWEB_READSTATE_WEBHOOK!;
