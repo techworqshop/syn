@@ -61,14 +61,17 @@ export default function SessionMenu({ sessionId, afterDelete }: { sessionId: str
         </>
       )}
       {shareUrl && (
-        <div className="absolute top-9 right-0 z-50 rounded-xl border border-emerald-700/40 bg-emerald-50 shadow-2xl p-3 text-xs min-w-[300px]">
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShareUrl(null)} />
+          <div className="absolute top-9 right-0 z-50 rounded-xl border border-emerald-700/40 bg-emerald-50 shadow-2xl p-3 text-xs min-w-[300px]">
           <div className="text-emerald-800 font-semibold mb-1">Link kopiert</div>
           <div className="text-stone-800 break-all font-medium">{shareUrl}</div>
           <div className="flex gap-2 mt-2">
             <button onClick={() => setShareUrl(null)} className="text-stone-700 hover:text-stone-900 font-medium">Schliessen</button>
             <button onClick={unshare} className="text-red-700 hover:text-red-800 font-medium">Link widerrufen</button>
           </div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
