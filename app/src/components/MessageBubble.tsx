@@ -12,58 +12,71 @@ const LABELS: Record<string, string> = {
   system: "System"
 };
 
-const BUBBLE: Record<string, string> = {
-  user: "bg-gradient-to-br from-amber-700 via-orange-700 to-yellow-700 text-white shadow-[0_6px_20px_-6px_rgba(180,120,40,0.5)] bubble-glass",
-  coordinator: "bg-gradient-to-br from-purple-900 from-0% via-rose-700 via-50% to-red-800 to-100% text-white border border-rose-700/40 shadow-lg bubble-glass",
-  synthesis: "bg-gradient-to-br from-amber-700 via-yellow-700 to-orange-800 text-white border border-amber-600 shadow-md bubble-glass",
-  system: "bg-amber-200 text-amber-950 border border-amber-400 text-sm font-medium"
+// ============================================================
+// Aura-Palette: vertikale Color-Color Gradienten
+//   - Edge-Accent-Streifen an der Bubble-Außenkante
+//   - Avatar-Kreis
+// jeweils [top, bottom] -- top heller, bottom dunkler/sattere
+// ============================================================
+type Stops = { top: string; bottom: string };
+
+const PERSONA_ACCENT: Record<number, Stops> = {
+  1: { top: "#E55260", bottom: "#B82338" }, // Crimson
+  2: { top: "#3A7E58", bottom: "#144A2C" }, // Deep Emerald
+  3: { top: "#F26A38", bottom: "#C53E0F" }, // Orange Glow
+  4: { top: "#DBA947", bottom: "#A77E22" }, // Mustard
+  5: { top: "#913B4F", bottom: "#4F1A28" }  // Bordeaux
 };
 
-const PERSONA_BUBBLE: Record<number, string> = {
-  1: "bg-gradient-to-br from-orange-700 via-red-700 to-orange-800 text-white border border-orange-600 shadow-md bubble-glass",
-  2: "bg-gradient-to-br from-yellow-600 via-amber-600 to-orange-700 text-white border border-amber-500 shadow-md bubble-glass",
-  3: "bg-gradient-to-br from-lime-700 via-green-600 to-emerald-700 text-white border border-lime-500 shadow-md bubble-glass",
-  4: "bg-gradient-to-br from-amber-900 via-orange-950 to-red-950 text-white border border-amber-700 shadow-md bubble-glass",
-  5: "bg-gradient-to-br from-red-800 via-orange-900 to-amber-900 text-white border border-red-700 shadow-md bubble-glass"
+const ROLE_ACCENT: Record<string, Stops> = {
+  user:        { top: "#9CCABF", bottom: "#5FA28F" }, // Mint Teal
+  coordinator: { top: "#4C1D95", bottom: "#BE123C" }, // Syn-Brand (Purple -> Rose)
+  synthesis:   { top: "#B45309", bottom: "#78350F" }, // Amber
+  system:      { top: "#A8A29E", bottom: "#57534E" }  // Neutral
 };
 
-const PERSONA_AVATAR: Record<number, string> = {
-  1: "bg-gradient-to-br from-orange-600 to-red-800",
-  2: "bg-gradient-to-br from-yellow-500 to-orange-700",
-  3: "bg-gradient-to-br from-lime-600 to-emerald-800",
-  4: "bg-gradient-to-br from-amber-800 to-red-950",
-  5: "bg-gradient-to-br from-red-700 to-amber-900"
-};
+function accentFor(role: string, slot?: number | null): Stops {
+  if (role === "persona" && slot && PERSONA_ACCENT[slot]) return PERSONA_ACCENT[slot];
+  return ROLE_ACCENT[role] ?? ROLE_ACCENT.system;
+}
 
 function Avatar({ role, name, slot, sessionId }: { role: string; name?: string | null; slot?: number | null; sessionId?: string | null }) {
   if (role === "coordinator") {
     return (
       <img src="/api/assets/syn-avatar" alt="Syn"
-        className="w-11 h-11 rounded-xl ring-1 ring-white/10 object-cover shrink-0" />
+        className="w-10 h-10 rounded-full ring-1 ring-white/40 object-cover shrink-0" />
     );
   }
+  const stops = accentFor(role, slot);
+  const gradStyle = { background: `linear-gradient(180deg, ${stops.top}, ${stops.bottom})` };
+
   if (role === "persona") {
     const initials = (name ?? "P").split(" ").map(s => s[0]).slice(0,2).join("").toUpperCase();
-    const bg = slot && PERSONA_AVATAR[slot] ? PERSONA_AVATAR[slot] : "bg-gradient-to-br from-emerald-600 to-amber-700";
     if (slot && sessionId) {
-      return <PersonaAvatar sessionId={sessionId} slot={slot} initials={initials} tintClass={bg} />;
+      // PersonaAvatar takes a tintClass; we want to pass the same gradient.
+      // We render a wrapper with the gradient and let the avatar component handle the image fallback.
+      return (
+        <div className="w-10 h-10 rounded-full ring-1 ring-white/40 shrink-0 overflow-hidden" style={gradStyle}>
+          <PersonaAvatar sessionId={sessionId} slot={slot} initials={initials} tintClass="" />
+        </div>
+      );
     }
     return (
-      <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center text-white text-base font-bold ring-1 ring-white/10 shrink-0`}>
+      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold ring-1 ring-white/40 shrink-0" style={gradStyle}>
         {initials}
       </div>
     );
   }
   if (role === "synthesis") {
     return (
-      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-600 via-yellow-600 to-orange-700 flex items-center justify-center text-white font-bold ring-1 ring-amber-500/30 shrink-0">
-        &Sigma;
+      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ring-1 ring-white/40 shrink-0" style={gradStyle}>
+        Σ
       </div>
     );
   }
   if (role === "user") {
     return (
-      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-600 to-orange-700 flex items-center justify-center text-white text-base font-semibold ring-1 ring-white/10 shrink-0">
+      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold ring-1 ring-white/40 shrink-0" style={gradStyle}>
         Du
       </div>
     );
@@ -72,7 +85,6 @@ function Avatar({ role, name, slot, sessionId }: { role: string; name?: string |
 }
 
 function renderInline(line: string, keyPrefix: string) {
-  // Handle **bold** segments
   const parts: React.ReactNode[] = [];
   const re = /\*\*([^*]+)\*\*/g;
   let last = 0;
@@ -80,7 +92,7 @@ function renderInline(line: string, keyPrefix: string) {
   let i = 0;
   while ((m = re.exec(line)) !== null) {
     if (m.index > last) parts.push(line.slice(last, m.index));
-    parts.push(<strong key={`${keyPrefix}-b${i++}`} className="font-semibold text-neutral-50">{m[1]}</strong>);
+    parts.push(<strong key={`${keyPrefix}-b${i++}`} className="font-semibold">{m[1]}</strong>);
     last = m.index + m[0].length;
   }
   if (last < line.length) parts.push(line.slice(last));
@@ -104,7 +116,6 @@ function renderMarkdown(text: string) {
   lines.forEach((raw, idx) => {
     const line = raw;
     if (/^\s*---+\s*$/.test(line)) {
-      // Trennzeichen werden ausgeblendet; Section-Header bringen ihren eigenen Divider
       flushBullets();
       return;
     }
@@ -113,11 +124,12 @@ function renderMarkdown(text: string) {
       flushBullets();
       const level = h[1].length;
       const isNumberedSection = level === 2 && /^\s*\d+\.\s/.test(h[2]);
-      const cls = level === 1 ? "text-[16px] font-bold text-amber-200 mt-1"
+      // Auf hellen Card-Cream Bubbles -- Headings in Ink + Akzent-Trenner
+      const cls = level === 1 ? "text-[16px] font-bold text-stone-900 mt-1"
         : level === 2 ? (isNumberedSection
-            ? "text-[15px] font-bold text-white mt-5 pt-4 border-t-2 border-amber-300/70 uppercase tracking-wide"
-            : "text-[15px] font-semibold text-amber-200 mt-3")
-        : "text-[14px] font-semibold text-amber-300 mt-2";
+            ? "text-[15px] font-bold text-stone-900 mt-5 pt-4 border-t-2 border-stone-300 uppercase tracking-wide"
+            : "text-[15px] font-semibold text-stone-900 mt-3")
+        : "text-[14px] font-semibold text-stone-800 mt-2";
       out.push(<div key={`h-${idx}`} className={cls}>{renderInline(h[2], `h${idx}`)}</div>);
       return;
     }
@@ -138,14 +150,6 @@ function fmtTime(d: string | Date) {
   } catch { return ""; }
 }
 
-const NAME_COLOR: Record<number, string> = {
-  1: "text-orange-800",
-  2: "text-amber-800",
-  3: "text-green-800",
-  4: "text-amber-950",
-  5: "text-red-800"
-};
-
 type ReportMeta = { kind?: string; reportId?: string; filename?: string; generatedAt?: string };
 
 export default function MessageBubble({ m }: { m: Message }) {
@@ -155,36 +159,31 @@ export default function MessageBubble({ m }: { m: Message }) {
   const meta = (typeof m.metadata === "object" && m.metadata !== null ? m.metadata : {}) as ReportMeta;
   const isError = meta.kind === "error" || meta.kind === "report_error";
   const isReport = meta.kind === "report" && !!meta.reportId;
-  let color = BUBBLE[m.role] ?? BUBBLE.system;
-  if (m.role === "persona" && m.personaSlot && PERSONA_BUBBLE[m.personaSlot]) {
-    color = PERSONA_BUBBLE[m.personaSlot];
-  }
-  if (isError) {
-    color = "bg-gradient-to-br from-red-100 via-rose-100 to-amber-50 text-red-900 border border-red-300";
-  }
+  const isUser = m.role === "user";
+
+  const stops = accentFor(m.role, m.personaSlot);
+  const bubbleStyle = { ['--edge-top' as string]: stops.top, ['--edge-bottom' as string]: stops.bottom } as React.CSSProperties;
+
   let label: string = LABELS[m.role] ?? m.role;
   if (m.role === "persona") label = m.personaName || (m.personaSlot ? `Persona ${m.personaSlot}` : "Persona");
   if (m.role === "synthesis" && m.roundNumber) label = `Synthese Runde ${m.roundNumber}`;
   if (isError) label = "Fehler";
-  let labelColor = "text-stone-800";
-  if (m.role === "coordinator") labelColor = "text-red-700";
-  if (m.role === "synthesis") labelColor = "text-amber-700";
-  if (m.role === "user") labelColor = "text-orange-700";
-  if (m.role === "persona" && m.personaSlot && NAME_COLOR[m.personaSlot]) labelColor = NAME_COLOR[m.personaSlot];
-  if (isError) labelColor = "text-red-700";
+
+  const labelColor = isError ? "#B91C1C" : stops.bottom;
 
   return (
-    <div className="flex gap-3 items-start group hover:bg-stone-100/50 rounded-xl -mx-2 px-2 py-1 transition-colors">
+    <div className={`flex gap-3 items-start group ${isUser ? "flex-row-reverse" : ""}`}>
       <Avatar role={m.role} name={m.personaName} slot={m.personaSlot} sessionId={m.sessionId} />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-baseline gap-2 mb-1">
-          <span className={`font-semibold text-[15px] leading-tight ${labelColor}`}>{label}</span>
-          <span className="text-xs text-stone-400">{fmtTime(m.createdAt)}</span>
+      <div className={`flex-1 min-w-0 flex flex-col ${isUser ? "items-end" : "items-start"}`}>
+        <div className={`flex items-baseline gap-2 mb-1 ${isUser ? "flex-row-reverse" : ""}`}>
+          <span className="font-semibold text-[14px] leading-tight" style={{ color: labelColor }}>{label}</span>
+          <span className="text-xs text-stone-500">{fmtTime(m.createdAt)}</span>
         </div>
         {isReport ? (
           <a href={`/api/reports/${m.sessionId}/${meta.reportId}`}
-            className="group/card inline-flex items-center gap-3 rounded-2xl px-4 py-3 bg-amber-100 border border-amber-700/40 hover:bg-amber-200 hover:border-amber-700/70 transition-all max-w-full shadow-sm">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-700 via-orange-700 to-red-800 flex items-center justify-center text-white shrink-0 shadow-sm">
+            className="group/card inline-flex items-center gap-3 rounded-2xl px-4 py-3 bg-amber-100 border border-amber-700/40 hover:bg-amber-200 hover:border-amber-700/70 transition-all max-w-[80%] shadow-sm">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm"
+              style={{ background: `linear-gradient(180deg, ${ROLE_ACCENT.synthesis.top}, ${ROLE_ACCENT.synthesis.bottom})` }}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
@@ -201,14 +200,18 @@ export default function MessageBubble({ m }: { m: Message }) {
             </svg>
           </a>
         ) : (
-          <div className={`rounded-2xl px-4 py-3 text-[14px] leading-relaxed w-full min-w-0 overflow-hidden [overflow-wrap:anywhere] [word-break:break-word] ${color}`}>
+          <div
+            className={`bubble-card ${isUser ? "bubble-card-right" : ""} py-3 text-[14px] leading-relaxed max-w-[70%] [overflow-wrap:anywhere] [word-break:break-word]`}
+            style={bubbleStyle}
+          >
             {(m.role === "synthesis" || meta.kind === "report_text") ? renderMarkdown(m.content) : (
               <>
                 {(expanded || !isLong ? m.content : m.content.slice(0, COLLAPSE_AT).replace(/\s+\S*$/,"") + " …").split(/\n\n+/).map((para, i, arr) => (
                   <p key={i} className={`whitespace-pre-wrap ${i < arr.length - 1 ? "mb-3" : ""}`}>{para}</p>
                 ))}
                 {isLong && (
-                  <button onClick={() => setExpanded(e => !e)} className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-950 text-[12px] font-bold shadow-md ring-1 ring-amber-700/20 transition-colors">
+                  <button onClick={() => setExpanded(e => !e)}
+                    className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-stone-50 text-stone-900 text-[12px] font-bold shadow-sm ring-1 ring-stone-300 transition-colors">
                     <span>{expanded ? "Weniger anzeigen" : "Mehr lesen"}</span>
                     <svg className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                   </button>

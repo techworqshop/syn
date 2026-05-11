@@ -125,8 +125,8 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
 
 
   return (
-    <div className="flex flex-1 min-h-0 overflow-hidden"
-      >
+    <div className="flex flex-1 min-h-0 overflow-hidden">
+      <PersonaSidebar sessionId={sessionId} refreshToken={refreshToken} onSelect={setOpenSlot} />
       <div className="flex-1 flex flex-col min-w-0 relative">
         <div className="relative z-30 border-b border-white/40 px-6 py-1.5 glass flex items-center justify-between">
           <div>
@@ -230,7 +230,6 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
         </div>
         )}
       </div>
-      <PersonaSidebar sessionId={sessionId} refreshToken={refreshToken} onSelect={setOpenSlot} />
       {openSlot != null && (
         <AudiencePanel sessionId={sessionId} slot={openSlot} onClose={() => setOpenSlot(null)} />
       )}

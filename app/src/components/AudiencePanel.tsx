@@ -5,29 +5,19 @@ import PersonaAvatar from "./PersonaAvatar";
 
 type Props = { sessionId: string; slot: number; onClose: () => void };
 
-const PERSONA_BUBBLE: Record<number, string> = {
-  1: "bg-gradient-to-br from-orange-700 via-red-700 to-orange-800 text-white border border-orange-600 shadow-md bubble-glass",
-  2: "bg-gradient-to-br from-yellow-600 via-amber-600 to-orange-700 text-white border border-amber-500 shadow-md bubble-glass",
-  3: "bg-gradient-to-br from-lime-700 via-green-600 to-emerald-700 text-white border border-lime-500 shadow-md bubble-glass",
-  4: "bg-gradient-to-br from-amber-900 via-orange-950 to-red-950 text-white border border-amber-700 shadow-md bubble-glass",
-  5: "bg-gradient-to-br from-red-800 via-orange-900 to-amber-900 text-white border border-red-700 shadow-md bubble-glass"
+type Stops = { top: string; bottom: string };
+const ACCENT: Record<number, Stops> = {
+  1: { top: "#E55260", bottom: "#B82338" },
+  2: { top: "#3A7E58", bottom: "#144A2C" },
+  3: { top: "#F26A38", bottom: "#C53E0F" },
+  4: { top: "#DBA947", bottom: "#A77E22" },
+  5: { top: "#913B4F", bottom: "#4F1A28" }
 };
+const USER_ACCENT: Stops = { top: "#9CCABF", bottom: "#5FA28F" };
 
-const PERSONA_AVATAR: Record<number, string> = {
-  1: "bg-gradient-to-br from-orange-600 to-red-800",
-  2: "bg-gradient-to-br from-yellow-500 to-orange-700",
-  3: "bg-gradient-to-br from-lime-600 to-emerald-800",
-  4: "bg-gradient-to-br from-amber-800 to-red-950",
-  5: "bg-gradient-to-br from-red-700 to-amber-900"
-};
-
-const NAME_COLOR: Record<number, string> = {
-  1: "text-orange-800",
-  2: "text-amber-800",
-  3: "text-green-800",
-  4: "text-amber-950",
-  5: "text-red-800"
-};
+function gradStyle(s: Stops) {
+  return { background: `linear-gradient(180deg, ${s.top}, ${s.bottom})` } as React.CSSProperties;
+}
 
 function fmtTime(d: string | Date) {
   try {
@@ -44,9 +34,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
   const [persona, setPersona] = useState<PanelPersona | null>(null);
   const displayName = persona?.name || `Slot ${slot}`;
   const initials = (persona?.name ?? "P").split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase();
-  const tint = PERSONA_AVATAR[slot] || "bg-gradient-to-br from-rose-400 to-amber-500";
-  const bubbleColor = PERSONA_BUBBLE[slot] + " text-stone-900";
-  const nameColor = NAME_COLOR[slot] || "text-stone-800";
+  const stops = ACCENT[slot] || { top: "#888", bottom: "#444" };
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -89,12 +77,16 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-2xl h-[85vh] bg-amber-50/95 border border-stone-300 rounded-2xl flex flex-col shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between border-b border-stone-300 px-5 py-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <PersonaAvatar sessionId={sessionId} slot={slot} initials={initials} tintClass={tint} />
+      <div className="w-full max-w-2xl h-[85vh] bg-[#E8E2D2]/95 border border-stone-300 rounded-2xl flex flex-col shadow-2xl overflow-hidden">
+        {/* Header mit Persona-Akzent links als kleiner Verlauf */}
+        <div className="relative flex items-center justify-between border-b border-stone-300 px-5 py-3 bg-[#F3EFE2]">
+          <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1" style={gradStyle(stops)} />
+          <div className="flex items-center gap-3 min-w-0 pl-2">
+            <div className="w-10 h-10 rounded-full ring-1 ring-white/40 shrink-0 overflow-hidden" style={gradStyle(stops)}>
+              <PersonaAvatar sessionId={sessionId} slot={slot} initials={initials} tintClass="" />
+            </div>
             <div className="min-w-0">
-              <div className={`font-semibold truncate ${nameColor}`}>{displayName}</div>
+              <div className="font-semibold truncate" style={{ color: stops.bottom }}>{displayName}</div>
               <div className="text-xs text-stone-700 font-medium truncate">{persona?.type && persona.type.toLowerCase() !== "human" ? persona.type : "1:1 Interview"}</div>
             </div>
           </div>
@@ -115,27 +107,29 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
           )}
           {msgs.map(m => {
             const isUser = m.role === "user";
+            const bubbleStops = isUser ? USER_ACCENT : stops;
+            const bubbleStyle = { ['--edge-top' as string]: bubbleStops.top, ['--edge-bottom' as string]: bubbleStops.bottom } as React.CSSProperties;
             return (
-              <div key={m.id} className="flex gap-3 items-start group">
+              <div key={m.id} className={`flex gap-3 items-start group ${isUser ? "flex-row-reverse" : ""}`}>
                 {isUser ? (
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-600 to-orange-700 flex items-center justify-center text-white text-base font-semibold ring-1 ring-white/10 shrink-0">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold ring-1 ring-white/40 shrink-0"
+                    style={gradStyle(USER_ACCENT)}>
                     Du
                   </div>
                 ) : (
-                  <PersonaAvatar sessionId={sessionId} slot={slot} initials={initials} tintClass={tint} />
+                  <div className="w-10 h-10 rounded-full ring-1 ring-white/40 shrink-0 overflow-hidden" style={gradStyle(stops)}>
+                    <PersonaAvatar sessionId={sessionId} slot={slot} initials={initials} tintClass="" />
+                  </div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className={`font-semibold text-[15px] leading-tight ${isUser ? "text-amber-800" : nameColor}`}>
+                <div className={`flex-1 min-w-0 flex flex-col ${isUser ? "items-end" : "items-start"}`}>
+                  <div className={`flex items-baseline gap-2 mb-1 ${isUser ? "flex-row-reverse" : ""}`}>
+                    <span className="font-semibold text-[14px] leading-tight" style={{ color: bubbleStops.bottom }}>
                       {isUser ? "Du" : displayName}
                     </span>
-                    <span className="text-xs text-stone-400">{fmtTime(m.createdAt)}</span>
+                    <span className="text-xs text-stone-500">{fmtTime(m.createdAt)}</span>
                   </div>
-                  <div className={`rounded-2xl px-4 py-3 whitespace-pre-wrap text-[14px] leading-relaxed w-full min-w-0 overflow-hidden [overflow-wrap:anywhere] [word-break:break-word] ${
-                    isUser
-                      ? "bg-gradient-to-br from-amber-700 via-orange-700 to-yellow-700 text-white shadow-[0_6px_20px_-6px_rgba(180,120,40,0.5)]"
-                      : bubbleColor
-                  }`}>
+                  <div className={`bubble-card ${isUser ? "bubble-card-right" : ""} py-3 whitespace-pre-wrap text-[14px] leading-relaxed max-w-[75%] [overflow-wrap:anywhere] [word-break:break-word]`}
+                    style={bubbleStyle}>
                     {m.content}
                   </div>
                 </div>
@@ -144,13 +138,13 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
           })}
           {waiting && (
             <div className="flex items-center gap-2 text-stone-500 text-sm pl-14">
-              <span className="inline-block w-2 h-2 bg-emerald-600 rounded-full animate-pulse" />
+              <span className="inline-block w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: stops.bottom }} />
               <span className="italic">{displayName} denkt nach...</span>
             </div>
           )}
           <div ref={bottomRef} />
         </div>
-        <div className="border-t border-stone-300 p-4">
+        <div className="border-t border-stone-300 p-4 bg-[#F3EFE2]">
           <div className="rounded-2xl border border-stone-300 bg-white/75 focus-within:border-emerald-700/50 focus-within:ring-2 focus-within:ring-emerald-700/10 transition-all">
             <textarea value={input}
               onChange={e => setInput(e.target.value)}
