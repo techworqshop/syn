@@ -141,12 +141,12 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
                 className="font-medium bg-transparent border-b border-amber-700/60 focus:outline-none" />
             ) : (
               <button onClick={() => setEditingTitle(true)}
-                className="font-medium hover:text-emerald-700 transition-colors text-left"
+                className="font-medium hover:text-rose-700 transition-colors text-left"
                 title="Klick zum Umbenennen">{title}</button>
             )}
             <div className="text-xs text-stone-500">
               {isClosed
-                ? <><span className="text-emerald-700 font-semibold">Runde 3 abgeschlossen</span> · {personaCount} Personas · {filesList.length} Dateien</>
+                ? <><span className="font-semibold" style={{ color: "#9F1239" }}>Runde 3 abgeschlossen</span> · {personaCount} Personas · {filesList.length} Dateien</>
                 : <>Runde {currentRound} · {personaCount} Personas · {filesList.length} Dateien</>}
             </div>
           </div>
@@ -164,7 +164,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
           {msgs.map(m => <MessageBubble key={m.id} m={m} />)}
           {waiting && (
             <div className="flex items-center gap-2 text-stone-500 text-sm">
-              <span className="inline-block w-2 h-2 bg-emerald-600 rounded-full animate-pulse" />
+              <span className="inline-block w-2 h-2 bg-rose-700 rounded-full animate-pulse" />
               <span className="italic">{status || "Syn denkt nach..."}</span>
             </div>
           )}
@@ -173,11 +173,11 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
         {(filesList.length > 0) && (
           <div className="border-t border-white/40 px-4 py-2 flex flex-wrap gap-2 text-xs backdrop-blur-md bg-white/20">
             {filesList.map(f => (
-              <div key={f.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs ${f.category === "briefing" ? "bg-yellow-200 border-yellow-600 text-yellow-950 shadow-sm" : f.category === "persona" ? "bg-lime-200 border-lime-600 text-lime-950 shadow-sm" : "bg-orange-200 border-orange-700 text-orange-950 shadow-sm"}`}>
+              <div key={f.id} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs ${f.category === "briefing" ? "bg-yellow-200 border-yellow-600 text-yellow-950 shadow-sm" : f.category === "persona" ? "bg-emerald-900/15 border-emerald-900/60 text-emerald-950 shadow-sm" : "bg-orange-200 border-orange-700 text-orange-950 shadow-sm"}`}>
                 <span className="text-[10px] uppercase tracking-wide opacity-70">{f.category === "briefing" ? "Briefing" : f.category === "persona" ? "Persona" : "Panel"}</span>
                 <span className="max-w-[200px] truncate">{f.fileName}</span>
                 <span className="opacity-60">{Math.round(f.sizeBytes/1024)}K</span>
-                {f.summary ? <span className="text-emerald-700 font-bold">✓</span> : <span className="opacity-60">…</span>}
+                {f.summary ? <span className="text-rose-700 font-bold">✓</span> : <span className="opacity-60">…</span>}
                 <button onClick={() => deleteFile(f.id)} className="ml-1 opacity-50 hover:opacity-100 hover:text-red-400 transition-opacity" title="Datei loeschen">×</button>
               </div>
             ))}
@@ -185,12 +185,14 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
         )}
         {isClosed ? (
           <div className="border-t border-white/40 px-3 py-2 backdrop-blur-md bg-white/40">
-            <div className="rounded-xl bg-emerald-50 border border-emerald-700/40 px-3 py-2 shadow-sm flex gap-2 items-center text-xs">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0">
+            <div className="relative rounded-xl bg-[#F3EFE2] border border-stone-300 px-3 py-2 pl-4 shadow-sm flex gap-2 items-center text-xs overflow-hidden">
+              <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1"
+                style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }} />
+              <svg viewBox="0 0 24 24" fill="none" stroke="#9F1239" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                 <polyline points="22 4 12 14.01 9 11.01" />
               </svg>
-              <span className="font-semibold text-emerald-800">Diskussion abgeschlossen.</span>
+              <span className="font-semibold" style={{ color: "#9F1239" }}>Diskussion abgeschlossen.</span>
               <span className="text-stone-700">
                 <span className="font-semibold">Abschlussbericht</span> via 3-Punkte-Menü · <span className="font-semibold">1:1-Chat</span> mit Personas in der Sidebar
               </span>

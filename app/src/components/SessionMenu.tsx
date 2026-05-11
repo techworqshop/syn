@@ -67,7 +67,7 @@ export default function SessionMenu({ sessionId, afterDelete }: { sessionId: str
       </button>
       {menu && (
         <div ref={menuRef} className="absolute top-9 right-0 z-50 rounded-xl border border-stone-400/60 bg-stone-50 shadow-2xl min-w-[210px] overflow-hidden text-sm">
-          <button onClick={finalReport} className="w-full text-left px-3 py-2 hover:bg-emerald-700/10 text-emerald-800 font-medium">Abschlussbericht (PDF)</button>
+          <button onClick={finalReport} className="w-full text-left px-3 py-2 hover:bg-rose-700/10 text-rose-800 font-medium">Abschlussbericht (PDF)</button>
           <div className="h-px bg-stone-200"></div>
           <button onClick={exportPdf} className="w-full text-left px-3 py-2 hover:bg-amber-100">Chat-Verlauf PDF</button>
           <button onClick={share} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-amber-100 disabled:opacity-50">Teilen</button>
@@ -76,8 +76,8 @@ export default function SessionMenu({ sessionId, afterDelete }: { sessionId: str
         </div>
       )}
       {shareUrl && (
-        <div ref={shareRef} className="absolute top-9 right-0 z-50 rounded-xl border border-emerald-700/40 bg-emerald-50 shadow-2xl p-3 text-xs min-w-[300px]">
-          <div className="text-emerald-800 font-semibold mb-1">Link kopiert</div>
+        <div ref={shareRef} className="absolute top-9 right-0 z-50 rounded-xl border border-rose-700/40 bg-rose-50 shadow-2xl p-3 text-xs min-w-[300px]">
+          <div className="text-rose-800 font-semibold mb-1">Link kopiert</div>
           <div className="text-stone-800 break-all font-medium">{shareUrl}</div>
           <div className="flex gap-2 mt-2">
             <button onClick={() => setShareUrl(null)} className="text-stone-700 hover:text-stone-900 font-medium">Schliessen</button>

@@ -126,7 +126,7 @@ function Section({ number, title, children }: { number: string; title: string; c
     <section className="rounded-2xl bg-stone-50 border border-stone-300 p-5 shadow-sm">
       <div className="flex items-baseline gap-3 mb-2">
         {number && (
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-emerald-700 to-lime-700 text-white text-sm font-bold shrink-0">{number}</span>
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-purple-900 to-rose-700 text-white text-sm font-bold shrink-0">{number}</span>
         )}
         <h2 className="text-lg font-semibold tracking-tight text-stone-900">{title}</h2>
       </div>
@@ -138,7 +138,7 @@ function Section({ number, title, children }: { number: string; title: string; c
 function Pill({ tone, children }: { tone: "briefing" | "persona" | "panel"; children: React.ReactNode }) {
   const cls =
     tone === "briefing" ? "bg-yellow-200 text-yellow-950 border-yellow-700" :
-    tone === "persona"  ? "bg-lime-200 text-lime-950 border-lime-700" :
+    tone === "persona"  ? "bg-emerald-900/15 text-emerald-950 border-emerald-900/60" :
                           "bg-orange-200 text-orange-950 border-orange-700";
   return <span className={`inline-block px-2 py-0.5 rounded-full border font-bold text-[11px] uppercase tracking-wide ${cls}`}>{children}</span>;
 }

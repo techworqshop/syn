@@ -30,7 +30,7 @@ export default async function SharePage({ params }: P) {
             <div className="text-xs text-stone-500">Geteilte Fokusgruppe - Read only</div>
           </div>
           <a href={`/share/${token}/transcript`} download
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-700 to-lime-700 text-white text-sm font-semibold shadow-md hover:from-emerald-800 hover:to-lime-800 transition-colors shrink-0"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-900 to-rose-700 text-white text-sm font-semibold shadow-md hover:from-purple-950 hover:to-rose-800 transition-colors shrink-0"
             title="Chat-Verlauf als Markdown herunterladen (gut zum Einfuegen in ChatGPT/Claude)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -53,7 +53,7 @@ export default async function SharePage({ params }: P) {
                   const catTone = f.category === "briefing"
                     ? "bg-yellow-200 text-yellow-950 border-yellow-700"
                     : f.category === "persona"
-                      ? "bg-lime-200 text-lime-950 border-lime-700"
+                      ? "bg-emerald-900/15 text-emerald-950 border-emerald-900/60"
                       : "bg-orange-200 text-orange-950 border-orange-700";
                   const kb = Math.round(f.sizeBytes / 1024);
                   const sizeLabel = kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`;
