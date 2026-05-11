@@ -201,7 +201,7 @@ export default function MessageBubble({ m }: { m: Message }) {
           </a>
         ) : (
           <div
-            className={`bubble-card ${isUser ? "bubble-card-right" : ""} py-3 text-[14px] leading-relaxed max-w-[70%] [overflow-wrap:anywhere] [word-break:break-word]`}
+            className={`bubble-card ${isUser ? "bubble-card-right" : ""} py-3 text-[14px] leading-relaxed max-w-[85%] [overflow-wrap:anywhere] [word-break:break-word]`}
             style={bubbleStyle}
           >
             {(m.role === "synthesis" || meta.kind === "report_text") ? renderMarkdown(m.content) : (

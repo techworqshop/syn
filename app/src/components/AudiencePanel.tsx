@@ -128,7 +128,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
                     </span>
                     <span className="text-xs text-stone-500">{fmtTime(m.createdAt)}</span>
                   </div>
-                  <div className={`bubble-card ${isUser ? "bubble-card-right" : ""} py-3 whitespace-pre-wrap text-[14px] leading-relaxed max-w-[75%] [overflow-wrap:anywhere] [word-break:break-word]`}
+                  <div className={`bubble-card ${isUser ? "bubble-card-right" : ""} py-3 whitespace-pre-wrap text-[14px] leading-relaxed max-w-[85%] [overflow-wrap:anywhere] [word-break:break-word]`}
                     style={bubbleStyle}>
                     {m.content}
                   </div>
