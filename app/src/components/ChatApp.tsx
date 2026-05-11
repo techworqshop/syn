@@ -30,6 +30,18 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
   const [filesList, setFilesList] = useState<FileRow[]>([]);
   const [showUpload, setShowUpload] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const taRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Auto-grow textarea: 2 rows min, 5 rows max, scroll after.
+  useEffect(() => {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    // line-height ~22.75px @ text-[14px] leading-relaxed; padding pt-3 (12) + pb-1 (4) = 16
+    const lineH = 22.75;
+    const maxH = Math.round(5 * lineH + 16); // 5 lines + padding
+    el.style.height = Math.min(el.scrollHeight, maxH) + "px";
+  }, [input]);
 
   // Fokusgruppe ist abgeschlossen sobald Runde 3 durch ist ODER ein Report existiert.
   const hasReport = msgs.some(m => {
@@ -188,11 +200,12 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
         <div className="border-t border-white/40 px-4 py-2 backdrop-blur-md bg-white/30">
           <div className="rounded-2xl glass-card focus-within:border-rose-400/60 focus-within:ring-2 focus-within:ring-rose-400/15 transition-all">
             <textarea value={input}
+              ref={taRef}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!waiting && !sending) send(); } }}
-              rows={3}
+              rows={2}
               placeholder={waiting ? "Syn arbeitet — du kannst schon vorschreiben, senden geht gleich wieder ..." : "Nachricht an Syn..."}
-              className="block w-full px-4 pt-3 pb-1 bg-transparent focus:outline-none resize-none text-[14px] leading-relaxed placeholder:text-stone-500" />
+              className="block w-full px-4 pt-3 pb-1 bg-transparent focus:outline-none resize-none text-[14px] leading-relaxed placeholder:text-stone-500 overflow-y-auto" />
             <div className="flex items-center justify-between px-2 py-2">
               <button onClick={() => setShowUpload(true)}
                 title="Dateien hochladen"
