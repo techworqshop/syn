@@ -23,6 +23,14 @@ const TILE_GRADIENT: Record<number,string> = {
   5: "from-red-800 via-orange-900 to-amber-900 border-red-600 text-white shadow-md bubble-glass"
 };
 
+const RAIL_GRADIENT: Record<number,string> = {
+  1: "from-orange-600 to-red-800",
+  2: "from-yellow-500 to-orange-700",
+  3: "from-lime-600 to-emerald-800",
+  4: "from-amber-800 to-red-950",
+  5: "from-red-700 to-amber-900"
+};
+
 export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Props) {
   const [personas, setPersonas] = useState<PanelPersona[]>([]);
   const [syntheses, setSyntheses] = useState<PanelSynthesis[]>([]);
@@ -30,6 +38,22 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
   const [synthOpen, setSynthOpen] = useState<number | null>(null);
   const [localRigidity, setLocalRigidity] = useState<Record<number, number>>({});
   const saveTimers = useRef<Record<number, ReturnType<typeof setTimeout> | null>>({});
+  const [collapsed, setCollapsed] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem("syn.sidebar.collapsed");
+      if (v === "1") setCollapsed(true);
+    } catch {}
+  }, []);
+
+  function toggleCollapsed() {
+    setCollapsed(c => {
+      const next = !c;
+      try { localStorage.setItem("syn.sidebar.collapsed", next ? "1" : "0"); } catch {}
+      return next;
+    });
+  }
 
   useEffect(() => {
     let cancel = false;
@@ -62,9 +86,58 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect }: Pr
     }, 400);
   }
 
+  if (collapsed) {
+    return (
+      <aside className="w-14 glass-card-dark flex flex-col items-center py-2 gap-1.5 overflow-y-auto">
+        <button onClick={toggleCollapsed}
+          title="Sidebar ausklappen"
+          className="w-9 h-9 rounded-lg flex items-center justify-center text-stone-700 hover:text-stone-900 hover:bg-amber-100 transition-colors mb-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
+        {[1,2,3,4,5].filter(n => bySlot[n]).map(n => {
+          const p = bySlot[n];
+          const initials = (p.name ?? "P").split(" ").map(s => s[0]).slice(0,2).join("").toUpperCase();
+          return (
+            <button key={n} onClick={() => onSelect(n)}
+              title={`${p.name || `Slot ${n}`} (1:1 Chat)`}
+              className={`w-10 h-10 rounded-xl bg-gradient-to-br ${RAIL_GRADIENT[n]} flex items-center justify-center text-white text-xs font-bold ring-1 ring-white/30 shadow-md hover:scale-105 transition-transform overflow-hidden`}>
+              {p.imageReady
+                ? <img src={`/api/persona-images/${sessionId}/${n}`} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display="none")} />
+                : <span>{initials}</span>}
+            </button>
+          );
+        })}
+        {syntheses.length > 0 && (
+          <>
+            <div className="w-7 h-px bg-stone-400/60 my-1" />
+            {syntheses.sort((a,b)=>a.round_number-b.round_number).map(s => (
+              <button key={s.round_number}
+                onClick={() => { toggleCollapsed(); setSynthOpen(s.round_number); }}
+                title={`Synthese Runde ${s.round_number}`}
+                className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-700 to-lime-700 text-white text-[10px] font-bold flex items-center justify-center ring-1 ring-white/30 shadow-md hover:scale-105 transition-transform">
+                R{s.round_number}
+              </button>
+            ))}
+          </>
+        )}
+      </aside>
+    );
+  }
+
   return (
     <aside className="w-72 glass-card-dark p-3 space-y-2 overflow-y-auto">
-      <div className="text-xs uppercase tracking-wide text-stone-700 font-bold mb-2 px-1">Personas</div>
+      <div className="flex items-center justify-between mb-2 px-1">
+        <div className="text-xs uppercase tracking-wide text-stone-700 font-bold">Personas</div>
+        <button onClick={toggleCollapsed}
+          title="Sidebar einklappen"
+          className="w-6 h-6 rounded-md flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-amber-100 transition-colors">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </div>
       {[1,2,3,4,5].filter(n => bySlot[n]).map(n => {
         const p = bySlot[n];
         const isExp = expanded === n;

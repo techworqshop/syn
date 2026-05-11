@@ -116,7 +116,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
     <div className="flex flex-1 min-h-0 overflow-hidden"
       >
       <div className="flex-1 flex flex-col min-w-0 relative">
-        <div className="relative z-30 border-b border-white/40 px-6 py-3 glass flex items-center justify-between">
+        <div className="relative z-30 border-b border-white/40 px-6 py-1.5 glass flex items-center justify-between">
           <div>
             {editingTitle ? (
               <input autoFocus value={titleDraft}
@@ -172,24 +172,20 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
           </div>
         )}
         {isClosed ? (
-          <div className="border-t border-white/40 p-4 backdrop-blur-md bg-white/40">
-            <div className="rounded-2xl bg-emerald-50 border border-emerald-700/40 p-4 shadow-sm flex gap-3 items-start">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 mt-0.5 shrink-0">
+          <div className="border-t border-white/40 px-3 py-2 backdrop-blur-md bg-white/40">
+            <div className="rounded-xl bg-emerald-50 border border-emerald-700/40 px-3 py-2 shadow-sm flex gap-2 items-center text-xs">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                 <polyline points="22 4 12 14.01 9 11.01" />
               </svg>
-              <div className="text-sm leading-relaxed text-stone-800">
-                <div className="font-semibold text-emerald-800 mb-1">Diskussion abgeschlossen</div>
-                Der Haupt-Chat ist beendet. Du kannst weiterhin:
-                <ul className="list-disc pl-5 mt-1.5 space-y-0.5 text-stone-700">
-                  <li>Den <span className="font-semibold text-stone-900">Abschlussbericht</span> ueber das <span className="font-semibold">3-Punkte-Menue</span> rechts oben generieren (Text-Bubble + PDF-Download)</li>
-                  <li>Einzelne Personas in der Sidebar anklicken und im <span className="font-semibold">1:1-Chat</span> weiter befragen</li>
-                </ul>
-              </div>
+              <span className="font-semibold text-emerald-800">Diskussion abgeschlossen.</span>
+              <span className="text-stone-700">
+                <span className="font-semibold">Abschlussbericht</span> via 3-Punkte-Menü · <span className="font-semibold">1:1-Chat</span> mit Personas in der Sidebar
+              </span>
             </div>
           </div>
         ) : (
-        <div className="border-t border-white/40 p-4 backdrop-blur-md bg-white/30">
+        <div className="border-t border-white/40 px-4 py-2 backdrop-blur-md bg-white/30">
           <div className="rounded-2xl glass-card focus-within:border-rose-400/60 focus-within:ring-2 focus-within:ring-rose-400/15 transition-all">
             <textarea value={input}
               onChange={e => setInput(e.target.value)}

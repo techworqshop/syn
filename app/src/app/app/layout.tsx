@@ -10,9 +10,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!u) redirect("/login");
   return (
     <div className="h-screen flex flex-col">
-      <header className="glass border-b border-stone-200 px-6 py-3 flex items-center justify-between sticky top-0 z-20">
-        <Link href="/app/dashboard" className="flex items-center gap-2.5 group">
-          <img src="/api/assets/syn-avatar" alt="" className="w-7 h-7 rounded-full ring-1 ring-white/10" />
+      <header className="glass border-b border-stone-200 px-6 py-1.5 flex items-center justify-between sticky top-0 z-20">
+        <Link href="/app/dashboard" className="flex items-center gap-2 group">
+          <img src="/api/assets/syn-avatar" alt="" className="w-6 h-6 rounded-full ring-1 ring-white/10" />
           <div className="font-semibold tracking-tight text-red-700 group-hover:text-red-800">Syn</div>
         </Link>
         <div className="text-sm text-stone-800 flex items-center gap-4">
