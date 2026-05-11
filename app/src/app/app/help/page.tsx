@@ -80,31 +80,36 @@ export default async function HelpPage() {
         <Section number="" title="Tipps">
           <ul className="ml-5 list-disc space-y-1.5">
             <li>Briefings funktionieren am besten <strong>konkret und mit echten Daten</strong> — Preise, Zielgruppen-Specs, vorhandene Annahmen.</li>
-            <li>Wenn du Screenshots reinziehst, lass Syn vor Runde 1 antworten — die Bilder werden dann automatisch von Gemini vorab analysiert und stehen den Personas im Detail zur Verfügung.</li>
+            <li>Wenn du Screenshots oder PDFs reinziehst, lass Syn nach dem Upload kurz Zeit. Die Inhalte werden vor der ersten Runde ausgewertet und stehen dann allen Personas zur Verfügung.</li>
             <li>Lass die Diskussion <strong>ihre Spannungen behalten</strong>. Wenn Personas sich widersprechen, ist das gut — die Synthese macht daraus eine klare Handlungsempfehlung.</li>
             <li>Möchte jemand mitlesen ohne Account? Über <strong>Teilen</strong> im 3-Punkte-Menü kriegst du einen Read-only-Link. Der Empfänger sieht den ganzen Verlauf, kann Dateien runterladen und den Chat als Markdown exportieren.</li>
-            <li>Eine Fokusgruppe ist <strong>nicht duplizierbar</strong>. Wenn du dasselbe Thema mit anderem Panel testen willst: neue Fokusgruppe starten.</li>
           </ul>
         </Section>
 
         <Section number="" title="FAQ">
+          <Faq q="Wo finde ich den Abschlussbericht?">
+            Klick auf das <strong>3-Punkte-Menü</strong> rechts oben in der Session und wähl <strong>Abschlussbericht (PDF)</strong>. Nach ein paar Minuten erscheint der Bericht direkt als Text-Bubble im Chat — plus ein PDF-Download-Button.
+          </Faq>
+          <Faq q="Wie befrage ich eine einzelne Persona genauer?">
+            Klick eine Persona in der Sidebar an. Es öffnet sich ein 1:1-Chat-Fenster, in dem du gezielt nachfragen kannst. Funktioniert auch nach Abschluss der Hauptdiskussion.
+          </Faq>
+          <Faq q="Wie teile ich die Fokusgruppe mit jemandem?">
+            3-Punkte-Menü → <strong>Teilen</strong>. Du kriegst einen Link kopiert, den du weitergeben kannst. Der Empfänger sieht alles read-only, kann Dateien runterladen und den ganzen Chat als Markdown exportieren — ideal zum Reinpasten in ChatGPT oder Claude.
+          </Faq>
+          <Faq q="Wo stelle ich die Haltung einer Persona ein?">
+            Unter jeder Persona-Kachel in der Sidebar ist ein <strong>Haltungs-Slider</strong>. Links („offen") = sie ändert ihre Meinung bei guten Argumenten, rechts („standhaft") = sie bleibt bei ihrer Position. Standardwert 5 passt meistens.
+          </Faq>
           <Faq q="Wie lange darf das Briefing sein?">
             So lang du willst. Syn liest auch mehrseitige Strategiepapiere. Für ein gutes Panel reichen aber meistens 5–10 Sätze plus 1–3 Screenshots.
           </Faq>
-          <Faq q="Was, wenn eine Persona einfach nicht antwortet?">
-            Wir starten sie nach 1–2 Minuten automatisch nochmal. Du musst nichts machen. Sollte sie nach drei Versuchen immer noch nicht antworten, schaut Syn drüber und schließt die Runde trotzdem.
-          </Faq>
-          <Faq q="Kann ich eine bestimmte echte Person als Persona nachbauen?">
-            Ja. Beschreibe sie im Briefing („Eleanor, 38, Marketing-Direktorin, war fünf Jahre bei IKEA"). Je präziser, desto näher kommt Syn dran. Profile, LinkedIn-Texte oder Notizen kannst du als <em>Persona-Daten</em> Datei hochladen.
-          </Faq>
-          <Faq q="Werden meine Daten zum Training verwendet?">
-            Nein. Syn läuft auf eigener Infrastruktur, die LLMs (Anthropic Claude, Google Gemini) bekommen nur den Inhalt deiner Session zur Inferenz — kein Training, kein Sharing.
+          <Faq q="Kann ich eine echte Person als Persona nachbauen?">
+            Ja. Beschreibe sie im Briefing („Eleanor, 38, Marketing-Direktorin, fünf Jahre Erfahrung im FMCG-Bereich"). Je präziser, desto näher kommt Syn dran. Profile, LinkedIn-Texte oder Notizen kannst du als <em>Persona-Daten</em> Datei hochladen.
           </Faq>
           <Faq q="Kann ich nach Runde 3 noch was ändern?">
-            Hauptchat ist gesperrt — bewusst, damit du nicht endlos Synthesen produzierst. Über das 1:1-Interview kannst du jede Persona aber noch beliebig weiter befragen.
+            Der Hauptchat ist nach Runde 3 abgeschlossen — die Diskussion hat ihren Bogen dann gespannt. Über das <strong>1:1-Interview</strong> in der Sidebar kannst du jede Persona aber noch beliebig weiter befragen.
           </Faq>
-          <Faq q="Was kostet eine Session?">
-            Im Schnitt 1–3 € an LLM-Kosten (Opus/Sonnet/Gemini). Die Infrastruktur läuft auf unserem Server.
+          <Faq q="Kann ich die Sidebar einklappen?">
+            Ja. Klick auf den kleinen Pfeil rechts oben am „Personas"-Header. Die Sidebar schrumpft zu einer schmalen Leiste mit den Avataren — Klick auf einen Avatar startet weiterhin den 1:1-Chat. Pfeil oben links bringt sie zurück.
           </Faq>
         </Section>
 
