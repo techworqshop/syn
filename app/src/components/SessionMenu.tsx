@@ -15,12 +15,6 @@ export default function SessionMenu({ sessionId, afterDelete }: { sessionId: str
     setBusy(false);
     if (res.ok) { if (afterDelete) afterDelete(); else router.refresh(); }
   }
-  async function duplicate() {
-    setBusy(true); setMenu(false);
-    const res = await fetch(`/api/sessions/${sessionId}/duplicate`, { method: "POST" });
-    setBusy(false);
-    if (res.ok) { const d = await res.json(); router.push(`/app/sessions/${d.session.id}`); }
-  }
   function exportPdf() { setMenu(false); window.location.href = `/api/sessions/${sessionId}/export`; }
   async function finalReport() { setMenu(false); setBusy(true); try { await fetch(`/api/sessions/${sessionId}/final-report`, { method: "POST" }); } catch {} setBusy(false); }
 
@@ -52,7 +46,8 @@ export default function SessionMenu({ sessionId, afterDelete }: { sessionId: str
         <>
           <div className="fixed inset-0 z-40" onClick={() => setMenu(false)} />
           <div className="absolute top-9 right-0 z-50 rounded-xl border border-stone-400/60 bg-stone-50 shadow-2xl min-w-[210px] overflow-hidden text-sm">
-            <button onClick={finalReport} className="w-full text-left px-3 py-2 hover:bg-emerald-700/10 text-emerald-800 font-medium">Abschlussbericht (PDF)</button><div className="h-px bg-stone-200"></div><button onClick={duplicate} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-amber-100 disabled:opacity-50">Duplizieren</button>
+            <button onClick={finalReport} className="w-full text-left px-3 py-2 hover:bg-emerald-700/10 text-emerald-800 font-medium">Abschlussbericht (PDF)</button>
+            <div className="h-px bg-stone-200"></div>
             <button onClick={exportPdf} className="w-full text-left px-3 py-2 hover:bg-amber-100">Chat-Verlauf PDF</button>
             <button onClick={share} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-amber-100 disabled:opacity-50">Teilen</button>
             <div className="h-px bg-stone-200"></div>
