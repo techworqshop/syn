@@ -203,7 +203,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
               ref={taRef}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!waiting && !sending) send(); } }}
-              rows={2}
+              rows={1}
               placeholder={waiting ? "Syn arbeitet — du kannst schon vorschreiben, senden geht gleich wieder ..." : "Nachricht an Syn..."}
               className="block w-full px-4 pt-3 pb-1 bg-transparent focus:outline-none resize-none text-[14px] leading-relaxed placeholder:text-stone-500 overflow-y-auto" />
             <div className="flex items-center justify-between px-2 py-2">
