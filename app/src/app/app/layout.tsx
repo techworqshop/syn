@@ -19,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Link href="/app/help" title="So funktioniert Syn"
             className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-stone-400 text-stone-700 hover:text-rose-700 hover:border-rose-700 transition-colors font-bold">?</Link>
           <span className="hidden sm:inline text-stone-700">{u.email}</span>
-          {u.isAdmin && <Link href="/app/users" className="hidden sm:inline text-stone-700 hover:text-rose-700 transition-colors">User</Link>}
+          {u.isAdmin && <Link href="/app/admin" className="hidden sm:inline text-stone-700 hover:text-rose-700 transition-colors">Admin</Link>}
           <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
             <button className="text-stone-700 hover:text-rose-700 transition-colors">Logout</button>
           </form>
