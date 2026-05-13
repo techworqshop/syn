@@ -12,10 +12,25 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminUsersPage({
   searchParams
-}: { searchParams: Promise<{ q?: string }> }) {
+}: { searchParams: Promise<{ q?: string; sort?: string }> }) {
   const me = await requireAdmin();
   const sp = await searchParams;
   const q = (sp.q ?? "").trim().toLowerCase();
+  const sort = sp.sort || "created:desc";
+  const [sortCol, sortDir] = sort.split(":");
+  const dir = sortDir === "asc" ? 1 : -1;
+
+  function sortUrl(col: string): string {
+    const nextDir = sortCol === col && sortDir === "desc" ? "asc" : sortCol === col && sortDir === "asc" ? "desc" : (col === "account" ? "asc" : "desc");
+    const u = new URLSearchParams();
+    if (q) u.set("q", q);
+    u.set("sort", `${col}:${nextDir}`);
+    return `/app/admin/users?${u.toString()}`;
+  }
+  function sortInd(col: string): string {
+    if (sortCol !== col) return "";
+    return sortDir === "asc" ? " ↑" : " ↓";
+  }
 
   try {
   // Alle User
@@ -72,12 +87,27 @@ export default async function AdminUsersPage({
   }));
 
   // Filter (client-side post-enrichment, da Mengen klein)
-  const filtered = q
+  const beforeSort = q
     ? enriched.filter(u =>
         u.email.toLowerCase().includes(q) ||
         (u.name ?? "").toLowerCase().includes(q)
       )
     : enriched;
+
+  const filtered = [...beforeSort].sort((a, b) => {
+    const cmp = (() => {
+      switch (sortCol) {
+        case "account":  return (a.name || a.email).localeCompare(b.name || b.email);
+        case "sessions": return a.sessionCount - b.sessionCount;
+        case "messages": return a.userMessages - b.userMessages;
+        case "files":    return a.fileCount - b.fileCount;
+        case "activity": return (a.lastActivity ? new Date(a.lastActivity).getTime() : 0) - (b.lastActivity ? new Date(b.lastActivity).getTime() : 0);
+        case "created":
+        default:         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+    })();
+    return cmp * dir;
+  });
 
   return (
     <div className="max-w-5xl mx-auto w-full p-6">
@@ -90,17 +120,29 @@ export default async function AdminUsersPage({
         </p>
       </div>
 
-      <div className="mb-4">
-        <AdminFilterBar placeholder="Filter nach Email oder Name..." />
+      <div className="mb-4 flex items-stretch gap-2">
+        <div className="flex-1">
+          <AdminFilterBar placeholder="Filter nach Email oder Name..." />
+        </div>
+        <a href={`/api/admin/export/users${q ? `?q=${encodeURIComponent(q)}` : ""}`}
+          className="rounded-xl bg-[#F3EFE2] border border-stone-300 px-3 shadow-sm text-xs font-bold text-stone-700 hover:text-rose-700 hover:border-rose-700 transition-colors flex items-center gap-1.5"
+          title="Sichtbare Zeilen als CSV exportieren">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          CSV
+        </a>
       </div>
 
       <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
         <div className="grid grid-cols-12 gap-2 px-4 py-2.5 text-[11px] uppercase tracking-wide text-stone-600 font-bold border-b border-stone-300 bg-stone-100/60">
-          <div className="col-span-3">Account</div>
-          <div className="col-span-2 text-right">Sessions</div>
-          <div className="col-span-2 text-right">Messages</div>
-          <div className="col-span-2 text-right">Files</div>
-          <div className="col-span-2 text-right">Letzte Aktivität</div>
+          <Link href={sortUrl("account")} className="col-span-3 hover:text-stone-900 transition-colors">Account{sortInd("account")}</Link>
+          <Link href={sortUrl("sessions")} className="col-span-2 text-right hover:text-stone-900 transition-colors">Sessions{sortInd("sessions")}</Link>
+          <Link href={sortUrl("messages")} className="col-span-2 text-right hover:text-stone-900 transition-colors">Messages{sortInd("messages")}</Link>
+          <Link href={sortUrl("files")} className="col-span-2 text-right hover:text-stone-900 transition-colors">Files{sortInd("files")}</Link>
+          <Link href={sortUrl("activity")} className="col-span-2 text-right hover:text-stone-900 transition-colors">Letzte Aktivität{sortInd("activity")}</Link>
           <div className="col-span-1 text-right">Aktion</div>
         </div>
         <ul className="divide-y divide-stone-200">

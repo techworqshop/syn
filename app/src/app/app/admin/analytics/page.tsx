@@ -2,6 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/current-user";
+import { fetchTokenTotals } from "@/lib/n8n-db";
 import AdminError from "@/components/admin/AdminError";
 import AdminFilterBar from "@/components/admin/AdminFilterBar";
 
@@ -51,7 +52,6 @@ export default async function AdminAnalyticsPage({
   type HourRow = { hour: number; user_msgs: number; sessions_started: number };
   type FileCatRow = { category: string; cnt: number; bytes_total: string };
   type DurationRow = { avg_minutes: string | null; median_minutes: string | null; longest_minutes: string | null };
-  type CharRow = { total_chars: string };
 
   let c: Counters;
   let series: SeriesRow[];
@@ -60,7 +60,8 @@ export default async function AdminAnalyticsPage({
   let hours: HourRow[];
   let fileCats: FileCatRow[];
   let duration: DurationRow;
-  let estTokens = 0;
+  let tokens: { input: number; output: number; total: number; calls: number; executions: number } | null = null;
+  let tokensError: string | null = null;
   try {
     const countersRaw = await db.execute<Counters>(sql`
       SELECT
@@ -174,18 +175,19 @@ export default async function AdminAnalyticsPage({
     const dur = durationRaw as unknown as DurationRow[];
     duration = dur[0] ?? { avg_minutes: null, median_minutes: null, longest_minutes: null };
 
-    // --- Token-Schaetzung (Char-Count durch 4 als grobe Annaeherung) ---
-    const charRaw = await db.execute<CharRow>(sql`
-      SELECT (
-        coalesce((SELECT sum(length(content)) FROM messages WHERE created_at ${sinceClause}),0) +
-        coalesce((SELECT sum(length(content)) FROM audience_messages WHERE created_at ${sinceClause}),0)
-      )::bigint AS total_chars
-    `);
-    const chars = charRaw as unknown as CharRow[];
-    estTokens = Math.round(Number(chars[0]?.total_chars ?? 0) / 4);
   } catch (e) {
     console.error("[admin/analytics] DB query failed", e);
     return <AdminError where="Analytics" error={e} />;
+  }
+
+  // Token-Sync aus n8n separat — wenn n8n unerreichbar ist, bricht nicht
+  // die ganze Seite zusammen, sondern wir zeigen nur eine kleine Fehlermeldung
+  // an der Token-Karte.
+  try {
+    tokens = await fetchTokenTotals(sinceISO);
+  } catch (e) {
+    console.error("[admin/analytics] n8n token sync failed", e);
+    tokensError = e instanceof Error ? e.message : "n8n unerreichbar";
   }
 
   const funnelMap = Object.fromEntries(funnel.map(f => [f.stage, f.n]));
@@ -226,7 +228,17 @@ export default async function AdminAnalyticsPage({
         <Card label="Files hochgeladen" value={c.total_files} sub={formatBytes(Number(c.total_bytes ?? 0))} />
         <Card label="Reports generiert" value={c.total_reports} sub="Abschlussberichte (all-time)" />
         <Card label="Ø Session-Dauer" value={duration.avg_minutes ? `${duration.avg_minutes} Min` : "—"} sub={duration.median_minutes ? `Median ${Math.round(Number(duration.median_minutes) * 10) / 10} Min` : undefined} />
-        <Card label="Tokens (gesch.)" value={formatCompact(estTokens)} sub="≈ Zeichen/4 (Anthropic+Gemini I/O)" />
+        <Card
+          label="LLM-Tokens"
+          value={tokens ? formatCompact(tokens.total) : (tokensError ? "—" : "—")}
+          sub={
+            tokens
+              ? `${formatCompact(tokens.input)} in · ${formatCompact(tokens.output)} out · ${tokens.calls} calls`
+              : tokensError
+                ? `n8n nicht erreichbar`
+                : "lade..."
+          }
+        />
       </div>
 
       {/* Funnel */}

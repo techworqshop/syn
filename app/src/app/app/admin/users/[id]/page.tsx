@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { users, sessions, files, messages, audienceMessages } from "@/db/schema";
 import { requireAdmin } from "@/lib/current-user";
+import AdminToggle from "@/components/admin/AdminToggle";
 import { eq, desc, sql } from "drizzle-orm";
 import AdminError from "@/components/admin/AdminError";
 
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 type P = { params: Promise<{ id: string }> };
 
 export default async function AdminUserDetailPage({ params }: P) {
-  await requireAdmin();
+  const me = await requireAdmin();
   try {
   const { id } = await params;
 
@@ -77,6 +78,9 @@ export default async function AdminUserDetailPage({ params }: P) {
           {u.isAdmin && <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full font-bold text-white" style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>Admin</span>}
         </div>
         <div className="text-sm text-stone-600 mt-1">{u.email} · Account erstellt {new Date(u.createdAt).toLocaleString("de-DE")}</div>
+        <div className="mt-3">
+          <AdminToggle userId={u.id} initialIsAdmin={u.isAdmin} isSelf={u.id === me.id} email={u.email} />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
