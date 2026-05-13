@@ -3,12 +3,14 @@ import { invites, users } from "@/db/schema";
 import { requireAdmin } from "@/lib/current-user";
 import { desc, eq } from "drizzle-orm";
 import InvitesClient from "./InvitesClient";
+import AdminError from "@/components/admin/AdminError";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminInvitesPage() {
   await requireAdmin();
 
+  try {
   const rows = await db
     .select({
       id: invites.id,
@@ -88,4 +90,8 @@ export default async function AdminInvitesPage() {
       )}
     </div>
   );
+  } catch (e) {
+    console.error("[admin/invites] failed", e);
+    return <AdminError where="Invites" error={e} />;
+  }
 }

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { sessions, users, files, messages, audienceMessages } from "@/db/schema";
+import { sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/current-user";
-import { desc, eq, sql, gte } from "drizzle-orm";
+import AdminError from "@/components/admin/AdminError";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +21,12 @@ export default async function AdminAnalyticsPage({
   const params = await searchParams;
   const range: Range = (params.range as Range) || "30d";
   const since = rangeStart(range);
+  const daysBack = range === "7d" ? 6 : range === "30d" ? 29 : range === "90d" ? 89 : 29;
 
+  // Range-Klausel als wiederverwendbare SQL-Fragment
   const sinceClause = since ? sql`>= ${since}` : sql`> '1970-01-01'::timestamptz`;
 
-  // Core counters (im Range bzw. all-time)
+  // === DB-Queries in try/catch -- so sehen wir den echten Stack ===
   type Counters = {
     total_users: number;
     total_sessions: number;
@@ -38,55 +40,66 @@ export default async function AdminAnalyticsPage({
     new_users: number;
     new_sessions: number;
   };
-  const countersRaw = await db.execute<Counters>(sql`
-    SELECT
-      (SELECT count(*) FROM users)::int AS total_users,
-      (SELECT count(*) FROM sessions)::int AS total_sessions,
-      (SELECT count(*) FROM sessions WHERE current_round >= 3)::int AS closed_sessions,
-      (SELECT count(*) FROM messages WHERE created_at ${sinceClause})::int AS total_messages,
-      (SELECT count(*) FROM messages WHERE role = 'user' AND created_at ${sinceClause})::int AS user_messages,
-      (SELECT count(*) FROM files)::int AS total_files,
-      (SELECT coalesce(sum(size_bytes),0) FROM files)::bigint AS total_bytes,
-      (SELECT count(*) FROM messages WHERE metadata->>'kind' = 'report')::int AS total_reports,
-      (SELECT count(*) FROM audience_messages WHERE role = 'user' AND created_at ${sinceClause})::int AS total_audience_msgs,
-      (SELECT count(*) FROM users WHERE created_at ${sinceClause})::int AS new_users,
-      (SELECT count(*) FROM sessions WHERE created_at ${sinceClause})::int AS new_sessions
-  `);
-  const counters = countersRaw as unknown as Counters[];
-  const c = counters[0];
-
-  // Sessions per Tag (max 90 buckets)
   type SeriesRow = { day: string; sessions: number; messages: number };
-  const seriesRaw = await db.execute<SeriesRow>(sql`
-    WITH days AS (
-      SELECT generate_series(
-        date_trunc('day', now() - interval '${sql.raw(range === '7d' ? '6' : range === '30d' ? '29' : range === '90d' ? '89' : '29')} days'),
-        date_trunc('day', now()),
-        interval '1 day'
-      ) AS day
-    )
-    SELECT
-      to_char(d.day, 'YYYY-MM-DD') AS day,
-      (SELECT count(*) FROM sessions WHERE date_trunc('day', created_at) = d.day)::int AS sessions,
-      (SELECT count(*) FROM messages WHERE role = 'user' AND date_trunc('day', created_at) = d.day)::int AS messages
-    FROM days d
-    ORDER BY d.day ASC
-  `);
-
-  const series = seriesRaw as unknown as SeriesRow[];
-
-  // Top User by activity (sessions + messages combined score)
   type TopUser = { id: string; email: string; name: string | null; session_count: number; msg_count: number; file_count: number };
-  const topUsersRaw = await db.execute<TopUser>(sql`
-    SELECT u.id, u.email, u.name,
-      (SELECT count(*) FROM sessions s WHERE s.user_id = u.id AND s.created_at ${sinceClause})::int AS session_count,
-      (SELECT count(*) FROM messages m JOIN sessions s ON s.id = m.session_id WHERE s.user_id = u.id AND m.role = 'user' AND m.created_at ${sinceClause})::int AS msg_count,
-      (SELECT count(*) FROM files f JOIN sessions s ON s.id = f.session_id WHERE s.user_id = u.id)::int AS file_count
-    FROM users u
-    ORDER BY session_count DESC, msg_count DESC
-    LIMIT 10
-  `);
-  const topUsers = topUsersRaw as unknown as TopUser[];
+
+  let c: Counters;
+  let series: SeriesRow[];
+  let topUsers: TopUser[];
+  try {
+    const countersRaw = await db.execute<Counters>(sql`
+      SELECT
+        (SELECT count(*) FROM users)::int AS total_users,
+        (SELECT count(*) FROM sessions)::int AS total_sessions,
+        (SELECT count(*) FROM sessions WHERE current_round >= 3)::int AS closed_sessions,
+        (SELECT count(*) FROM messages WHERE created_at ${sinceClause})::int AS total_messages,
+        (SELECT count(*) FROM messages WHERE role = 'user' AND created_at ${sinceClause})::int AS user_messages,
+        (SELECT count(*) FROM files)::int AS total_files,
+        (SELECT coalesce(sum(size_bytes),0) FROM files)::bigint AS total_bytes,
+        (SELECT count(*) FROM messages WHERE metadata->>'kind' = 'report')::int AS total_reports,
+        (SELECT count(*) FROM audience_messages WHERE role = 'user' AND created_at ${sinceClause})::int AS total_audience_msgs,
+        (SELECT count(*) FROM users WHERE created_at ${sinceClause})::int AS new_users,
+        (SELECT count(*) FROM sessions WHERE created_at ${sinceClause})::int AS new_sessions
+    `);
+    const counters = countersRaw as unknown as Counters[];
+    c = counters[0] ?? {
+      total_users: 0, total_sessions: 0, closed_sessions: 0, total_messages: 0,
+      user_messages: 0, total_files: 0, total_bytes: "0", total_reports: 0,
+      total_audience_msgs: 0, new_users: 0, new_sessions: 0
+    };
+
+    // Tages-Serie -- daysBack als Parameter + ::interval-Cast (kein sql.raw mehr in einem String-Literal)
+    const seriesRaw = await db.execute<SeriesRow>(sql`
+      WITH days AS (
+        SELECT generate_series(
+          date_trunc('day', now() - (${daysBack} || ' days')::interval),
+          date_trunc('day', now()),
+          interval '1 day'
+        ) AS day
+      )
+      SELECT
+        to_char(d.day, 'YYYY-MM-DD') AS day,
+        (SELECT count(*) FROM sessions WHERE date_trunc('day', created_at) = d.day)::int AS sessions,
+        (SELECT count(*) FROM messages WHERE role = 'user' AND date_trunc('day', created_at) = d.day)::int AS messages
+      FROM days d
+      ORDER BY d.day ASC
+    `);
+    series = seriesRaw as unknown as SeriesRow[];
+
+    const topUsersRaw = await db.execute<TopUser>(sql`
+      SELECT u.id, u.email, u.name,
+        (SELECT count(*) FROM sessions s WHERE s.user_id = u.id AND s.created_at ${sinceClause})::int AS session_count,
+        (SELECT count(*) FROM messages m JOIN sessions s ON s.id = m.session_id WHERE s.user_id = u.id AND m.role = 'user' AND m.created_at ${sinceClause})::int AS msg_count,
+        (SELECT count(*) FROM files f JOIN sessions s ON s.id = f.session_id WHERE s.user_id = u.id)::int AS file_count
+      FROM users u
+      ORDER BY session_count DESC, msg_count DESC
+      LIMIT 10
+    `);
+    topUsers = topUsersRaw as unknown as TopUser[];
+  } catch (e) {
+    console.error("[admin/analytics] DB query failed", e);
+    return <AdminError where="Analytics" error={e} />;
+  }
 
   const closeRate = c.total_sessions > 0 ? Math.round((c.closed_sessions / c.total_sessions) * 100) : 0;
 

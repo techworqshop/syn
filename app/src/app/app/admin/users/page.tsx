@@ -4,12 +4,14 @@ import { users, sessions, files, messages } from "@/db/schema";
 import { requireAdmin } from "@/lib/current-user";
 import { desc, eq, sql, inArray } from "drizzle-orm";
 import UsersClient from "./UsersClient";
+import AdminError from "@/components/admin/AdminError";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminUsersPage() {
   const me = await requireAdmin();
 
+  try {
   // Alle User
   const allUsers = await db.select({
     id: users.id, email: users.email, name: users.name,
@@ -120,6 +122,10 @@ export default async function AdminUsersPage() {
       </div>
     </div>
   );
+  } catch (e) {
+    console.error("[admin/users] failed", e);
+    return <AdminError where="Users" error={e} />;
+  }
 }
 
 function timeAgo(d: Date): string {

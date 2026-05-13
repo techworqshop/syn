@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { sessions, users } from "@/db/schema";
 import { requireAdmin } from "@/lib/current-user";
 import { desc, eq, sql } from "drizzle-orm";
+import AdminError from "@/components/admin/AdminError";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ export default async function AdminSessionsPage({
   searchParams: Promise<{ status?: string; sort?: string }>
 }) {
   await requireAdmin();
+  try {
   const params = await searchParams;
   const status = params.status || "all"; // all | open | closed
 
@@ -108,6 +110,10 @@ export default async function AdminSessionsPage({
       </div>
     </div>
   );
+  } catch (e) {
+    console.error("[admin/sessions] failed", e);
+    return <AdminError where="Sessions" error={e} />;
+  }
 }
 
 function timeAgo(d: Date): string {

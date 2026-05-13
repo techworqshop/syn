@@ -3,12 +3,14 @@ import { db } from "@/lib/db";
 import { sessions, users, messages } from "@/db/schema";
 import { requireAdmin } from "@/lib/current-user";
 import { desc, eq, sql, and, or, lt } from "drizzle-orm";
+import AdminError from "@/components/admin/AdminError";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminErrorsPage() {
   await requireAdmin();
 
+  try {
   // Letzte 50 system/error messages
   const errs = await db
     .select({
@@ -126,4 +128,8 @@ export default async function AdminErrorsPage() {
       </section>
     </div>
   );
+  } catch (e) {
+    console.error("[admin/errors] failed", e);
+    return <AdminError where="Errors" error={e} />;
+  }
 }

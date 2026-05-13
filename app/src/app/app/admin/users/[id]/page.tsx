@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { users, sessions, files, messages, audienceMessages } from "@/db/schema";
 import { requireAdmin } from "@/lib/current-user";
 import { eq, desc, sql } from "drizzle-orm";
+import AdminError from "@/components/admin/AdminError";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,7 @@ type P = { params: Promise<{ id: string }> };
 
 export default async function AdminUserDetailPage({ params }: P) {
   await requireAdmin();
+  try {
   const { id } = await params;
 
   const [u] = await db.select().from(users).where(eq(users.id, id)).limit(1);
@@ -128,6 +130,10 @@ export default async function AdminUserDetailPage({ params }: P) {
       </div>
     </div>
   );
+  } catch (e) {
+    console.error("[admin/user-detail] failed", e);
+    return <AdminError where="User-Detail" error={e} />;
+  }
 }
 
 function Stat({ label, value, sub }: { label: string; value: number; sub?: string }) {
