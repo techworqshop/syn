@@ -6,10 +6,16 @@ import { desc, eq, sql, inArray } from "drizzle-orm";
 import UsersClient from "./UsersClient";
 import AdminError from "@/components/admin/AdminError";
 
+import AdminFilterBar from "@/components/admin/AdminFilterBar";
+
 export const dynamic = "force-dynamic";
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage({
+  searchParams
+}: { searchParams: Promise<{ q?: string }> }) {
   const me = await requireAdmin();
+  const sp = await searchParams;
+  const q = (sp.q ?? "").trim().toLowerCase();
 
   try {
   // Alle User
@@ -65,11 +71,27 @@ export default async function AdminUsersPage() {
     userMessages: msgById.get(u.id)?.userMessages ?? 0
   }));
 
+  // Filter (client-side post-enrichment, da Mengen klein)
+  const filtered = q
+    ? enriched.filter(u =>
+        u.email.toLowerCase().includes(q) ||
+        (u.name ?? "").toLowerCase().includes(q)
+      )
+    : enriched;
+
   return (
     <div className="max-w-5xl mx-auto w-full p-6">
-      <div className="mb-6">
+      <div className="mb-4">
         <h1 className="text-2xl font-semibold tracking-tight text-stone-900">Users</h1>
-        <p className="text-sm text-stone-600 mt-1">{enriched.length} Accounts insgesamt. Klick einen User um die Detail-Ansicht zu sehen.</p>
+        <p className="text-sm text-stone-600 mt-1">
+          {filtered.length === enriched.length
+            ? <>{enriched.length} Accounts insgesamt. Klick einen User um die Detail-Ansicht zu sehen.</>
+            : <>{filtered.length} von {enriched.length} Accounts gefiltert</>}
+        </p>
+      </div>
+
+      <div className="mb-4">
+        <AdminFilterBar placeholder="Filter nach Email oder Name..." />
       </div>
 
       <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
@@ -82,7 +104,10 @@ export default async function AdminUsersPage() {
           <div className="col-span-1 text-right">Aktion</div>
         </div>
         <ul className="divide-y divide-stone-200">
-          {enriched.map(u => {
+          {filtered.length === 0 && (
+            <li className="p-6 text-sm text-stone-600 text-center">Kein Account passt zum Filter.</li>
+          )}
+          {filtered.map(u => {
             const isSelf = u.id === me.id;
             const last = u.lastActivity ? new Date(u.lastActivity) : null;
             const ago = last ? timeAgo(last) : "—";

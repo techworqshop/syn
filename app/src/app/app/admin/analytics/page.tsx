@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/current-user";
 import AdminError from "@/components/admin/AdminError";
+import AdminFilterBar from "@/components/admin/AdminFilterBar";
 
 export const dynamic = "force-dynamic";
 
@@ -16,10 +17,11 @@ function rangeStart(r: Range): Date | null {
 
 export default async function AdminAnalyticsPage({
   searchParams
-}: { searchParams: Promise<{ range?: Range }> }) {
+}: { searchParams: Promise<{ range?: Range; q?: string }> }) {
   await requireAdmin();
   const params = await searchParams;
   const range: Range = (params.range as Range) || "30d";
+  const q = (params.q ?? "").trim().toLowerCase();
   const since = rangeStart(range);
   const daysBack = range === "7d" ? 6 : range === "30d" ? 29 : range === "90d" ? 89 : 29;
 
@@ -114,14 +116,19 @@ export default async function AdminAnalyticsPage({
           <p className="text-sm text-stone-600 mt-1">Nutzungsdaten · {rangeLabel(range)}</p>
         </div>
         <div className="flex gap-1 rounded-lg bg-stone-200 p-1">
-          {(["7d","30d","90d","all"] as const).map(r => (
-            <Link key={r} href={`/app/admin/analytics?range=${r}`}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                range === r ? "bg-white text-stone-900 shadow-sm" : "text-stone-700 hover:bg-white/60"
-              }`}>
-              {rangeLabel(r)}
-            </Link>
-          ))}
+          {(["7d","30d","90d","all"] as const).map(r => {
+            const url = q
+              ? `/app/admin/analytics?range=${r}&q=${encodeURIComponent(q)}`
+              : `/app/admin/analytics?range=${r}`;
+            return (
+              <Link key={r} href={url}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  range === r ? "bg-white text-stone-900 shadow-sm" : "text-stone-700 hover:bg-white/60"
+                }`}>
+                {rangeLabel(r)}
+              </Link>
+            );
+          })}
         </div>
       </div>
 
@@ -144,8 +151,16 @@ export default async function AdminAnalyticsPage({
       </div>
 
       {/* Top User */}
+      <div className="mb-3">
+        <AdminFilterBar placeholder="Top User filtern (Email oder Name)..." />
+      </div>
+      {(() => {
+        const filtered = q
+          ? topUsers.filter(u => u.email.toLowerCase().includes(q) || (u.name ?? "").toLowerCase().includes(q))
+          : topUsers;
+      return (
       <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
-        <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 px-4 pt-4 pb-2">Top 10 aktive User</h2>
+        <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 px-4 pt-4 pb-2">Top 10 aktive User{q && filtered.length !== topUsers.length ? ` (${filtered.length} gefiltert)` : ""}</h2>
         <div className="grid grid-cols-12 gap-2 px-4 py-2 text-[11px] uppercase tracking-wide text-stone-600 font-bold border-b border-stone-300 bg-stone-100/60">
           <div className="col-span-5">User</div>
           <div className="col-span-2 text-right">Sessions</div>
@@ -154,7 +169,10 @@ export default async function AdminAnalyticsPage({
           <div className="col-span-1 text-right">Aktion</div>
         </div>
         <ul className="divide-y divide-stone-200">
-          {topUsers.map(u => (
+          {filtered.length === 0 && (
+            <li className="p-6 text-sm text-stone-600 text-center">Kein User passt zum Filter.</li>
+          )}
+          {filtered.map(u => (
             <li key={u.id} className="grid grid-cols-12 gap-2 px-4 py-2.5 items-center hover:bg-white/40 transition-colors">
               <div className="col-span-5 min-w-0">
                 <Link href={`/app/admin/users/${u.id}`} className="font-medium text-stone-900 hover:text-rose-800 truncate block transition-colors">
@@ -174,6 +192,8 @@ export default async function AdminAnalyticsPage({
           ))}
         </ul>
       </div>
+      );
+      })()}
     </div>
   );
 }

@@ -4,11 +4,16 @@ import { sessions, users, messages } from "@/db/schema";
 import { requireAdmin } from "@/lib/current-user";
 import { desc, eq, sql, and, or, lt } from "drizzle-orm";
 import AdminError from "@/components/admin/AdminError";
+import AdminFilterBar from "@/components/admin/AdminFilterBar";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminErrorsPage() {
+export default async function AdminErrorsPage({
+  searchParams
+}: { searchParams: Promise<{ q?: string }> }) {
   await requireAdmin();
+  const sp = await searchParams;
+  const q = (sp.q ?? "").trim().toLowerCase();
 
   try {
   // Letzte 50 system/error messages
@@ -86,19 +91,44 @@ export default async function AdminErrorsPage() {
   `);
   const abandoned = abandonedResult as unknown as AbandonedRow[];
 
+  // Filter (client-side post-fetch, da Mengen klein)
+  const stuckFiltered = q
+    ? stuckRaw.filter(r =>
+        r.title.toLowerCase().includes(q) ||
+        r.user_email.toLowerCase().includes(q) ||
+        (r.user_name ?? "").toLowerCase().includes(q))
+    : stuckRaw;
+  const abandonedFiltered = q
+    ? abandoned.filter(r =>
+        r.title.toLowerCase().includes(q) ||
+        r.user_email.toLowerCase().includes(q) ||
+        (r.user_name ?? "").toLowerCase().includes(q))
+    : abandoned;
+  const errsFiltered = q
+    ? errs.filter(e =>
+        e.sessionTitle.toLowerCase().includes(q) ||
+        e.userEmail.toLowerCase().includes(q) ||
+        (e.userName ?? "").toLowerCase().includes(q) ||
+        e.content.toLowerCase().includes(q))
+    : errs;
+
   return (
     <div className="max-w-5xl mx-auto w-full p-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-stone-900 mb-6">Errors &amp; Stuck Sessions</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-stone-900 mb-4">Errors &amp; Stuck Sessions</h1>
+
+      <div className="mb-6">
+        <AdminFilterBar placeholder="Filter nach Email, User-Name, Session-Titel oder Error-Inhalt..." />
+      </div>
 
       <section className="mb-8">
-        <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Stuck Sessions ({stuckRaw.length})</h2>
+        <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Stuck Sessions ({stuckFiltered.length})</h2>
         <p className="text-xs text-stone-600 mb-3">Offene Sessions wo der User auf Antwort wartet (letzte Message vom User, &gt;15 Min inaktiv).</p>
         <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
-          {stuckRaw.length === 0 ? (
+          {stuckFiltered.length === 0 ? (
             <div className="p-6 text-sm text-stone-600 text-center">Keine hängenden Sessions. 👍</div>
           ) : (
             <ul className="divide-y divide-stone-200">
-              {stuckRaw.map(r => (
+              {stuckFiltered.map(r => (
                 <li key={r.id} className="px-4 py-3 hover:bg-white/40 transition-colors">
                   <div className="flex items-baseline justify-between gap-3">
                     <Link href={`/app/admin/sessions/${r.id}`} className="font-medium text-stone-900 truncate hover:text-rose-800 transition-colors">{r.title}</Link>
@@ -118,14 +148,14 @@ export default async function AdminErrorsPage() {
       </section>
 
       <section className="mb-8">
-        <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Verlassene Sessions ({abandoned.length})</h2>
+        <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Verlassene Sessions ({abandonedFiltered.length})</h2>
         <p className="text-xs text-stone-600 mb-3">Sessions die erstellt aber nie geschrieben wurden (keine einzige Message, &gt;1 Std alt).</p>
         <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
-          {abandoned.length === 0 ? (
+          {abandonedFiltered.length === 0 ? (
             <div className="p-6 text-sm text-stone-600 text-center">Keine verlassenen Sessions.</div>
           ) : (
             <ul className="divide-y divide-stone-200">
-              {abandoned.map(r => {
+              {abandonedFiltered.map(r => {
                 const days = Math.round(Number(r.days_idle) * 10) / 10;
                 return (
                   <li key={r.id} className="px-4 py-3 hover:bg-white/40 transition-colors">
@@ -149,11 +179,11 @@ export default async function AdminErrorsPage() {
       <section>
         <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Letzte 50 Errors</h2>
         <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
-          {errs.length === 0 ? (
+          {errsFiltered.length === 0 ? (
             <div className="p-6 text-sm text-stone-600 text-center">Keine Errors. 🎉</div>
           ) : (
             <ul className="divide-y divide-stone-200">
-              {errs.map(e => (
+              {errsFiltered.map(e => (
                 <li key={e.id} className="px-4 py-3 hover:bg-white/40 transition-colors">
                   <div className="flex items-baseline justify-between gap-3 mb-1">
                     <div className="flex items-center gap-2 min-w-0">

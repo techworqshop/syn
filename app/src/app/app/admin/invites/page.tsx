@@ -4,14 +4,19 @@ import { requireAdmin } from "@/lib/current-user";
 import { desc, eq } from "drizzle-orm";
 import InvitesClient from "./InvitesClient";
 import AdminError from "@/components/admin/AdminError";
+import AdminFilterBar from "@/components/admin/AdminFilterBar";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminInvitesPage() {
+export default async function AdminInvitesPage({
+  searchParams
+}: { searchParams: Promise<{ q?: string }> }) {
   await requireAdmin();
+  const sp = await searchParams;
+  const q = (sp.q ?? "").trim().toLowerCase();
 
   try {
-  const rows = await db
+  const rawRows = await db
     .select({
       id: invites.id,
       email: invites.email,
@@ -27,6 +32,13 @@ export default async function AdminInvitesPage() {
     .leftJoin(users, eq(users.id, invites.invitedBy))
     .orderBy(desc(invites.createdAt));
 
+  const rows = q
+    ? rawRows.filter(r =>
+        r.email.toLowerCase().includes(q) ||
+        (r.inviterEmail ?? "").toLowerCase().includes(q) ||
+        (r.inviterName ?? "").toLowerCase().includes(q))
+    : rawRows;
+
   const pending = rows.filter(r => !r.usedAt && new Date(r.expiresAt) >= new Date());
   const used    = rows.filter(r =>  r.usedAt);
   const expired = rows.filter(r => !r.usedAt && new Date(r.expiresAt) <  new Date());
@@ -39,6 +51,9 @@ export default async function AdminInvitesPage() {
       </div>
 
       <InvitesClient />
+
+      <div className="mt-6 mb-2">
+        <AdminFilterBar placeholder="Filter nach Email oder Eingeladen-von..." /></div>
 
       <section className="mt-8 mb-6">
         <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Offene Einladungen ({pending.length})</h2>

@@ -5,17 +5,20 @@ import { requireAdmin } from "@/lib/current-user";
 import { desc, eq, sql } from "drizzle-orm";
 import AdminError from "@/components/admin/AdminError";
 
+import AdminFilterBar from "@/components/admin/AdminFilterBar";
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminSessionsPage({
   searchParams
 }: {
-  searchParams: Promise<{ status?: string; sort?: string }>
+  searchParams: Promise<{ status?: string; sort?: string; q?: string }>
 }) {
   await requireAdmin();
   try {
   const params = await searchParams;
   const status = params.status || "all"; // all | open | closed
+  const q = (params.q ?? "").trim().toLowerCase();
 
   const rows = await db
     .select({
@@ -35,33 +38,53 @@ export default async function AdminSessionsPage({
     .innerJoin(users, eq(users.id, sessions.userId))
     .orderBy(desc(sessions.updatedAt));
 
-  const filtered = status === "open"
+  const byStatus = status === "open"
     ? rows.filter(r => r.currentRound < 3)
     : status === "closed"
       ? rows.filter(r => r.currentRound >= 3)
       : rows;
+  const filtered = q
+    ? byStatus.filter(r =>
+        r.title.toLowerCase().includes(q) ||
+        r.userEmail.toLowerCase().includes(q) ||
+        (r.userName ?? "").toLowerCase().includes(q)
+      )
+    : byStatus;
 
   return (
     <div className="max-w-6xl mx-auto w-full p-6">
-      <div className="mb-6 flex items-end justify-between flex-wrap gap-3">
+      <div className="mb-4 flex items-end justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-stone-900">Sessions</h1>
-          <p className="text-sm text-stone-600 mt-1">{filtered.length} von {rows.length} Sessions</p>
+          <p className="text-sm text-stone-600 mt-1">
+            {filtered.length === rows.length
+              ? <>{rows.length} Sessions</>
+              : <>{filtered.length} von {rows.length} Sessions gefiltert</>}
+          </p>
         </div>
         <div className="flex gap-1 rounded-lg bg-stone-200 p-1">
           {[
             { v: "all", label: "Alle" },
             { v: "open", label: "Offen" },
             { v: "closed", label: "Abgeschlossen" }
-          ].map(opt => (
-            <Link key={opt.v} href={`/app/admin/sessions?status=${opt.v}`}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                status === opt.v ? "bg-white text-stone-900 shadow-sm" : "text-stone-700 hover:bg-white/60"
-              }`}>
-              {opt.label}
-            </Link>
-          ))}
+          ].map(opt => {
+            const url = q
+              ? `/app/admin/sessions?status=${opt.v}&q=${encodeURIComponent(q)}`
+              : `/app/admin/sessions?status=${opt.v}`;
+            return (
+              <Link key={opt.v} href={url}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  status === opt.v ? "bg-white text-stone-900 shadow-sm" : "text-stone-700 hover:bg-white/60"
+                }`}>
+                {opt.label}
+              </Link>
+            );
+          })}
         </div>
+      </div>
+
+      <div className="mb-4">
+        <AdminFilterBar placeholder="Filter nach Session-Titel, User-Email oder Name..." />
       </div>
 
       <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
