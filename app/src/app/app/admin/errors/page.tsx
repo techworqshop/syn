@@ -44,6 +44,8 @@ export default async function AdminErrorsPage() {
     user_id: string; user_email: string; user_name: string | null;
     last_role: string; minutes_idle: number;
   };
+  // Echte stuck-Sessions: User hat geschrieben + Agent hat nicht geantwortet + >15 Min idle.
+  // Setzt voraus dass min. eine User-Message existiert.
   const stuckRawResult = await db.execute<StuckRow>(sql`
     WITH last_msg AS (
       SELECT DISTINCT ON (session_id) session_id, role, created_at
@@ -56,14 +58,33 @@ export default async function AdminErrorsPage() {
            EXTRACT(EPOCH FROM (now() - s.updated_at))/60 AS minutes_idle
     FROM sessions s
     JOIN users u ON u.id = s.user_id
-    LEFT JOIN last_msg lm ON lm.session_id = s.id
+    JOIN last_msg lm ON lm.session_id = s.id
     WHERE s.current_round < 3
       AND s.updated_at < now() - interval '15 minutes'
-      AND (lm.role = 'user' OR lm.role IS NULL)
+      AND lm.role = 'user'
     ORDER BY s.updated_at DESC
     LIMIT 20
   `);
   const stuckRaw = stuckRawResult as unknown as StuckRow[];
+
+  // Abandoned: erstellt aber nie befuellt -- keine einzige Message.
+  type AbandonedRow = {
+    id: string; title: string; created_at: Date;
+    user_id: string; user_email: string; user_name: string | null;
+    days_idle: number;
+  };
+  const abandonedResult = await db.execute<AbandonedRow>(sql`
+    SELECT s.id, s.title, s.created_at,
+           u.id AS user_id, u.email AS user_email, u.name AS user_name,
+           EXTRACT(EPOCH FROM (now() - s.created_at))/86400 AS days_idle
+    FROM sessions s
+    JOIN users u ON u.id = s.user_id
+    WHERE NOT EXISTS (SELECT 1 FROM messages m WHERE m.session_id = s.id)
+      AND s.created_at < now() - interval '1 hour'
+    ORDER BY s.created_at ASC
+    LIMIT 30
+  `);
+  const abandoned = abandonedResult as unknown as AbandonedRow[];
 
   return (
     <div className="max-w-5xl mx-auto w-full p-6">
@@ -91,6 +112,35 @@ export default async function AdminErrorsPage() {
                   </div>
                 </li>
               ))}
+            </ul>
+          )}
+        </div>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Verlassene Sessions ({abandoned.length})</h2>
+        <p className="text-xs text-stone-600 mb-3">Sessions die erstellt aber nie geschrieben wurden (keine einzige Message, &gt;1 Std alt).</p>
+        <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
+          {abandoned.length === 0 ? (
+            <div className="p-6 text-sm text-stone-600 text-center">Keine verlassenen Sessions.</div>
+          ) : (
+            <ul className="divide-y divide-stone-200">
+              {abandoned.map(r => {
+                const days = Math.round(Number(r.days_idle) * 10) / 10;
+                return (
+                  <li key={r.id} className="px-4 py-3 hover:bg-white/40 transition-colors">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <Link href={`/app/admin/sessions/${r.id}`} className="font-medium text-stone-800 truncate hover:text-rose-800 transition-colors">{r.title}</Link>
+                      <div className="text-xs text-stone-600 shrink-0">vor {days} Tag{days === 1 ? "" : "en"} erstellt</div>
+                    </div>
+                    <div className="text-xs text-stone-600 mt-0.5">
+                      <Link href={`/app/admin/users/${r.user_id}`} className="hover:text-rose-800 transition-colors">
+                        {r.user_name || r.user_email}
+                      </Link>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
