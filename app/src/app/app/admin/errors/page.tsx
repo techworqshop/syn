@@ -80,7 +80,7 @@ export default async function AdminErrorsPage() {
               {stuckRaw.map(r => (
                 <li key={r.id} className="px-4 py-3 hover:bg-white/40 transition-colors">
                   <div className="flex items-baseline justify-between gap-3">
-                    <div className="font-medium text-stone-900 truncate">{r.title}</div>
+                    <Link href={`/app/admin/sessions/${r.id}`} className="font-medium text-stone-900 truncate hover:text-rose-800 transition-colors">{r.title}</Link>
                     <div className="text-xs text-red-700 font-medium shrink-0">{Math.round(r.minutes_idle)} Min idle</div>
                   </div>
                   <div className="text-xs text-stone-600 mt-0.5">
@@ -110,7 +110,7 @@ export default async function AdminErrorsPage() {
                       <span className="text-[9px] uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-700/40 font-bold shrink-0">
                         {e.role === "system" ? "SYS" : "ERR"}
                       </span>
-                      <span className="font-medium text-stone-900 truncate">{e.sessionTitle}</span>
+                      <Link href={`/app/admin/sessions/${e.sessionId}`} className="font-medium text-stone-900 truncate hover:text-rose-800 transition-colors">{e.sessionTitle}</Link>
                     </div>
                     <div className="text-xs text-stone-500 shrink-0">{new Date(e.createdAt).toLocaleString("de-DE")}</div>
                   </div>

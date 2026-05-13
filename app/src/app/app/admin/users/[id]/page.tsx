@@ -94,16 +94,18 @@ export default async function AdminUserDetailPage({ params }: P) {
         ) : (
           <ul className="divide-y divide-stone-200">
             {userSessions.map(s => (
-              <li key={s.id} className="px-4 py-3 hover:bg-white/40 transition-colors flex items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-stone-900 truncate">{s.title}</div>
-                  <div className="text-xs text-stone-600 mt-0.5">
-                    Runde {s.currentRound} · {s.personaCount} Personas · Aktualisiert {new Date(s.updatedAt).toLocaleString("de-DE")}
+              <li key={s.id}>
+                <Link href={`/app/admin/sessions/${s.id}`} className="px-4 py-3 hover:bg-white/40 transition-colors flex items-center gap-3 group">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-stone-900 truncate group-hover:text-rose-800 transition-colors">{s.title}</div>
+                    <div className="text-xs text-stone-600 mt-0.5">
+                      Runde {s.currentRound} · {s.personaCount} Personas · Aktualisiert {new Date(s.updatedAt).toLocaleString("de-DE")}
+                    </div>
                   </div>
-                </div>
-                {s.currentRound >= 3 && (
-                  <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full font-bold text-white" style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>Abgeschlossen</span>
-                )}
+                  {s.currentRound >= 3 && (
+                    <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full font-bold text-white" style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>Abgeschlossen</span>
+                  )}
+                </Link>
               </li>
             ))}
           </ul>

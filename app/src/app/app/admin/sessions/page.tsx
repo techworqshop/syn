@@ -81,7 +81,7 @@ export default async function AdminSessionsPage({
               <li key={r.id} className="grid grid-cols-12 gap-2 px-4 py-2.5 items-center hover:bg-white/40 transition-colors">
                 <div className="col-span-4 min-w-0">
                   <div className="flex items-center gap-2">
-                    <div className="font-medium text-stone-900 truncate">{r.title}</div>
+                    <Link href={`/app/admin/sessions/${r.id}`} className="font-medium text-stone-900 truncate hover:text-rose-800 transition-colors">{r.title}</Link>
                     {closed && (
                       <span className="text-[9px] uppercase tracking-wide px-1.5 py-0.5 rounded-full font-bold text-white shrink-0"
                         style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>Done</span>

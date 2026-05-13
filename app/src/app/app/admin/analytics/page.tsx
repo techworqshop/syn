@@ -24,7 +24,10 @@ export default async function AdminAnalyticsPage({
   const daysBack = range === "7d" ? 6 : range === "30d" ? 29 : range === "90d" ? 89 : 29;
 
   // Range-Klausel als wiederverwendbare SQL-Fragment
-  const sinceClause = since ? sql`>= ${since}` : sql`> '1970-01-01'::timestamptz`;
+  // postgres-js will pass a Date object as-is, which Buffer.byteLength chokes on.
+  // Convert to ISO string + cast to timestamptz on the SQL side.
+  const sinceISO = since ? since.toISOString() : null;
+  const sinceClause = sinceISO ? sql`>= ${sinceISO}::timestamptz` : sql`> '1970-01-01'::timestamptz`;
 
   // === DB-Queries in try/catch -- so sehen wir den echten Stack ===
   type Counters = {
