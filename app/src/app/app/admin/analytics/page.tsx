@@ -60,7 +60,11 @@ export default async function AdminAnalyticsPage({
   let hours: HourRow[];
   let fileCats: FileCatRow[];
   let duration: DurationRow;
-  let tokens: { input: number; output: number; total: number; calls: number; executions: number } | null = null;
+  let tokens: {
+    input: number; output: number; total: number; calls: number; executions: number;
+    costUsd: number;
+    byModel: Array<{ family: string; raw_model: string; input: number; output: number; calls: number; cost_usd: number }>;
+  } | null = null;
   let tokensError: string | null = null;
   try {
     const countersRaw = await db.execute<Counters>(sql`
@@ -230,7 +234,7 @@ export default async function AdminAnalyticsPage({
         <Card label="Ø Session-Dauer" value={duration.avg_minutes ? `${duration.avg_minutes} Min` : "—"} sub={duration.median_minutes ? `Median ${Math.round(Number(duration.median_minutes) * 10) / 10} Min` : undefined} />
         <Card
           label="LLM-Tokens"
-          value={tokens ? formatCompact(tokens.total) : (tokensError ? "—" : "—")}
+          value={tokens ? formatCompact(tokens.total) : "—"}
           sub={
             tokens
               ? `${formatCompact(tokens.input)} in · ${formatCompact(tokens.output)} out · ${tokens.calls} calls`
@@ -238,6 +242,11 @@ export default async function AdminAnalyticsPage({
                 ? `n8n nicht erreichbar`
                 : "lade..."
           }
+        />
+        <Card
+          label="LLM-Kosten (geschätzt)"
+          value={tokens ? `$${tokens.costUsd.toFixed(2)}` : "—"}
+          sub={tokens ? `≈ €${(tokens.costUsd * 0.93).toFixed(2)} · alle Modelle` : tokensError ? "n8n nicht erreichbar" : "lade..."}
         />
       </div>
 
@@ -276,6 +285,39 @@ export default async function AdminAnalyticsPage({
           <FileCatList rows={fileCats} />
         </div>
       </div>
+
+      {/* LLM-Kosten pro Modell */}
+      {tokens && tokens.byModel.length > 0 && (
+        <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm mb-6">
+          <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 px-4 pt-4 pb-2">
+            Tokens & Kosten pro Modell
+          </h2>
+          <div className="grid grid-cols-12 gap-2 px-4 py-2 text-[11px] uppercase tracking-wide text-stone-600 font-bold border-b border-stone-300 bg-stone-100/60">
+            <div className="col-span-4">Modell</div>
+            <div className="col-span-2 text-right">Calls</div>
+            <div className="col-span-2 text-right">Input</div>
+            <div className="col-span-2 text-right">Output</div>
+            <div className="col-span-2 text-right">Kosten (USD)</div>
+          </div>
+          <ul className="divide-y divide-stone-200">
+            {tokens.byModel.map(m => (
+              <li key={m.family + m.raw_model} className="grid grid-cols-12 gap-2 px-4 py-2.5 items-center">
+                <div className="col-span-4 min-w-0">
+                  <div className="font-medium text-stone-900 truncate">{m.family}</div>
+                  <div className="text-[10px] text-stone-500 truncate" title={m.raw_model}>{m.raw_model}</div>
+                </div>
+                <div className="col-span-2 text-right text-sm text-stone-700">{m.calls}</div>
+                <div className="col-span-2 text-right text-sm text-stone-700">{formatCompact(m.input)}</div>
+                <div className="col-span-2 text-right text-sm text-stone-700">{formatCompact(m.output)}</div>
+                <div className="col-span-2 text-right text-sm text-stone-900 font-semibold">${m.cost_usd.toFixed(2)}</div>
+              </li>
+            ))}
+          </ul>
+          <div className="px-4 py-2 text-[11px] text-stone-500 border-t border-stone-200">
+            Schätzung basierend auf öffentlichen API-Preisen Q1 2026 (USD per Million Tokens). Unbekannte Modelle = 0 €.
+          </div>
+        </div>
+      )}
 
       {/* Top User */}
       <div className="mb-3">
