@@ -255,35 +255,268 @@ Alle Tabs: einheitliche Filter-Bar (Email/Name/Titel-Substring), Sort per Header
 
 ## 8. Color & Design System
 
-Komplette UI-Redesign vor zwei Tagen — natürliche Erdtöne, keine synthetischen Farben, WhatsApp-Pattern.
+Natürliche Erdtöne, „Boho-Office mit Pflanzen", WhatsApp-Layout. **Keine** synthetischen Farben (kein Türkis, Lila, Pink, Fuchsia außer dem Syn-Brand-Gradient).
 
-**Surfaces:**
-- Background: Linen `#E8E2D2`
-- Cards: Card Cream `#F3EFE2`
-- Text: Ink `#1F2420`
+### 8.1 Color Tokens
 
-**Persona-Slots (Top-Bottom-Gradient für Edge + Avatar):**
+**Surface-Farben:**
 
-| Slot | Family | Top | Bottom |
-|---|---|---|---|
-| 1 | Crimson | #E55260 | #B82338 |
-| 2 | Deep Emerald | #3A7E58 | #144A2C |
-| 3 | Orange Glow | #F26A38 | #C53E0F |
-| 4 | Mustard | #DBA947 | #A77E22 |
-| 5 | Bordeaux | #913B4F | #4F1A28 |
+| Token | Hex | Verwendung |
+|---|---|---|
+| `--bg-0` Linen | `#E8E2D2` | App-Hintergrund |
+| `--bg-1` Card Cream | `#F3EFE2` | Bubble + Card-Base |
+| `--bg-2` | `#DDD3BC` | Akzent-Hintergrund |
+| `--fg-0` Ink | `#1F2420` | Primärer Text |
+| `--fg-1` | `#4A4640` | Sekundärer Text |
+| `--fg-2` | `#7A7268` | Tertiärer Text / Meta |
+| `--accent` | `#BE123C` | Syn-Brand (rose-700 äquivalent) |
+
+**Body-Background-Gradient** (gedämpfte Natur-Töne):
+```css
+background:
+  radial-gradient(ellipse 900px 700px at 12% 8%, rgba(101,134,70,0.10), transparent 60%),
+  radial-gradient(ellipse 1000px 800px at 88% 32%, rgba(214,165,88,0.09), transparent 60%),
+  radial-gradient(ellipse 800px 600px at 50% 95%, rgba(143,122,80,0.10), transparent 60%),
+  var(--bg-0);
+```
+
+**Persona-Slot-Gradienten** (jeweils [top, bottom] für Edge-Stripe + Avatar):
+
+| Slot | Family | Top | Bottom | Tailwind-Approx |
+|---|---|---|---|---|
+| 1 | Crimson (Terracotta) | `#E55260` | `#B82338` | rose-500 → red-800 |
+| 2 | Deep Emerald (Sage) | `#3A7E58` | `#144A2C` | green-700 → emerald-950 |
+| 3 | Orange Glow | `#F26A38` | `#C53E0F` | orange-500 → orange-800 |
+| 4 | Mustard (Honig) | `#DBA947` | `#A77E22` | amber-500 → yellow-800 |
+| 5 | Bordeaux (Wein) | `#913B4F` | `#4F1A28` | rose-800 → rose-950 |
 
 **Role-Akzente:**
-- User: Mint Teal #9CCABF → #5FA28F
-- Syn (Coordinator): Purple-Rose #4C1D95 → #BE123C ← Brand-Identity
-- Synthese: Amber #B45309 → #78350F
-- Primary CTA (btn-primary): Purple → Rose → Red (Syn-Brand-Gradient)
 
-**Layout:**
-- Bubble max-width 85%
-- Edge-Accent als 4px-Streifen mit vertikalem Color-Color-Gradient
-- Avatare rund mit gleichem Gradient
-- Bubble-Background **uniform** Card-Cream — kein Color→Weiß-Verlauf darin
-- Sidebar links (mit Rail-Mode collapse), Topbar dünn
+| Role | Top | Bottom | Hinweis |
+|---|---|---|---|
+| User | `#9CCABF` | `#5FA28F` | Mint Teal — einziger nicht-Erdton |
+| Coordinator (Syn) | `#4C1D95` | `#BE123C` | Brand-Identity Logo-Verlauf |
+| Synthese | `#B45309` | `#78350F` | Warm Amber |
+| Error | `#FCA5A5` | `#7F1D1D` | red-300 → red-900 |
+
+**Status-Akzente:**
+
+| Status | Color |
+|---|---|
+| Erfolg / Done | Syn-Brand (`#4C1D95 → #BE123C`) — z.B. „Abgeschlossen"-Pill |
+| Briefing-Kategorie | Yellow `bg-yellow-200 border-yellow-700 text-yellow-950` |
+| Persona-Daten-Kategorie | Deep Emerald `bg-emerald-900/15 border-emerald-900/60 text-emerald-950` |
+| Panel-Review-Kategorie | Orange `bg-orange-200 border-orange-700 text-orange-950` |
+| Warning | red-700 / red-100 |
+
+### 8.2 Typografie
+
+- **Font-Family:** Inter (system-ui fallback), `font-feature-settings: "ss01", "cv11"`
+- **Antialias:** `-webkit-font-smoothing: antialiased`
+
+**Hierarchie:**
+
+| Element | Size | Weight | Color | Tracking |
+|---|---|---|---|---|
+| H1 Page-Title | 24–28px (`text-2xl/3xl`) | 600 | `text-stone-900` | tracking-tight |
+| H2 Section | 14–16px | 700, uppercase | `text-stone-700` | tracking-wide |
+| Body | 14–15px (`text-sm/[15px]`) | 400 | `text-stone-800` | normal |
+| Meta / Caption | 11–12px (`text-xs`) | 500–700 | `text-stone-500/600` | tracking-wide bei uppercase |
+| Bubble-Label | 14px | 600 | Akzent-Bottom-Stop | normal |
+| Timestamps | 12px | 400 | `text-stone-500` | normal |
+
+### 8.3 Spacing & Radius
+
+- **Border-Radius:**
+  - Bubbles + große Cards: `1.25rem` (20px) — `rounded-2xl`
+  - Mid-Cards: `0.75rem` — `rounded-xl`
+  - Small / Pills: `0.5rem`–`0.75rem`
+  - Avatare: `rounded-full`
+- **Padding-Pattern:**
+  - Page-Container: `p-6` mit `max-w-5xl/6xl mx-auto`
+  - Cards: `p-5`
+  - Bubble-Body: `py-3 px-4` (plus 1.25rem extra left/right für Edge-Stripe)
+  - Top-Bar / Chat-Header: `py-1.5 px-6` (bewusst dünn)
+- **Gap:**
+  - Avatar↔Bubble: `gap-3`
+  - Inline-Pills: `gap-2`
+  - Card-Grids: `gap-3`
+
+### 8.4 Shadows
+
+```css
+/* Bubble-Drop-Shadow (subtil) */
+box-shadow: 0 4px 16px -8px rgba(31,36,32,0.14);
+
+/* Glass-Header */
+box-shadow: 0 8px 32px -12px rgba(60,40,20,0.12);
+
+/* Pill / Card */
+box-shadow: 0 4px 24px -8px rgba(60,40,20,0.10);
+
+/* Primary Button (Syn-Brand) */
+box-shadow: 0 8px 24px -6px rgba(76,29,149,0.40),
+            inset 0 1px 0 rgba(255,255,255,0.18);
+```
+
+### 8.5 Glass Utilities
+
+```css
+.glass {
+  background: linear-gradient(135deg, rgba(255,253,247,0.70), rgba(243,239,226,0.55));
+  backdrop-filter: blur(24px) saturate(1.6);
+  border-bottom: 1px solid rgba(255,255,255,0.5);
+}
+.glass-card {
+  background: linear-gradient(135deg, rgba(255,253,247,0.55), rgba(243,239,226,0.40));
+  backdrop-filter: blur(20px) saturate(1.5);
+  border: 1px solid rgba(255,255,255,0.55);
+}
+.glass-pill {
+  background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(243,239,226,0.45));
+  backdrop-filter: blur(14px) saturate(1.4);
+  border: 1px solid rgba(255,255,255,0.6);
+}
+```
+
+### 8.6 Component-Rezepte
+
+**Bubble-Card** (User-side: `.bubble-card-right`):
+```css
+.bubble-card {
+  position: relative;
+  background-color: #F3EFE2;     /* uniform — KEIN Color→Weiß-Verlauf */
+  color: #1F2420;
+  border-radius: 1.25rem;
+  padding-left: 1.25rem;          /* Platz für 4px Edge-Stripe */
+  box-shadow: 0 4px 16px -8px rgba(31,36,32,0.14);
+  overflow: hidden;               /* clip ::before zur Rundung */
+}
+.bubble-card::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--edge-top), var(--edge-bottom));
+}
+.bubble-card-right { padding-left: 1rem; padding-right: 1.25rem; }
+.bubble-card-right::before { left: auto; right: 0; }
+```
+Inline: `style={{ '--edge-top': hexTop, '--edge-bottom': hexBottom }}` — Edge-Color pro Persona.
+
+**Avatar-Kreis** (gleicher Color-Color-Gradient):
+```jsx
+<div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold ring-1 ring-white/40"
+     style={{ background: `linear-gradient(180deg, ${top}, ${bottom})` }}>
+  {initials}
+</div>
+```
+
+**Primary CTA Button:**
+```css
+.btn-primary {
+  background: linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%);
+  color: #fff;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  box-shadow: 0 8px 24px -6px rgba(76,29,149,0.40), inset 0 1px 0 rgba(255,255,255,0.18);
+  transition: filter 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.btn-primary:hover { filter: brightness(1.10); }
+.btn-primary:active { transform: translateY(1px); }
+```
+
+**Pill (Status / Done):**
+```jsx
+<span className="inline-flex px-2 py-0.5 rounded-full text-white font-bold text-[10px] uppercase tracking-wide"
+      style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>
+  Abgeschlossen
+</span>
+```
+
+**Pill (Kategorie / Tag, hell):**
+```jsx
+<span className="inline-block px-2 py-0.5 rounded-full border font-bold text-[11px] uppercase tracking-wide
+                 bg-yellow-200 text-yellow-950 border-yellow-700">
+  Briefing
+</span>
+```
+
+**Card-Container (allgemein):**
+```jsx
+<div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] p-5 shadow-sm">
+  ...
+</div>
+```
+
+**Filter-Bar / Search-Input:**
+```jsx
+<div className="rounded-xl bg-[#F3EFE2] border border-stone-300 px-3 py-2 shadow-sm flex items-center gap-2">
+  <SearchIcon className="w-4 h-4 text-stone-500" />
+  <input className="flex-1 bg-transparent text-sm text-stone-900 placeholder:text-stone-500 focus:outline-none" />
+</div>
+```
+
+**Range-Slider (Rigidity, mit Color-Verlauf-Track):**
+```css
+.rigidity-slider {
+  -webkit-appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--edge-top), var(--edge-bottom));
+}
+.rigidity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #FFF;
+  border: 2px solid var(--edge-bottom);
+}
+```
+
+### 8.7 Layout-Pattern
+
+- **Chat (WhatsApp-Style):** User-Bubbles rechts via `flex-row-reverse`, Persona-Bubbles links. Bubble max-width `85%`. Avatar `w-10 h-10` außen.
+- **Sidebar:** Links (vor dem Chat-Container), `w-72` expanded, `w-14` rail-collapsed. Toggle persistiert in `localStorage` (`syn.sidebar.collapsed`).
+- **Top-Bar:** `py-1.5` für minimal Vertikal-Eat. Logo links (Avatar + Syn-Schriftzug in `text-red-700`), User-Email + Admin-Link + Logout rechts.
+- **Admin-Page:** Tab-Bar oben, Active-Tab mit Syn-Brand-Gradient `bg`, weiß Text. Content `max-w-6xl mx-auto p-6`.
+
+### 8.8 Branding-Recap
+
+- **Logo:** Cream-farbiger Kreis mit lila-rotem Verlauf-„Y" (Syn-Avatar PNG unter `/api/assets/syn-avatar`)
+- **Brand-Gradient (Logo / Primary-Action):** `linear-gradient(180deg, #4C1D95, #BE123C)` — Purple-900 → Rose-700
+- **Brand-Text-Color:** `#BE123C` (rose-700), Hover `#B91C1C`
+- **Tone-of-Voice (Copy):**
+  - Direkt, kein Marketing-Sprech
+  - „Du"-Form auf Deutsch
+  - Keine Emojis im Body (außer 🔒 für Lock, 📄 für PDF — funktionale Indikatoren)
+  - Cleane Mikrokopie („Hol dir gerne in der Zwischenzeit einen Kaffee" statt „dauert länger als erwartet")
+  - Tech-Wörter vermeiden bei User-facing („Diskussion abgeschlossen" statt „Session locked")
+
+### 8.9 Don'ts
+
+- ❌ **Kein** Color→Weiß-Gradient innerhalb der Bubbles — der Edge-Streifen trägt die Identität
+- ❌ **Kein** Türkis, Pink, Fuchsia, Lila außerhalb des Syn-Brand-Verlaufs
+- ❌ **Kein** stark-weißer Background — immer Card Cream `#F3EFE2` für hellste Surfaces
+- ❌ **Kein** Drop-Shadow > 0.20 Opacity — alles bleibt soft
+- ❌ **Kein** uppercase headlines außer kurz für Section-Labels (`text-[11px] uppercase tracking-wide font-bold`)
+- ❌ **Keine** harten 90°-Ecken bei Cards — immer `rounded-xl/2xl`
+
+### 8.10 Schnell-Lookup für Landing-Pages
+
+Wenn du eine neue Landing-Page in Syn-Style baust, häufigste Elemente:
+
+| Element | Snippet |
+|---|---|
+| Hero-BG | `bg-[#E8E2D2]` + Radial-Gradient-Stack aus 8.1 |
+| Card | `rounded-2xl border border-stone-300 bg-[#F3EFE2] p-5 shadow-sm` |
+| CTA Button | `.btn-primary` (Syn-Brand) oder Mint-Teal-Gradient für sekundäre |
+| Heading | `text-3xl font-semibold tracking-tight text-stone-900` |
+| Subheading | `text-sm text-stone-600` |
+| Section-Label | `text-xs uppercase tracking-wide text-stone-700 font-bold` |
+| Stat-Card | siehe Admin-Analytics `<Card>` — label + value + sub |
+| Persona-Showcase | Avatar mit gradient + Name in Bottom-Stop-Color + Edge-Stripe-Card |
 
 ---
 
