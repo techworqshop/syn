@@ -40,7 +40,7 @@ export default async function AuthShell({ children, navRight, locale: providedLo
           borderBottom: "1px solid rgba(255,255,255,0.5)"
         }}
       >
-        <Link href="/landing" className="flex items-center gap-2.5 group" aria-label="Zur Startseite">
+        <Link href="/" className="flex items-center gap-2.5 group" aria-label="Zur Startseite">
           <img
             src="/api/assets/syn-avatar"
             alt="Syn"
@@ -79,9 +79,9 @@ export default async function AuthShell({ children, navRight, locale: providedLo
       <footer className="px-8 py-6 flex justify-center gap-6 text-xs" style={{ color: "#7A7268" }}>
         {footer ?? (
           <>
-            <Link href="/landing#impressum" className="hover:text-stone-900 transition-colors">Impressum</Link>
-            <Link href="/landing#datenschutz" className="hover:text-stone-900 transition-colors">Datenschutz</Link>
-            <Link href="/landing#agb" className="hover:text-stone-900 transition-colors">AGB</Link>
+            <Link href="/#impressum" className="hover:text-stone-900 transition-colors">Impressum</Link>
+            <Link href="/#datenschutz" className="hover:text-stone-900 transition-colors">Datenschutz</Link>
+            <Link href="/#agb" className="hover:text-stone-900 transition-colors">AGB</Link>
           </>
         )}
       </footer>
