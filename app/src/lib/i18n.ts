@@ -86,6 +86,28 @@ export const DICT: Dict = {
   "reset.failed":         { de: "Passwort konnte nicht gespeichert werden. Bitte spaeter erneut versuchen.", en: "Could not save password. Please try again later." },
 
   // ============================================================
+  // Email-Verification
+  // ============================================================
+  "verify.title":            { de: "Bestaetige deine E-Mail",            en: "Confirm your email" },
+  "verify.sub1":              { de: "Wir haben dir einen Link an",        en: "We've sent a link to" },
+  "verify.sub2":              { de: "geschickt. Klick drauf, dann geht's los.", en: ". Click it to get started." },
+  "verify.yourEmail":         { de: "deine E-Mail",                       en: "your email" },
+  "verify.helper":            { de: "Mail kommt manchmal mit ein paar Sekunden Verzoegerung. Schau auch im Spam-Ordner nach.", en: "Email can arrive with a few seconds delay. Check your spam folder too." },
+  "verify.resend":            { de: "Mail erneut senden",                 en: "Resend email" },
+  "verify.resent":            { de: "Erneut gesendet ✓",                  en: "Resent ✓" },
+  "verify.resendFailed":      { de: "Konnte nicht erneut gesendet werden. Spaeter versuchen.", en: "Could not resend. Try again later." },
+  "verify.notLoggedIn":       { de: "Bitte zuerst einloggen.",            en: "Please sign in first." },
+  "verify.wrongAddress":      { de: "Falsche Adresse?",                   en: "Wrong address?" },
+  "verify.registerDifferent": { de: "Anders registrieren",                en: "Register differently" },
+  "verify.logout":            { de: "Abmelden",                           en: "Sign out" },
+  "verify.invalidTitle":      { de: "Link ungueltig oder abgelaufen",     en: "Link invalid or expired" },
+  "verify.invalidBody":      { de: "Dieser Bestaetigungs-Link funktioniert nicht mehr. Logg dich ein und fordere einen neuen an.", en: "This verification link no longer works. Sign in and request a new one." },
+  "verify.requestAgain":      { de: "Neuen Link anfordern",               en: "Request new link" },
+  "verify.successTitle":      { de: "E-Mail bestaetigt",                  en: "Email confirmed" },
+  "verify.successBody":       { de: "Dein Account ist jetzt aktiv. Willkommen.", en: "Your account is now active. Welcome." },
+  "verify.toDashboard":       { de: "Zum Dashboard",                      en: "Go to dashboard" },
+
+  // ============================================================
   // Dashboard
   // ============================================================
   "dashboard.title":       { de: "Fokusgruppen",                                   en: "Focus groups" },

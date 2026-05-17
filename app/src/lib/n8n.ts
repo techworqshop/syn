@@ -152,3 +152,21 @@ export async function sendPasswordResetEmail(payload: {
     return res.ok;
   } catch { return false; }
 }
+
+// Email-Verification-Mail via n8n. Wie oben: ohne Hook nur Log.
+const VERIFY_HOOK = process.env.SYNWEB_VERIFY_EMAIL_WEBHOOK || "";
+
+export async function sendVerificationEmail(payload: {
+  recipientEmail: string;
+  verifyUrl: string;
+}) {
+  if (!VERIFY_HOOK) return false;
+  try {
+    const res = await fetch(VERIFY_HOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    return res.ok;
+  } catch { return false; }
+}
