@@ -4,8 +4,8 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Syn — Bestellung bestätigen" };
 
 // Pre-Checkout-Confirmation. Aktuell Placeholder mit hartkodiertem
-// Pro-Plan; sobald Stripe verdrahtet ist, kommt der Plan-Slug ueber
-// SearchParams (?plan=pro) und die Totals dynamisch aus dem Stripe-Preis.
+// Pro-Plan; sobald Chargebee verdrahtet ist, kommt der Plan-Slug ueber
+// SearchParams (?plan=pro) und die Totals dynamisch aus dem Chargebee-Preis.
 export default function CheckoutPage() {
   return (
     <main
@@ -38,7 +38,7 @@ export default function CheckoutPage() {
             style={{ height: "4px", background: "linear-gradient(90deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }} />
           <div className="px-8 pt-10 pb-8">
             <h1 className="text-2xl font-semibold tracking-tight mb-1.5" style={{ color: "#1F2420" }}>Bestellung bestätigen</h1>
-            <p className="text-sm mb-7" style={{ color: "#7A7268" }}>Im nächsten Schritt öffnet sich Stripe für die Zahlung.</p>
+            <p className="text-sm mb-7" style={{ color: "#7A7268" }}>Im nächsten Schritt öffnet sich Chargebee für die Zahlung.</p>
 
             {/* Plan-Karte */}
             <div className="relative overflow-hidden rounded-2xl mb-5 px-6 py-5"
@@ -92,16 +92,16 @@ export default function CheckoutPage() {
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
               <p className="text-[12.5px] leading-relaxed m-0" style={{ color: "#4A4640" }}>
-                Die Zahlung läuft über Stripe. Wir speichern keine Kreditkartendaten. Du kannst dein Abo jederzeit in den Einstellungen kündigen.
+                Die Zahlung läuft über Chargebee. Wir speichern keine Kreditkartendaten. Du kannst dein Abo jederzeit in den Einstellungen kündigen.
               </p>
             </div>
 
-            {/* CTA — noch ohne Stripe-Verdrahtung; Placeholder */}
+            {/* CTA — noch ohne Chargebee-Verdrahtung; Placeholder */}
             <button
               className="w-full text-white border-none rounded-[11px] py-3.5 px-4 text-sm font-medium flex items-center justify-center gap-2"
               style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}
               disabled
-              title="Stripe-Integration folgt"
+              title="Chargebee-Integration folgt"
             >
               <span>Weiter zur Zahlung</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>

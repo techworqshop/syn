@@ -207,7 +207,6 @@ export default async function Home() {
           <img src="/api/assets/syn-avatar" alt=""
             className="w-16 h-16 mx-auto mb-6 rounded-full ring-2 ring-white/30 shadow-lg" />
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-3 leading-tight">{c.finalCta.title}</h2>
-          {isDev && <p className="text-[15px] mb-7 opacity-90">{c.finalCta.sub}</p>}
           <Link href="/login"
             className="inline-block px-8 py-3.5 rounded-xl font-medium text-[15px] transition-all"
             style={{ background: "#F3EFE2", color: "#4C1D95" }}>
@@ -272,7 +271,7 @@ type LandingCopy = {
   tension: { label: string; title: string; body: string };
   pricing: { label: string; title: string; comingTitle: string; comingBadge: string; comingHeadline: string; comingBody: string; comingCta: string; popular: string; perMonth: string; tiers: Array<{ name: string; price: string; quota: string; features: string[]; cta: string; featured?: boolean }> };
   faq: { label: string; title: string; items: Array<{ q: string; a: string }> };
-  finalCta: { title: string; sub: string; cta: string };
+  finalCta: { title: string; cta: string };
   footer: { tagline: string; builtBy: string; cols: Array<{ title: string; links: Array<{ label: string; href: string }> }> };
 };
 
@@ -346,7 +345,7 @@ const LANDING_COPY: Record<Locale, LandingCopy> = {
           a: "Du bekommst einen Abschlussbericht als PDF. Jede Persona bleibt verfügbar — wenn du eine besonders spannend fandst, kannst du sie nachträglich 1:1 weiter befragen." }
       ]
     },
-    finalCta: { title: "Probier es an deinem nächsten Konzept.", sub: "Ab 39 € im Monat.", cta: "Jetzt starten" },
+    finalCta: { title: "Probier es an deinem nächsten Konzept.", cta: "Jetzt starten" },
     footer: {
       tagline: "Synthetische Fokusgruppen für Konzepte, die noch nicht raus sind.",
       builtBy: "Ein Produkt von Worqshop",
@@ -426,7 +425,7 @@ const LANDING_COPY: Record<Locale, LandingCopy> = {
           a: "You get a final report as PDF. Every persona stays available — if you found one particularly insightful, you can keep talking to them 1:1." }
       ]
     },
-    finalCta: { title: "Try it on your next concept.", sub: "From €39/month.", cta: "Get started" },
+    finalCta: { title: "Try it on your next concept.", cta: "Get started" },
     footer: {
       tagline: "Synthetic focus groups for concepts that haven't shipped yet.",
       builtBy: "A product of Worqshop",

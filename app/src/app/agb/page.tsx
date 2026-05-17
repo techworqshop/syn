@@ -23,7 +23,7 @@ export default function AGBPage() {
 
       <LH2>§ 4 Preise und Zahlung</LH2>
       <LP>(1) Es gelten die zum Zeitpunkt des Vertragsschlusses auf der Website ausgewiesenen Preise zuzüglich gesetzlicher Umsatzsteuer.</LP>
-      <LP>(2) Die Abrechnung erfolgt monatlich im Voraus per automatischer Abbuchung über den Zahlungsdienstleister Stripe.</LP>
+      <LP>(2) Die Abrechnung erfolgt monatlich im Voraus per automatischer Abbuchung über den Zahlungsdienstleister Chargebee.</LP>
       <LP>(3) Bei Zahlungsverzug ist der Anbieter berechtigt, den Zugang zu Syn vorübergehend zu sperren.</LP>
 
       <LH2>§ 5 Vertragslaufzeit und Kündigung</LH2>

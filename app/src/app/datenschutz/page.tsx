@@ -77,7 +77,7 @@ export default function DatenschutzPage() {
       </LP>
 
       <LH2>8. Zahlungsabwicklung</LH2>
-      <LP>Für die Abwicklung von Zahlungen (Subscription-Gebühren) nutzen wir <LStrong>Stripe Payments Europe Limited</LStrong> (Dublin, Irland) bzw. Stripe, Inc. (San Francisco, USA). Beim Checkout wirst du zur Stripe-Oberfläche weitergeleitet, dort gibst du deine Zahlungsdaten ein. Wir selbst speichern keine Kreditkarten- oder Kontodaten.</LP>
+      <LP>Für die Abwicklung von Zahlungen (Subscription-Gebühren) nutzen wir <LStrong>Chargebee Inc.</LStrong> (San Francisco, USA / Walldorf, Deutschland). Beim Checkout wirst du zur Chargebee-Oberfläche weitergeleitet, dort gibst du deine Zahlungsdaten ein. Wir selbst speichern keine Kreditkarten- oder Kontodaten.</LP>
       <LP>
         <LStrong>Rechtsgrundlage:</LStrong> Art. 6 Abs. 1 lit. b DSGVO.<br />
         <LStrong>Drittland:</LStrong> USA, abgesichert über SCCs.<br />
@@ -98,7 +98,7 @@ export default function DatenschutzPage() {
         <LLi>united-domains AG — Domain und DNS (Deutschland)</LLi>
         <LLi>Anthropic PBC — AI-Reasoning (USA, SCCs)</LLi>
         <LLi>Google LLC — AI-Vision, E-Mail-Versand (USA, SCCs)</LLi>
-        <LLi>Stripe Payments Europe Ltd. / Stripe Inc. — Zahlungsabwicklung (Irland, USA, SCCs)</LLi>
+        <LLi>Chargebee Inc. — Zahlungsabwicklung (USA / EU, SCCs)</LLi>
       </LUl>
       <LP>Mit allen Anbietern werden Auftragsverarbeitungsverträge (Art. 28 DSGVO) abgeschlossen; der Abschluss ist teilweise noch in Bearbeitung.</LP>
 
