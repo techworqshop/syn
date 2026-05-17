@@ -87,9 +87,9 @@ export default function RegisterForm({ locale }: { locale: Locale }) {
           <input type="checkbox" name="agb" required className="w-4 h-4 mt-0.5 cursor-pointer" style={{ accentColor: "#4C1D95" }} />
           <span className="leading-relaxed">
             {t("register.agb1", locale)}{" "}
-            <Link href="/#agb" className="font-medium hover:underline" style={{ color: "#BE123C" }}>{t("register.agbLink", locale)}</Link>
+            <Link href="/agb" className="font-medium hover:underline" style={{ color: "#BE123C" }}>{t("register.agbLink", locale)}</Link>
             {" "}{t("register.agb2", locale)}{" "}
-            <Link href="/#datenschutz" className="font-medium hover:underline" style={{ color: "#BE123C" }}>{t("register.privacyLink", locale)}</Link>
+            <Link href="/datenschutz" className="font-medium hover:underline" style={{ color: "#BE123C" }}>{t("register.privacyLink", locale)}</Link>
             {t("register.agb3", locale)}
           </span>
         </label>

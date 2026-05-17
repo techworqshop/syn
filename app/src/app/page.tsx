@@ -29,18 +29,20 @@ export default async function Home() {
   return (
     <main className="min-h-screen" style={{ background: "#E8E2D2", color: "#1F2420", fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}>
 
-      {/* Nav */}
+      {/* Nav — Links: Logo + Nav-Items zusammen gruppiert. Rechts: Lang + Login + CTA. */}
       <nav className="flex items-center justify-between px-7 py-3.5 sticky top-0 z-30"
         style={{ background: "rgba(243,239,226,0.7)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.5)" }}>
-        <Link href="/" className="flex items-center gap-2.5">
-          <img src="/api/assets/syn-avatar" alt="Syn"
-            className="w-7 h-7 rounded-full ring-1 ring-white/40 object-cover" />
-          <span className="font-semibold text-lg tracking-tight" style={{ color: "#BE123C" }}>Syn</span>
-        </Link>
-        <div className="hidden md:flex gap-6 items-center text-sm" style={{ color: "#4A4640" }}>
-          <a href="#how" className="hover:text-stone-900 transition-colors">{c.nav.how}</a>
-          <a href="#pricing" className="hover:text-stone-900 transition-colors">{c.nav.pricing}</a>
-          <a href="#faq" className="hover:text-stone-900 transition-colors">{c.nav.faq}</a>
+        <div className="flex items-center gap-8">
+          <Link href="/" className="flex items-center gap-2.5">
+            <img src="/api/assets/syn-avatar" alt="Syn"
+              className="w-7 h-7 rounded-full ring-1 ring-white/40 object-cover" />
+            <span className="font-semibold text-lg tracking-tight" style={{ color: "#BE123C" }}>Syn</span>
+          </Link>
+          <div className="hidden md:flex gap-6 items-center text-sm" style={{ color: "#4A4640" }}>
+            <a href="#how" className="hover:text-stone-900 transition-colors">{c.nav.how}</a>
+            <a href="#pricing" className="hover:text-stone-900 transition-colors">{c.nav.pricing}</a>
+            <a href="#faq" className="hover:text-stone-900 transition-colors">{c.nav.faq}</a>
+          </div>
         </div>
         <div className="flex items-center gap-3.5">
           <LanguageSwitch locale={locale} />
@@ -350,7 +352,7 @@ const LANDING_COPY: Record<Locale, LandingCopy> = {
       builtBy: "Ein Produkt von Worqshop",
       cols: [
         { title: "Produkt", links: [{ label: "Funktionsweise", href: "#how" }, { label: "Preise", href: "#pricing" }, { label: "FAQ", href: "#faq" }] },
-        { title: "Recht",   links: [{ label: "Impressum", href: "#" }, { label: "Datenschutz", href: "#" }, { label: "AGB", href: "#" }] },
+        { title: "Recht",   links: [{ label: "Impressum", href: "/impressum" }, { label: "Datenschutz", href: "/datenschutz" }, { label: "AGB", href: "/agb" }] },
         { title: "Kontakt", links: [{ label: "hello@syn.worqshop.io", href: "mailto:hello@syn.worqshop.io" }, { label: "Status", href: "#" }] }
       ]
     }
@@ -430,7 +432,7 @@ const LANDING_COPY: Record<Locale, LandingCopy> = {
       builtBy: "A product of Worqshop",
       cols: [
         { title: "Product", links: [{ label: "How it works", href: "#how" }, { label: "Pricing", href: "#pricing" }, { label: "FAQ", href: "#faq" }] },
-        { title: "Legal",   links: [{ label: "Imprint", href: "#" }, { label: "Privacy", href: "#" }, { label: "Terms", href: "#" }] },
+        { title: "Legal",   links: [{ label: "Imprint", href: "/impressum" }, { label: "Privacy", href: "/datenschutz" }, { label: "Terms", href: "/agb" }] },
         { title: "Contact", links: [{ label: "hello@syn.worqshop.io", href: "mailto:hello@syn.worqshop.io" }, { label: "Status", href: "#" }] }
       ]
     }
