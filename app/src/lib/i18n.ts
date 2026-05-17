@@ -78,8 +78,8 @@ export const DICT: Dict = {
   // ============================================================
   // Password Reset (Set new password)
   // ============================================================
-  "reset.title":          { de: "Neues Passwort setzen",      en: "Set new password" },
-  "reset.subtitle":       { de: "Vergib ein neues Passwort fuer dein Konto.", en: "Choose a new password for your account." },
+  "reset.title":          { de: "Neues Passwort vergeben",    en: "Set new password" },
+  "reset.subtitle":       { de: "Waehle ein neues Passwort fuer deinen Account.", en: "Choose a new password for your account." },
   "reset.newPassword":    { de: "Neues Passwort",             en: "New password" },
   "reset.submit":         { de: "Passwort speichern",         en: "Save password" },
   "reset.invalidTitle":   { de: "Link ungueltig oder abgelaufen", en: "Link invalid or expired" },
