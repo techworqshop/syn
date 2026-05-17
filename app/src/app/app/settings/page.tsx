@@ -1,0 +1,32 @@
+import { requireUser } from "@/lib/current-user";
+import { getLocaleFromCookies, t } from "@/lib/i18n";
+import ProfileSection from "./ProfileSection";
+import PasswordSection from "./PasswordSection";
+import EmailSection from "./EmailSection";
+import LanguageSection from "./LanguageSection";
+import DangerZone from "./DangerZone";
+
+export const dynamic = "force-dynamic";
+
+export default async function SettingsPage() {
+  const u = await requireUser();
+  const locale = await getLocaleFromCookies();
+  return (
+    <div className="flex-1 w-full max-w-[760px] mx-auto px-6 py-10">
+      <div className="mb-8">
+        <h1 className="text-[28px] font-semibold tracking-tight" style={{ color: "#1F2420" }}>
+          {t("settings.title", locale)}
+        </h1>
+        <p className="text-sm mt-1.5" style={{ color: "#7A7268" }}>
+          {t("settings.sub", locale)}
+        </p>
+      </div>
+
+      <ProfileSection locale={locale} email={u.email} name={u.name ?? ""} />
+      <EmailSection locale={locale} currentEmail={u.email} />
+      <PasswordSection locale={locale} />
+      <LanguageSection locale={locale} />
+      <DangerZone locale={locale} email={u.email} />
+    </div>
+  );
+}

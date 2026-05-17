@@ -170,3 +170,22 @@ export async function sendVerificationEmail(payload: {
     return res.ok;
   } catch { return false; }
 }
+
+// Email-Change-Confirm-Mail via n8n. Geht an die NEUE Adresse (nicht die alte).
+const EMAIL_CHANGE_HOOK = process.env.SYNWEB_EMAIL_CHANGE_WEBHOOK || "";
+
+export async function sendEmailChangeEmail(payload: {
+  recipientEmail: string;
+  confirmUrl: string;
+  oldEmail: string;
+}) {
+  if (!EMAIL_CHANGE_HOOK) return false;
+  try {
+    const res = await fetch(EMAIL_CHANGE_HOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    return res.ok;
+  } catch { return false; }
+}

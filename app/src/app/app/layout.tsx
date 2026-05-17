@@ -23,6 +23,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Link href="/app/help" title={t("nav.help_title", locale)}
             className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-stone-400 text-stone-700 hover:text-rose-700 hover:border-rose-700 transition-colors font-bold">?</Link>
           <span className="hidden sm:inline text-stone-700">{u.email}</span>
+          <Link href="/app/settings" className="hidden sm:inline text-stone-700 hover:text-rose-700 transition-colors">{t("nav.settings", locale)}</Link>
           {u.isAdmin && <Link href="/app/admin" className="hidden sm:inline text-stone-700 hover:text-rose-700 transition-colors">{t("nav.admin", locale)}</Link>}
           <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
             <button className="text-stone-700 hover:text-rose-700 transition-colors">{t("nav.logout", locale)}</button>

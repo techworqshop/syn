@@ -41,6 +41,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!u) return null;
         const ok = await bcrypt.compare(password, u.passwordHash);
         if (!ok) return null;
+        if (u.deletionRequestedAt) {
+          console.warn(`[auth] Login blocked — account ${u.email} flagged for deletion at ${u.deletionRequestedAt}`);
+          return null;
+        }
         return { id: u.id, email: u.email, name: u.name ?? u.email, isAdmin: u.isAdmin } as { id: string; email: string; name: string; isAdmin: boolean };
       }
     })

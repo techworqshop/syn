@@ -8,6 +8,7 @@ export const users = pgTable("users", {
   mustChangePassword: text("must_change_password").notNull().default("true"),
   isAdmin: boolean("is_admin").notNull().default(false),
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+  deletionRequestedAt: timestamp("deletion_requested_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
 }, (t) => [index("users_email_idx").on(t.email)]);
@@ -122,3 +123,13 @@ export const emailVerificationTokens = pgTable("email_verification_tokens", {
   usedAt: timestamp("used_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
 }, (t) => [index("email_verification_tokens_token_idx").on(t.token), index("email_verification_tokens_user_idx").on(t.userId)]);
+
+export const emailChangeTokens = pgTable("email_change_tokens", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  newEmail: text("new_email").notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+}, (t) => [index("email_change_tokens_token_idx").on(t.token), index("email_change_tokens_user_idx").on(t.userId)]);

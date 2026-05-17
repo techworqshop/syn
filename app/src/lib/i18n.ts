@@ -13,6 +13,7 @@ export const DICT: Dict = {
   // Navigation / Layout
   // ============================================================
   "nav.help_title":    { de: "So funktioniert Syn",            en: "How Syn works" },
+  "nav.settings":          { de: "Einstellungen",  en: "Settings" },
   "nav.admin":         { de: "Admin",                          en: "Admin" },
   "nav.logout":        { de: "Logout",                         en: "Logout" },
 
@@ -111,6 +112,73 @@ export const DICT: Dict = {
   "verify.successTitle":      { de: "E-Mail bestaetigt",                  en: "Email confirmed" },
   "verify.successBody":       { de: "Dein Account ist jetzt aktiv. Willkommen.", en: "Your account is now active. Welcome." },
   "verify.toDashboard":       { de: "Zum Dashboard",                      en: "Go to dashboard" },
+
+  // ============================================================
+  // Settings
+  // ============================================================
+  "settings.title":                    { de: "Einstellungen",                              en: "Settings" },
+  "settings.sub":                      { de: "Profil, Sicherheit, Sprache und Account-Daten.", en: "Profile, security, language and account data." },
+  "settings.cancel":                   { de: "Abbrechen",                                  en: "Cancel" },
+  "settings.generic_error":            { de: "Etwas ist schiefgelaufen. Bitte spaeter erneut versuchen.", en: "Something went wrong. Please try again later." },
+
+  // Profile
+  "settings.profile.title":            { de: "Profil",                                     en: "Profile" },
+  "settings.profile.email":            { de: "E-Mail",                                     en: "Email" },
+  "settings.profile.email_hint":       { de: "Aenderung weiter unten.",                    en: "Change in the section below." },
+  "settings.profile.name":             { de: "Name",                                       en: "Name" },
+  "settings.profile.name_placeholder": { de: "Dein Anzeigename",                           en: "Your display name" },
+  "settings.profile.name_too_long":    { de: "Name ist zu lang (max. 120 Zeichen).",       en: "Name is too long (max 120 characters)." },
+  "settings.profile.saved":            { de: "Gespeichert.",                               en: "Saved." },
+  "settings.profile.save":             { de: "Speichern",                                  en: "Save" },
+
+  // Email
+  "settings.email.title":              { de: "E-Mail aendern",                             en: "Change email" },
+  "settings.email.current_label":      { de: "Aktuelle E-Mail:",                           en: "Current email:" },
+  "settings.email.change_cta":         { de: "E-Mail-Adresse aendern →",              en: "Change email address →" },
+  "settings.email.new_email":          { de: "Neue E-Mail",                                en: "New email" },
+  "settings.email.current_password":   { de: "Aktuelles Passwort",                         en: "Current password" },
+  "settings.email.pw_hint":            { de: "Wir bestaetigen sensible Aenderungen mit deinem Passwort.", en: "We confirm sensitive changes with your password." },
+  "settings.email.same_as_current":    { de: "Das ist deine aktuelle E-Mail.",             en: "That is your current email." },
+  "settings.email.wrong_password":     { de: "Passwort stimmt nicht.",                     en: "Password is wrong." },
+  "settings.email.send_link":          { de: "Bestaetigungs-Link senden",                  en: "Send confirmation link" },
+  "settings.email.sent_body1":         { de: "Wir haben einen Bestaetigungs-Link an",      en: "We sent a confirmation link to" },
+  "settings.email.sent_body2":         { de: " geschickt. Klick drauf, um die Aenderung zu bestaetigen.", en: ". Click it to confirm the change." },
+  "settings.email.sent_hint":          { de: "Der Link ist 1 Stunde gueltig. Bis du bestaetigt hast, gilt deine alte E-Mail weiter.", en: "The link is valid for 1 hour. Until confirmed, your current email stays active." },
+
+  // Password
+  "settings.password.title":           { de: "Passwort aendern",                           en: "Change password" },
+  "settings.password.current":         { de: "Aktuelles Passwort",                         en: "Current password" },
+  "settings.password.new":             { de: "Neues Passwort",                             en: "New password" },
+  "settings.password.wrong_current":   { de: "Das aktuelle Passwort stimmt nicht.",        en: "Current password is wrong." },
+  "settings.password.changed":         { de: "Passwort wurde aktualisiert.",               en: "Password updated." },
+  "settings.password.save":            { de: "Passwort speichern",                         en: "Save password" },
+
+  // Language
+  "settings.language.title":           { de: "Sprache",                                    en: "Language" },
+  "settings.language.body":            { de: "Sprache fuer das Interface. Mail-Texte folgen dieser Einstellung.", en: "Language for the interface. Email texts follow this setting." },
+
+  // Danger Zone
+  "settings.danger.title":             { de: "Account-Loeschung",                          en: "Account deletion" },
+  "settings.danger.body":              { de: "Du kannst deinen Account jederzeit loeschen. Login wird sofort gesperrt; deine Daten bleiben fuer 30 Tage in einem inaktiven Zustand, danach werden sie endgueltig entfernt. Reaktivierung innerhalb der Frist via tech@worqshop.io.", en: "You can delete your account at any time. Login is locked immediately; your data is kept in an inactive state for 30 days, then permanently removed. Reactivation within the window via tech@worqshop.io." },
+  "settings.danger.cta":               { de: "Account loeschen →",                    en: "Delete account →" },
+  "settings.danger.cta_final":         { de: "Account jetzt loeschen",                     en: "Delete account now" },
+  "settings.danger.warn_title":        { de: "Was passiert:",                              en: "What happens:" },
+  "settings.danger.warn_1":            { de: "Du wirst sofort ausgeloggt.",                en: "You are signed out immediately." },
+  "settings.danger.warn_2":            { de: "Login wird gesperrt.",                       en: "Login is locked." },
+  "settings.danger.warn_3":            { de: "Sessions, Berichte und Personas bleiben 30 Tage inaktiv, danach werden sie endgueltig geloescht.", en: "Sessions, reports and personas stay inactive for 30 days, then permanently deleted." },
+  "settings.danger.confirm_label":     { de: "Zur Bestaetigung tippe {token}",             en: "Type {token} to confirm" },
+  "settings.danger.confirm_wrong":     { de: "Bestaetigung stimmt nicht.",                 en: "Confirmation does not match." },
+
+  // Confirm Email Change
+  "confirmEmail.successTitle":         { de: "E-Mail aktualisiert",                        en: "Email updated" },
+  "confirmEmail.successBody1":         { de: "Dein Account ist jetzt mit",                 en: "Your account is now linked to" },
+  "confirmEmail.successBody2":         { de: " verknuepft. Bitte logge dich neu ein.",     en: ". Please sign in again." },
+  "confirmEmail.relogin":              { de: "Zum Login",                                  en: "Sign in" },
+  "confirmEmail.failTitle":            { de: "Link ungueltig oder abgelaufen",             en: "Link invalid or expired" },
+  "confirmEmail.failBody":             { de: "Dieser Bestaetigungs-Link funktioniert nicht mehr. Fordere in den Einstellungen einen neuen an.", en: "This confirmation link no longer works. Request a new one in settings." },
+  "confirmEmail.conflictTitle":        { de: "E-Mail bereits vergeben",                    en: "Email already taken" },
+  "confirmEmail.conflictBody":         { de: "In der Zwischenzeit hat jemand anderes diese E-Mail registriert. Bitte waehle eine andere.", en: "Someone else registered this email in the meantime. Please choose another." },
+  "confirmEmail.gotoSettings":         { de: "Zu den Einstellungen",                       en: "Go to settings" },
 
   // ============================================================
   // Dashboard
