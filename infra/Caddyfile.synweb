@@ -2,6 +2,7 @@
 # Append to /etc/caddy/Caddyfile, then: systemctl reload caddy
 # Remove: delete this block and reload.
 
+# Bestehende Worqshop-Dev-Domain (bleibt als Dev/Staging aktiv)
 syn.worqshop.io {
     encode zstd gzip
 
@@ -19,4 +20,29 @@ syn.worqshop.io {
     handle {
         reverse_proxy 127.0.0.1:3100
     }
+}
+
+# Production-Domain: asksyn.com (+ www) + App-Subdomain
+asksyn.com, www.asksyn.com, app.asksyn.com {
+    encode zstd gzip
+
+    @sse path /api/stream*
+    handle @sse {
+        reverse_proxy 127.0.0.1:3100 {
+            flush_interval -1
+            transport http {
+                read_timeout 0
+            }
+        }
+    }
+
+    handle {
+        reverse_proxy 127.0.0.1:3100
+    }
+}
+
+# Sekundaerdomains: 301-Permanent-Redirect auf asksyn.com,
+# Pfad + Query bleiben erhalten.
+asksyn.de, www.asksyn.de, asksyn.org, www.asksyn.org, asksyn.store, www.asksyn.store {
+    redir https://asksyn.com{uri} 301
 }

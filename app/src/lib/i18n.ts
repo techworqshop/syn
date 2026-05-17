@@ -19,10 +19,71 @@ export const DICT: Dict = {
   // ============================================================
   // Login
   // ============================================================
+  "login.title":       { de: "Login",                          en: "Log in" },
   "login.subtitle":    { de: "Melde dich mit deinem Account an.", en: "Sign in to your account." },
-  "login.email":       { de: "Email",                          en: "Email" },
+  "login.subtitle2":   { de: "Schoen, dich wiederzusehen.",    en: "Welcome back." },
+  "login.email":       { de: "E-Mail",                         en: "Email" },
   "login.password":    { de: "Passwort",                       en: "Password" },
   "login.submit":      { de: "Einloggen",                      en: "Sign in" },
+  "login.invalid":     { de: "Falsche E-Mail oder Passwort.",  en: "Wrong email or password." },
+
+  // ============================================================
+  // Auth-Shared (Login / Register / Recovery)
+  // ============================================================
+  "auth.login":              { de: "Login",                       en: "Log in" },
+  "auth.forgot":             { de: "Vergessen?",                  en: "Forgot?" },
+  "auth.stayLoggedIn":       { de: "Eingeloggt bleiben",          en: "Stay signed in" },
+  "auth.noAccount":          { de: "Noch kein Konto?",            en: "No account yet?" },
+  "auth.createAccount":      { de: "Konto erstellen",             en: "Create account" },
+  "auth.alreadyRegistered":  { de: "Schon registriert?",          en: "Already registered?" },
+  "auth.showPassword":       { de: "Passwort anzeigen",           en: "Show password" },
+  "auth.hidePassword":       { de: "Passwort verbergen",          en: "Hide password" },
+
+  // ============================================================
+  // Register / Signup
+  // ============================================================
+  "register.title":           { de: "Konto erstellen",             en: "Create account" },
+  "register.subtitle":        { de: "Ein paar Felder, dann geht's los.", en: "A few fields, then you're set." },
+  "register.pwdHint":         { de: "Mindestens 8 Zeichen.",       en: "At least 8 characters." },
+  "register.passwordRepeat":  { de: "Passwort wiederholen",        en: "Repeat password" },
+  "register.agb1":            { de: "Ich akzeptiere die",          en: "I accept the" },
+  "register.agbLink":         { de: "AGB",                         en: "Terms" },
+  "register.agb2":            { de: "und die",                     en: "and the" },
+  "register.privacyLink":     { de: "Datenschutzerklaerung",       en: "Privacy Policy" },
+  "register.agb3":            { de: ".",                           en: "." },
+  "register.submit":          { de: "Konto erstellen",             en: "Create account" },
+  "register.invalidEmail":    { de: "Bitte gueltige E-Mail eingeben.", en: "Please enter a valid email." },
+  "register.pwdTooShort":     { de: "Passwort muss mindestens 8 Zeichen haben.", en: "Password must be at least 8 characters." },
+  "register.pwdMismatch":     { de: "Die Passwoerter stimmen nicht ueberein.", en: "Passwords don't match." },
+  "register.agbRequired":     { de: "Du musst die AGB akzeptieren.", en: "You must accept the terms." },
+  "register.emailTaken":      { de: "Diese E-Mail ist bereits registriert.", en: "This email is already registered." },
+  "register.failed":          { de: "Konto konnte nicht erstellt werden. Bitte spaeter erneut versuchen.", en: "Could not create account. Please try again later." },
+
+  // ============================================================
+  // Password Recovery (Request reset link)
+  // ============================================================
+  "recovery.title":         { de: "Passwort zuruecksetzen",      en: "Reset password" },
+  "recovery.subtitle":      { de: "Gib deine E-Mail ein. Wir schicken dir einen Link, mit dem du ein neues Passwort vergeben kannst.", en: "Enter your email. We'll send you a link to set a new password." },
+  "recovery.submit":        { de: "Reset-Link schicken",         en: "Send reset link" },
+  "recovery.backToLogin":   { de: "Zurueck zum Login",           en: "Back to log in" },
+  "recovery.remembered":    { de: "Doch wieder eingefallen?",    en: "Got it again?" },
+  "recovery.sentTitle":     { de: "Check deine E-Mails",         en: "Check your inbox" },
+  "recovery.sentBody":      { de: "Wenn ein Konto zu dieser E-Mail existiert, ist ein Link unterwegs. Der Link ist 30 Minuten gueltig.", en: "If an account exists for this email, a link is on the way. The link is valid for 30 minutes." },
+
+  // ============================================================
+  // Password Reset (Set new password)
+  // ============================================================
+  "reset.title":          { de: "Neues Passwort setzen",      en: "Set new password" },
+  "reset.subtitle":       { de: "Vergib ein neues Passwort fuer dein Konto.", en: "Choose a new password for your account." },
+  "reset.newPassword":    { de: "Neues Passwort",             en: "New password" },
+  "reset.submit":         { de: "Passwort speichern",         en: "Save password" },
+  "reset.invalidTitle":   { de: "Link ungueltig oder abgelaufen", en: "Link invalid or expired" },
+  "reset.invalidBody":    { de: "Dein Reset-Link ist nicht mehr gueltig. Fordere einen neuen an.", en: "Your reset link is no longer valid. Request a new one." },
+  "reset.invalidToken":   { de: "Reset-Link ungueltig oder abgelaufen.", en: "Reset link invalid or expired." },
+  "reset.requestAgain":   { de: "Neuen Link anfordern",       en: "Request new link" },
+  "reset.successTitle":   { de: "Passwort gesetzt",           en: "Password set" },
+  "reset.successBody":    { de: "Dein neues Passwort ist aktiv. Du kannst dich jetzt einloggen.", en: "Your new password is active. You can sign in now." },
+  "reset.failed":         { de: "Passwort konnte nicht gespeichert werden. Bitte spaeter erneut versuchen.", en: "Could not save password. Please try again later." },
 
   // ============================================================
   // Dashboard

@@ -133,3 +133,22 @@ export async function sendInviteEmail(payload: {
     return res.ok;
   } catch { return false; }
 }
+
+// Password-Reset-Mail via n8n. Falls Hook nicht konfiguriert: false zurueck,
+// die Action loggt den Reset-Link dann nur in console (Test-Modus).
+const PWD_RESET_HOOK = process.env.SYNWEB_PASSWORD_RESET_WEBHOOK || "";
+
+export async function sendPasswordResetEmail(payload: {
+  recipientEmail: string;
+  resetUrl: string;
+}) {
+  if (!PWD_RESET_HOOK) return false;
+  try {
+    const res = await fetch(PWD_RESET_HOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    return res.ok;
+  } catch { return false; }
+}
