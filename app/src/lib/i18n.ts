@@ -56,6 +56,7 @@ export const DICT: Dict = {
   "register.pwdTooShort":     { de: "Passwort muss mindestens 8 Zeichen haben.", en: "Password must be at least 8 characters." },
   "register.pwdMismatch":     { de: "Die Passwoerter stimmen nicht ueberein.", en: "Passwords don't match." },
   "register.agbRequired":     { de: "Du musst die AGB akzeptieren.", en: "You must accept the terms." },
+  "register.restrictedToWorqshop": { de: "Sign-Up ist aktuell nur fuer @worqshop.io Mitarbeiter offen. Beta-Zugang fuer externe Nutzer kommt bald.", en: "Sign-up is currently restricted to @worqshop.io staff. Beta access for external users is coming soon." },
   "register.emailTaken":      { de: "Diese E-Mail ist bereits registriert.", en: "This email is already registered." },
   "register.failed":          { de: "Konto konnte nicht erstellt werden. Bitte spaeter erneut versuchen.", en: "Could not create account. Please try again later." },
 

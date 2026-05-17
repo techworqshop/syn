@@ -33,6 +33,12 @@ export async function registerAction(_prev: unknown, formData: FormData) {
     return { error: t("register.agbRequired", locale) };
   }
 
+  // Sign-Up-Gate: aktuell nur @worqshop.io. Externe User werden
+  // bewusst nicht zugelassen, bis Beta-Launch.
+  if (!email.endsWith("@worqshop.io")) {
+    return { error: t("register.restrictedToWorqshop", locale) };
+  }
+
   // Doppelte Email?
   const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
   if (existing.length > 0) {
