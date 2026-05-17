@@ -113,10 +113,10 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect, loca
             </button>
           );
         })}
-        {syntheses.length > 0 && (
+        {syntheses.filter(s => s.round_number && s.synthesis_text).length > 0 && (
           <>
             <div className="w-7 h-px bg-stone-400/60 my-1" />
-            {syntheses.sort((a,b)=>a.round_number-b.round_number).map(s => (
+            {syntheses.filter(s => s.round_number && s.synthesis_text).sort((a,b)=>(a.round_number ?? 0)-(b.round_number ?? 0)).map(s => (
               <button key={s.round_number}
                 onClick={() => { toggleCollapsed(); setSynthOpen(s.round_number); }}
                 title={`Synthese Runde ${s.round_number}`}
@@ -231,10 +231,10 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect, loca
           </div>
         );
       })}
-      {syntheses.length > 0 && (
+      {syntheses.filter(s => s.round_number && s.synthesis_text).length > 0 && (
         <div className="mt-4 pt-4 border-t border-stone-300">
           <div className="text-xs uppercase tracking-wide text-stone-700 font-bold mb-2 px-1">{t("sidebar.syntheses", locale)}</div>
-          {syntheses.sort((a,b) => a.round_number - b.round_number).map(s => (
+          {syntheses.filter(s => s.round_number && s.synthesis_text).sort((a,b) => (a.round_number ?? 0) - (b.round_number ?? 0)).map(s => (
             <div key={s.round_number} className="relative rounded-2xl bg-[#F3EFE2] border border-stone-300/60 mb-2 overflow-hidden shadow-sm hover:shadow-md transition-all">
               <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1"
                 style={gradStyle(SYNTH_ACCENT)} />

@@ -68,7 +68,8 @@ function renderRichLine(doc: InstanceType<typeof PDFDocument>, line: string, opt
   }
   doc.font("Helvetica");
 }
-function renderMarkdownBlock(doc: InstanceType<typeof PDFDocument>, text: string) {
+function renderMarkdownBlock(doc: InstanceType<typeof PDFDocument>, text: string | null | undefined) {
+  if (!text) return;
   const lines = text.split(/\r?\n/);
   for (const raw of lines) {
     const line = raw;
@@ -106,7 +107,7 @@ function renderMarkdownBlock(doc: InstanceType<typeof PDFDocument>, text: string
 function buildPDF(data: {
   session: { title: string; currentRound: number; problemBrief: string | null; createdAt: Date | string };
   personas: Array<{ name?: string; type?: string; core_perspective?: string; profile?: string; slack_slot?: number; rigidity?: number }>;
-  syntheses: Array<{ round_number: number; synthesis_text: string }>;
+  syntheses: Array<{ round_number: number | null; synthesis_text: string | null }>;
   messages: Array<{ role: string; personaName?: string | null; personaSlot?: number | null; content: string; roundNumber?: number | null; createdAt: Date | string }>;
 }): Promise<Buffer> {
   return new Promise((resolve) => {
@@ -194,10 +195,10 @@ function buildPDF(data: {
       doc.moveDown(0.7);
     }
 
-    if (data.syntheses.length) {
+    if (data.syntheses.filter(s => s.round_number && s.synthesis_text).length) {
       doc.addPage();
       sectionTitle(doc, "Synthesen");
-      const sortedSyn = data.syntheses.slice().sort((a, b) => a.round_number - b.round_number);
+      const sortedSyn = data.syntheses.filter(s => s.round_number && s.synthesis_text).sort((a, b) => (a.round_number ?? 0) - (b.round_number ?? 0));
       for (const s of sortedSyn) {
         doc.font("Helvetica-Bold").fontSize(13).fillColor("#a16207").text(`Runde ${s.round_number}`);
         doc.moveDown(0.4);

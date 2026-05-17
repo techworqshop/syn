@@ -15,7 +15,8 @@ function renderInline(line: string, keyPrefix: string) {
   return parts.length ? parts : line;
 }
 
-export function renderMarkdown(text: string): React.ReactNode {
+export function renderMarkdown(text: string | null | undefined): React.ReactNode {
+  if (!text) return null;
   const lines = text.split(/\r?\n/);
   const out: React.ReactNode[] = [];
   let bulletBuf: string[] = [];

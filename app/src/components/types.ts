@@ -52,8 +52,8 @@ export type PanelPersona = {
 
 export type PanelSynthesis = {
   session_id: string;
-  round_number: number;
-  synthesis_text: string;
+  round_number: number | null;
+  synthesis_text: string | null;
 };
 
 export type FileRow = {

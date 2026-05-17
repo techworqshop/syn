@@ -25,7 +25,7 @@ type Persona = {
   name?: string; type?: string; core_perspective?: string; profile?: string;
   slack_slot?: number; rigidity?: number;
 };
-type Synth = { round_number: number; synthesis_text: string };
+type Synth = { round_number: number | null; synthesis_text: string | null };
 type Msg = { role: string; personaName?: string | null; content: string; roundNumber?: number | null; createdAt: Date | string };
 
 function composeContext(personas: Persona[], syntheses: Synth[], msgs: Msg[]) {
@@ -40,7 +40,8 @@ function composeContext(personas: Persona[], syntheses: Synth[], msgs: Msg[]) {
     }).join("\n");
 
   const synthesesContext = syntheses
-    .sort((a, b) => a.round_number - b.round_number)
+    .filter(s => s.round_number && s.synthesis_text)
+    .sort((a, b) => (a.round_number ?? 0) - (b.round_number ?? 0))
     .map(s => `=== Runde ${s.round_number} ===\n${s.synthesis_text}`)
     .join("\n\n");
 

@@ -101,7 +101,8 @@ function renderInline(line: string, keyPrefix: string) {
   return parts.length ? parts : line;
 }
 
-function renderMarkdown(text: string) {
+function renderMarkdown(text: string | null | undefined) {
+  if (!text) return null;
   const lines = text.split(/\r?\n/);
   const out: React.ReactNode[] = [];
   let bulletBuf: string[] = [];
