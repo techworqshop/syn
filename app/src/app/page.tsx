@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { getLocaleFromCookies, type Locale } from "@/lib/i18n";
 import { auth } from "@/lib/auth";
 import LanguageSwitch from "@/components/LanguageSwitch";
@@ -14,6 +15,13 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   const session = await auth();
   if (session?.user) redirect("/app/dashboard");
+
+  // Host-aware: auf der oeffentlichen Verkaufs-Domain (asksyn.com) blenden
+  // wir Preise + Pricing-Details aus, weil die noch nicht final sind. Auf
+  // dem Dev-Deployment (worqshop.io) bleibt der volle Inhalt.
+  const h = await headers();
+  const host = (h.get("host") || "").toLowerCase();
+  const isDev = host.includes("worqshop.io");
 
   const locale = await getLocaleFromCookies();
   const c = LANDING_COPY[locale];
@@ -105,21 +113,33 @@ export default async function Home() {
       <section className="max-w-3xl mx-auto px-8 py-20 text-center">
         <p className="text-[11px] font-bold uppercase tracking-[0.1em] mb-3" style={{ color: "#7A7268" }}>{c.tension.label}</p>
         <h2 className="text-3xl font-semibold tracking-tight mb-8" style={{ color: "#1F2420" }}>{c.tension.title}</h2>
-        {/* 5 Persona-Color-Dots als visuelle Repräsentation der Diversität */}
-        <div className="flex justify-center gap-3 mb-8">
-          {PERSONA_GRADS.map((g, i) => (
-            <div key={i} className="w-10 h-10 rounded-full ring-1 ring-white/40"
-              style={{ background: g }} />
-          ))}
-        </div>
         <p className="text-[17px] leading-relaxed" style={{ color: "#4A4640" }}>{c.tension.body}</p>
       </section>
 
-      {/* Pricing */}
+      {/* Pricing — host-aware: Production zeigt Beta-Placeholder, Dev volle Karten */}
       <section id="pricing" className="py-16" style={{ background: "#DDD3BC" }}>
         <div className="max-w-5xl mx-auto px-8">
           <p className="text-[11px] font-bold uppercase tracking-[0.1em] mb-3 text-center" style={{ color: "#7A7268" }}>{c.pricing.label}</p>
-          <h2 className="text-3xl font-semibold tracking-tight mb-10 text-center" style={{ color: "#1F2420" }}>{c.pricing.title}</h2>
+          <h2 className="text-3xl font-semibold tracking-tight mb-10 text-center" style={{ color: "#1F2420" }}>{isDev ? c.pricing.title : c.pricing.comingTitle}</h2>
+          {!isDev && (
+            <div className="max-w-2xl mx-auto">
+              <div className="relative rounded-2xl overflow-hidden p-10 text-center"
+                style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)" }}>
+                <span aria-hidden className="absolute top-0 left-0 right-0"
+                  style={{ height: "4px", background: "linear-gradient(90deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }} />
+                <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full text-white mb-4"
+                  style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>
+                  {c.pricing.comingBadge}
+                </span>
+                <h3 className="text-2xl font-semibold tracking-tight mb-3" style={{ color: "#1F2420" }}>{c.pricing.comingHeadline}</h3>
+                <p className="text-[15px] leading-relaxed mb-7 max-w-md mx-auto" style={{ color: "#4A4640" }}>{c.pricing.comingBody}</p>
+                <Link href="/register" className="btn-primary inline-block px-8 py-3.5 rounded-xl font-medium text-[15px]">
+                  {c.pricing.comingCta}
+                </Link>
+              </div>
+            </div>
+          )}
+          {isDev && (
           <div className="grid md:grid-cols-3 gap-4 max-w-3xl mx-auto">
             {c.pricing.tiers.map((tier, i) => (
               <div key={tier.name}
@@ -155,6 +175,7 @@ export default async function Home() {
               </div>
             ))}
           </div>
+          )}
         </div>
       </section>
 
@@ -184,7 +205,7 @@ export default async function Home() {
           <img src="/api/assets/syn-avatar" alt=""
             className="w-16 h-16 mx-auto mb-6 rounded-full ring-2 ring-white/30 shadow-lg" />
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-3 leading-tight">{c.finalCta.title}</h2>
-          <p className="text-[15px] mb-7 opacity-90">{c.finalCta.sub}</p>
+          {isDev && <p className="text-[15px] mb-7 opacity-90">{c.finalCta.sub}</p>}
           <Link href="/login"
             className="inline-block px-8 py-3.5 rounded-xl font-medium text-[15px] transition-all"
             style={{ background: "#F3EFE2", color: "#4C1D95" }}>
@@ -239,14 +260,6 @@ const TIER_STRIPES = [
   "linear-gradient(90deg, #913B4F, #4F1A28)"
 ];
 
-const PERSONA_GRADS = [
-  "linear-gradient(180deg, #E55260, #B82338)",
-  "linear-gradient(180deg, #3A7E58, #144A2C)",
-  "linear-gradient(180deg, #F26A38, #C53E0F)",
-  "linear-gradient(180deg, #DBA947, #A77E22)",
-  "linear-gradient(180deg, #913B4F, #4F1A28)"
-];
-
 const USE_SLUGS = ["products", "websites", "designs"];
 
 type LandingCopy = {
@@ -255,7 +268,7 @@ type LandingCopy = {
   how: { label: string; title: string; intro: string; steps: Array<{ round: string; title: string; body: string }> };
   use: { label: string; title: string; intro: string; cards: Array<{ title: string; body: string }> };
   tension: { label: string; title: string; body: string };
-  pricing: { label: string; title: string; popular: string; perMonth: string; tiers: Array<{ name: string; price: string; quota: string; features: string[]; cta: string; featured?: boolean }> };
+  pricing: { label: string; title: string; comingTitle: string; comingBadge: string; comingHeadline: string; comingBody: string; comingCta: string; popular: string; perMonth: string; tiers: Array<{ name: string; price: string; quota: string; features: string[]; cta: string; featured?: boolean }> };
   faq: { label: string; title: string; items: Array<{ q: string; a: string }> };
   finalCta: { title: string; sub: string; cta: string };
   footer: { tagline: string; builtBy: string; cols: Array<{ title: string; links: Array<{ label: string; href: string }> }> };
@@ -296,6 +309,11 @@ const LANDING_COPY: Record<Locale, LandingCopy> = {
     pricing: {
       label: "Preise",
       title: "Drei Pläne. Transparent.",
+      comingTitle: "Beta — Preise folgen.",
+      comingBadge: "Beta",
+      comingHeadline: "Aktuell im Closed-Beta.",
+      comingBody: "Wir feilen noch an Personas, Synthesen und Methodik. Sobald wir live gehen, geben wir die Pläne und Preise frei.",
+      comingCta: "Beta-Zugang anfragen",
       popular: "Beliebt",
       perMonth: "/Monat",
       tiers: [
@@ -371,6 +389,11 @@ const LANDING_COPY: Record<Locale, LandingCopy> = {
     pricing: {
       label: "Pricing",
       title: "Three plans. Transparent.",
+      comingTitle: "Beta — pricing to follow.",
+      comingBadge: "Beta",
+      comingHeadline: "Currently in closed beta.",
+      comingBody: "We're still refining personas, syntheses, and methodology. Once we launch, plans and pricing will be published.",
+      comingCta: "Request beta access",
       popular: "Popular",
       perMonth: "/month",
       tiers: [
