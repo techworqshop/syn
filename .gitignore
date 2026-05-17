@@ -34,3 +34,9 @@ Thumbs.db
 # Runtime data volumes
 pg_data/
 redis_data/
+
+# Prod stack
+.env.prod
+pg_data_prod/
+redis_data_prod/
+uploads_prod/
