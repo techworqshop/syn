@@ -353,7 +353,7 @@ const LANDING_COPY: Record<Locale, LandingCopy> = {
       cols: [
         { title: "Produkt", links: [{ label: "Funktionsweise", href: "#how" }, { label: "Preise", href: "#pricing" }, { label: "FAQ", href: "#faq" }] },
         { title: "Recht",   links: [{ label: "Impressum", href: "/impressum" }, { label: "Datenschutz", href: "/datenschutz" }, { label: "AGB", href: "/agb" }] },
-        { title: "Kontakt", links: [{ label: "hello@syn.worqshop.io", href: "mailto:hello@syn.worqshop.io" }, { label: "Status", href: "#" }] }
+        { title: "Kontakt", links: [{ label: "hello@asksyn.com", href: "mailto:hello@asksyn.com" }, { label: "Status", href: "#" }] }
       ]
     }
   },
@@ -433,7 +433,7 @@ const LANDING_COPY: Record<Locale, LandingCopy> = {
       cols: [
         { title: "Product", links: [{ label: "How it works", href: "#how" }, { label: "Pricing", href: "#pricing" }, { label: "FAQ", href: "#faq" }] },
         { title: "Legal",   links: [{ label: "Imprint", href: "/impressum" }, { label: "Privacy", href: "/datenschutz" }, { label: "Terms", href: "/agb" }] },
-        { title: "Contact", links: [{ label: "hello@syn.worqshop.io", href: "mailto:hello@syn.worqshop.io" }, { label: "Status", href: "#" }] }
+        { title: "Contact", links: [{ label: "hello@asksyn.com", href: "mailto:hello@asksyn.com" }, { label: "Status", href: "#" }] }
       ]
     }
   }

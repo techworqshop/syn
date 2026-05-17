@@ -1,4 +1,4 @@
-import LegalShell, { LH2, LP, LStrong, LA, LWarning } from "@/components/legal/LegalShell";
+import LegalShell, { LH2, LP, LStrong, LA } from "@/components/legal/LegalShell";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Syn — Allgemeine Geschäftsbedingungen" };
@@ -6,10 +6,6 @@ export const metadata = { title: "Syn — Allgemeine Geschäftsbedingungen" };
 export default function AGBPage() {
   return (
     <LegalShell title="Allgemeine Geschäftsbedingungen" meta={<><LStrong>Stand:</LStrong> 17. Mai 2026</>}>
-      <LWarning>
-        <LStrong>Hinweis:</LStrong> Dieser Text ist ein Strukturentwurf und ersetzt keine anwaltliche Prüfung. Vor Live-Schaltung von einem auf SaaS-Recht und Verbraucher-/Handelsrecht spezialisierten Rechtsanwalt abnehmen lassen, insbesondere zur korrekten Behandlung von Widerrufsrecht, Haftungsbeschränkungen und der Unterscheidung zwischen B2C- und B2B-Kunden.
-      </LWarning>
-
       <LH2>§ 1 Geltungsbereich</LH2>
       <LP>(1) Diese Allgemeinen Geschäftsbedingungen (im Folgenden „AGB") gelten für alle Verträge zwischen der Worqshop IO UG (haftungsbeschränkt), In den Alboingärten 17, 12103 Berlin (im Folgenden „Anbieter"), und ihren Kund:innen über die Nutzung des Online-Dienstes Syn, erreichbar unter asksyn.com (im Folgenden „Syn" oder „Dienst").</LP>
       <LP>(2) Abweichende Bedingungen der Kund:innen werden nicht anerkannt, es sei denn, der Anbieter stimmt ihrer Geltung ausdrücklich schriftlich zu.</LP>

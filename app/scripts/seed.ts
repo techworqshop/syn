@@ -2,6 +2,10 @@ import postgres from "postgres";
 import bcrypt from "bcryptjs";
 
 async function main() {
+  if (process.env.SKIP_ADMIN_SEED === "true") {
+    console.log("Skipping admin seed (SKIP_ADMIN_SEED=true).");
+    return;
+  }
   const url = process.env.DATABASE_URL!;
   const email = process.env.ADMIN_EMAIL!;
   const password = process.env.ADMIN_INITIAL_PASSWORD!;
