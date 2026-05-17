@@ -68,8 +68,12 @@ export const DICT: Dict = {
   "recovery.submit":        { de: "Reset-Link schicken",         en: "Send reset link" },
   "recovery.backToLogin":   { de: "Zurueck zum Login",           en: "Back to log in" },
   "recovery.remembered":    { de: "Doch wieder eingefallen?",    en: "Got it again?" },
-  "recovery.sentTitle":     { de: "Check deine E-Mails",         en: "Check your inbox" },
-  "recovery.sentBody":      { de: "Wenn ein Konto zu dieser E-Mail existiert, ist ein Link unterwegs. Der Link ist 30 Minuten gueltig.", en: "If an account exists for this email, a link is on the way. The link is valid for 30 minutes." },
+  "recovery.sentTitle":     { de: "Check dein Postfach",         en: "Check your inbox" },
+  "recovery.sentBody1":     { de: "Wir haben dir einen Link an", en: "We have sent a link to" },
+  "recovery.sentBody2":     { de: "geschickt. Klick drauf, dann kannst du ein neues Passwort vergeben.", en: ". Click it to set a new password." },
+  "recovery.yourEmail":     { de: "deine E-Mail",                en: "your email" },
+  "recovery.sentHelper":    { de: "Der Link ist 30 Minuten gueltig. Falls die Mail nicht ankommt, schau auch im Spam-Ordner.", en: "The link is valid for 30 minutes. If the email does not arrive, check your spam folder." },
+  "recovery.resend":        { de: "Mail erneut senden",          en: "Resend email" },
 
   // ============================================================
   // Password Reset (Set new password)

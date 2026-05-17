@@ -10,14 +10,17 @@ const TOKEN_TTL_MIN = 30;
 
 // Request-Reset:
 // - User-Lookup per Email; existiert er nicht -> trotzdem "sent" zurueck
-//   (kein User-Enumeration-Leak).
+//   (kein User-Enumeration-Leak — die Antwort haengt nur von der eingegebenen
+//   Mail ab, nicht vom DB-Lookup-Ergebnis).
 // - Sonst: Token (32 byte hex), TTL 30 min, in DB.
 // - Mail via n8n verschicken; falls n8n offline, Link zumindest in Logs.
+// - Email kommt zurueck in den State, damit der Sent-State sie anzeigen
+//   (UND ein Resend triggern) kann.
 export async function requestResetAction(_prev: unknown, formData: FormData) {
   const locale = await getLocaleFromCookies();
   const email = String(formData.get("email") || "").trim().toLowerCase();
   if (!email || !email.includes("@")) {
-    return { sent: false, error: t("register.invalidEmail", locale) };
+    return { sent: false, email: null, error: t("register.invalidEmail", locale) };
   }
 
   try {
@@ -41,6 +44,6 @@ export async function requestResetAction(_prev: unknown, formData: FormData) {
     // Trotzdem "sent" zurueck — keine internen Fehler an User leaken.
   }
 
-  // Immer "sent" zurueck — Anti-Enumeration.
-  return { sent: true, error: null };
+  // Immer "sent" zurueck — Anti-Enumeration. Email wird gespiegelt.
+  return { sent: true, email, error: null };
 }
