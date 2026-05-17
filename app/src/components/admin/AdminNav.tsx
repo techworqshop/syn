@@ -13,7 +13,7 @@ const TABS: Array<{ href: string; label: string }> = [
 export default function AdminNav() {
   const path = usePathname();
   return (
-    <div className="relative z-20 border-b border-stone-300 bg-[#F3EFE2] px-6 py-2 flex items-center gap-1 overflow-x-auto">
+    <div className="relative z-20 px-6 py-2 flex items-center gap-1 overflow-x-auto" style={{ background: "#F3EFE2", borderBottom: "1px solid rgba(31,36,32,0.08)" }}>
       <div className="text-xs uppercase tracking-wider text-stone-500 font-bold mr-4">Admin</div>
       {TABS.map(t => {
         const active = path.startsWith(t.href);

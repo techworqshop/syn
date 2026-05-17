@@ -123,14 +123,14 @@ export default async function HelpPage() {
 
 function Section({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl bg-stone-50 border border-stone-300 p-5 shadow-sm">
-      <div className="flex items-baseline gap-3 mb-2">
+    <section className="rounded-2xl p-6 brand-card overflow-hidden">
+      <div className="flex items-baseline gap-3 mb-3 mt-1">
         {number && (
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-purple-900 to-rose-700 text-white text-sm font-bold shrink-0">{number}</span>
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full text-white text-sm font-bold shrink-0" style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>{number}</span>
         )}
-        <h2 className="text-lg font-semibold tracking-tight text-stone-900">{title}</h2>
+        <h2 className="text-lg font-semibold tracking-tight" style={{ color: "#1F2420" }}>{title}</h2>
       </div>
-      <div className="text-stone-800 text-sm leading-relaxed">{children}</div>
+      <div className="text-sm leading-relaxed" style={{ color: "#4A4640" }}>{children}</div>
     </section>
   );
 }

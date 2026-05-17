@@ -9,7 +9,10 @@ export default function SessionCard({ s, closed = false, locale = "de" }: { s: S
   return (
     <div className="relative group">
       <Link href={`/app/sessions/${s.id}`}
-        className="block p-5 pr-14 rounded-2xl border border-stone-300 bg-[#F3EFE2] hover:bg-white hover:border-rose-700/40 transition-all shadow-sm">
+        className="block p-5 pr-14 pl-7 rounded-2xl relative overflow-hidden transition-all"
+        style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)" }}>
+        <span aria-hidden className="absolute top-0 left-0 bottom-0 w-1"
+          style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }} />
         <div className="font-medium truncate text-stone-900 group-hover:text-rose-800">{s.title}</div>
         <div className="text-xs mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
           {closed ? (

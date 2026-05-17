@@ -157,3 +157,26 @@
   border: 2px solid var(--edge-bottom, #444);
   cursor: pointer;
 }
+
+/* ===== App-UI: einheitliche Card-Patterns ============================== */
+@layer utilities {
+  /* Brand-Card: cream Hintergrund + 4px Brand-Stripe oben (Marketing/Legal-Style) */
+  .brand-card {
+    background: #F3EFE2;
+    border: 1px solid rgba(31,36,32,0.06);
+    position: relative;
+  }
+  .brand-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%);
+    z-index: 1;
+  }
+  /* Soft-Card: gleiche Cream, aber ohne Stripe — fuer Sub-Karten innerhalb einer Section */
+  .soft-card {
+    background: #F3EFE2;
+    border: 1px solid rgba(31,36,32,0.06);
+  }
+}

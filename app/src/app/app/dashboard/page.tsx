@@ -46,10 +46,13 @@ export default async function Dashboard() {
         </form>
       </div>
       {rows.length === 0 ? (
-        <div className="rounded-2xl border border-stone-200 glass p-12 text-center">
-          <img src="/api/assets/syn-avatar" alt="" className="w-14 h-14 mx-auto mb-4 rounded-full" />
-          <div className="text-stone-700 mb-1">{t("dashboard.empty.title", locale)}</div>
-          <div className="text-sm text-stone-500">{t("dashboard.empty.cta", locale)}</div>
+        <div className="relative overflow-hidden rounded-2xl p-12 text-center"
+          style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)" }}>
+          <span aria-hidden className="absolute top-0 left-0 right-0 h-1"
+            style={{ background: "linear-gradient(90deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }} />
+          <img src="/api/assets/syn-avatar" alt="" className="w-14 h-14 mx-auto mb-4 rounded-full ring-1 ring-white/40" />
+          <div className="text-base font-medium mb-1" style={{ color: "#1F2420" }}>{t("dashboard.empty.title", locale)}</div>
+          <div className="text-sm" style={{ color: "#7A7268" }}>{t("dashboard.empty.cta", locale)}</div>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">

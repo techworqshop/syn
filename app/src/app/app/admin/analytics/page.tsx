@@ -251,7 +251,7 @@ export default async function AdminAnalyticsPage({
       </div>
 
       {/* Funnel */}
-      <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] p-5 shadow-sm mb-6">
+      <div className="rounded-2xl p-5 mb-6 brand-card">
         <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Funnel: Created → Report</h2>
         <FunnelChart funnel={funnel} max={funnelMax} />
         <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2 text-xs text-stone-600">
@@ -269,18 +269,18 @@ export default async function AdminAnalyticsPage({
       </div>
 
       {/* Tages-Verlauf (Bar) */}
-      <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] p-5 shadow-sm mb-6">
+      <div className="rounded-2xl p-5 mb-6 brand-card">
         <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Aktivität pro Tag</h2>
         <BarChart data={series} />
       </div>
 
       {/* Hourly Heatmap + File-Cats nebeneinander */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] p-5 shadow-sm">
+        <div className="rounded-2xl p-5 soft-card">
           <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Tagesverteilung (Stunden)</h2>
           <HourChart data={hours} />
         </div>
-        <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] p-5 shadow-sm">
+        <div className="rounded-2xl p-5 soft-card">
           <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Dateien nach Kategorie</h2>
           <FileCatList rows={fileCats} />
         </div>
@@ -288,7 +288,7 @@ export default async function AdminAnalyticsPage({
 
       {/* LLM-Kosten pro Modell */}
       {tokens && tokens.byModel.length > 0 && (
-        <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm mb-6">
+        <div className="rounded-2xl overflow-hidden mb-6 brand-card">
           <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 px-4 pt-4 pb-2">
             Tokens & Kosten pro Modell
           </h2>
@@ -328,7 +328,7 @@ export default async function AdminAnalyticsPage({
           ? topUsers.filter(u => u.email.toLowerCase().includes(q) || (u.name ?? "").toLowerCase().includes(q))
           : topUsers;
       return (
-      <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
+      <div className="rounded-2xl overflow-hidden brand-card">
         <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 px-4 pt-4 pb-2">Top 10 aktive User{q && filtered.length !== topUsers.length ? ` (${filtered.length} gefiltert)` : ""}</h2>
         <div className="grid grid-cols-12 gap-2 px-4 py-2 text-[11px] uppercase tracking-wide text-stone-600 font-bold border-b border-stone-300 bg-stone-100/60">
           <div className="col-span-5">User</div>
@@ -373,7 +373,7 @@ function rangeLabel(r: Range): string {
 
 function Card({ label, value, sub }: { label: string; value: number | string; sub?: string }) {
   return (
-    <div className="rounded-xl border border-stone-300 bg-[#F3EFE2] p-4 shadow-sm">
+    <div className="rounded-xl p-4 soft-card">
       <div className="text-[10px] uppercase tracking-wide text-stone-600 font-bold">{label}</div>
       <div className="text-2xl font-semibold text-stone-900 mt-1">{value}</div>
       {sub && <div className="text-xs text-stone-500 mt-1">{sub}</div>}
