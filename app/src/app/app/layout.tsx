@@ -2,12 +2,15 @@ import { signOut } from "@/lib/auth";
 import { requireUser } from "@/lib/current-user";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { getLocaleFromCookies, t } from "@/lib/i18n";
+import LanguageSwitch from "@/components/LanguageSwitch";
 
 export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const u = await requireUser().catch(() => null);
   if (!u) redirect("/login");
+  const locale = await getLocaleFromCookies();
   return (
     <div className="h-screen flex flex-col">
       <header className="glass border-b border-stone-200 px-6 py-1.5 flex items-center justify-between sticky top-0 z-20">
@@ -16,12 +19,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <div className="font-semibold tracking-tight text-red-700 group-hover:text-red-800">Syn</div>
         </Link>
         <div className="text-sm text-stone-800 flex items-center gap-4">
-          <Link href="/app/help" title="So funktioniert Syn"
+          <LanguageSwitch locale={locale} />
+          <Link href="/app/help" title={t("nav.help_title", locale)}
             className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-stone-400 text-stone-700 hover:text-rose-700 hover:border-rose-700 transition-colors font-bold">?</Link>
           <span className="hidden sm:inline text-stone-700">{u.email}</span>
-          {u.isAdmin && <Link href="/app/admin" className="hidden sm:inline text-stone-700 hover:text-rose-700 transition-colors">Admin</Link>}
+          {u.isAdmin && <Link href="/app/admin" className="hidden sm:inline text-stone-700 hover:text-rose-700 transition-colors">{t("nav.admin", locale)}</Link>}
           <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
-            <button className="text-stone-700 hover:text-rose-700 transition-colors">Logout</button>
+            <button className="text-stone-700 hover:text-rose-700 transition-colors">{t("nav.logout", locale)}</button>
           </form>
         </div>
       </header>

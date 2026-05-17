@@ -3,8 +3,10 @@ import type React from "react";
 import { useState } from "react";
 import type { Message } from "./types";
 import PersonaAvatar from "./PersonaAvatar";
+import { t, type Locale } from "@/lib/i18n";
 
 const LABELS: Record<string, string> = {
+  // Wird auf Anfrage von t() ueberschrieben (locale-aware in der Komponente)
   user: "Du",
   coordinator: "Syn",
   persona: "Persona",
@@ -40,7 +42,7 @@ function accentFor(role: string, slot?: number | null): Stops {
   return ROLE_ACCENT[role] ?? ROLE_ACCENT.system;
 }
 
-function Avatar({ role, name, slot, sessionId }: { role: string; name?: string | null; slot?: number | null; sessionId?: string | null }) {
+function Avatar({ role, name, slot, sessionId, locale = "de" }: { role: string; name?: string | null; slot?: number | null; sessionId?: string | null; locale?: Locale }) {
   if (role === "coordinator") {
     return (
       <img src="/api/assets/syn-avatar" alt="Syn"
@@ -77,7 +79,7 @@ function Avatar({ role, name, slot, sessionId }: { role: string; name?: string |
   if (role === "user") {
     return (
       <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold ring-1 ring-white/40 shrink-0" style={gradStyle}>
-        Du
+        {t("role.user", locale)}
       </div>
     );
   }
@@ -143,16 +145,16 @@ function renderMarkdown(text: string) {
   return out;
 }
 
-function fmtTime(d: string | Date) {
+function fmtTime(d: string | Date, locale: Locale = "de") {
   try {
     const dt = typeof d === "string" ? new Date(d) : d;
-    return dt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    return dt.toLocaleTimeString(locale === "en" ? "en-US" : "de-DE", { hour: "2-digit", minute: "2-digit" });
   } catch { return ""; }
 }
 
 type ReportMeta = { kind?: string; reportId?: string; filename?: string; generatedAt?: string };
 
-export default function MessageBubble({ m }: { m: Message }) {
+export default function MessageBubble({ m, locale = "de" }: { m: Message; locale?: Locale }) {
   const COLLAPSE_AT = 600;
   const isLong = m.role === "persona" && m.content.length > COLLAPSE_AT;
   const [expanded, setExpanded] = useState(false);
@@ -164,20 +166,21 @@ export default function MessageBubble({ m }: { m: Message }) {
   const stops = accentFor(m.role, m.personaSlot);
   const bubbleStyle = { ['--edge-top' as string]: stops.top, ['--edge-bottom' as string]: stops.bottom } as React.CSSProperties;
 
-  let label: string = LABELS[m.role] ?? m.role;
-  if (m.role === "persona") label = m.personaName || (m.personaSlot ? `Persona ${m.personaSlot}` : "Persona");
-  if (m.role === "synthesis" && m.roundNumber) label = `Synthese Runde ${m.roundNumber}`;
-  if (isError) label = "Fehler";
+  let label: string = t(`role.${m.role}`, locale);
+  if (m.role === "persona") label = m.personaName || (m.personaSlot ? `${t("role.persona", locale)} ${m.personaSlot}` : t("role.persona", locale));
+  if (m.role === "synthesis" && m.roundNumber) label = `${t("role.synthesisRound", locale)} ${m.roundNumber}`;
+  if (isError) label = t("role.error", locale);
+  void LABELS; // legacy lookup retained for grep-ability
 
   const labelColor = isError ? "#B91C1C" : stops.bottom;
 
   return (
     <div className={`flex gap-3 items-start group ${isUser ? "flex-row-reverse" : ""}`}>
-      <Avatar role={m.role} name={m.personaName} slot={m.personaSlot} sessionId={m.sessionId} />
+      <Avatar role={m.role} name={m.personaName} slot={m.personaSlot} sessionId={m.sessionId} locale={locale} />
       <div className={`flex-1 min-w-0 flex flex-col ${isUser ? "items-end" : "items-start"}`}>
         <div className={`flex items-baseline gap-2 mb-1 ${isUser ? "flex-row-reverse" : ""}`}>
           <span className="font-semibold text-[14px] leading-tight" style={{ color: labelColor }}>{label}</span>
-          <span className="text-xs text-stone-500">{fmtTime(m.createdAt)}</span>
+          <span className="text-xs text-stone-500">{fmtTime(m.createdAt, locale)}</span>
         </div>
         {isReport ? (
           <a href={`/api/reports/${m.sessionId}/${meta.reportId}`}
@@ -190,8 +193,8 @@ export default function MessageBubble({ m }: { m: Message }) {
               </svg>
             </div>
             <div className="min-w-0">
-              <div className="font-semibold text-stone-900 truncate">Abschlussbericht</div>
-              <div className="text-xs text-stone-700 font-medium truncate">{meta.filename || "Bericht.pdf"}</div>
+              <div className="font-semibold text-stone-900 truncate">{t("menu.report", locale)}</div>
+              <div className="text-xs text-stone-700 font-medium truncate">{meta.filename || (locale === "en" ? "report.pdf" : "Bericht.pdf")}</div>
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-stone-700 shrink-0 ml-2 opacity-70 group-hover/card:opacity-100 transition-opacity">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -212,7 +215,7 @@ export default function MessageBubble({ m }: { m: Message }) {
                 {isLong && (
                   <button onClick={() => setExpanded(e => !e)}
                     className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-stone-50 text-stone-900 text-[12px] font-bold shadow-sm ring-1 ring-stone-300 transition-colors">
-                    <span>{expanded ? "Weniger anzeigen" : "Mehr lesen"}</span>
+                    <span>{expanded ? t("chat.weniger", locale) : t("chat.mehr_lesen", locale)}</span>
                     <svg className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                   </button>
                 )}

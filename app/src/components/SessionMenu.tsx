@@ -1,8 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import { t, type Locale } from "@/lib/i18n";
 
-export default function SessionMenu({ sessionId, afterDelete }: { sessionId: string; afterDelete?: () => void }) {
+export default function SessionMenu({ sessionId, afterDelete, locale = "de" }: { sessionId: string; afterDelete?: () => void; locale?: Locale }) {
   const router = useRouter();
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -10,15 +11,12 @@ export default function SessionMenu({ sessionId, afterDelete }: { sessionId: str
   const menuRef = useRef<HTMLDivElement | null>(null);
   const shareRef = useRef<HTMLDivElement | null>(null);
 
-  // Click anywhere outside the open menu/popup -> close. The previous
-  // fixed-inset backdrop got trapped inside the .glass header's
-  // backdrop-filter stacking context and only covered the header strip.
   useEffect(() => {
     if (!menu && !shareUrl) return;
     const onDocMouseDown = (e: MouseEvent) => {
-      const t = e.target as Node;
-      if (menu && menuRef.current && !menuRef.current.contains(t)) setMenu(false);
-      if (shareUrl && shareRef.current && !shareRef.current.contains(t)) setShareUrl(null);
+      const target = e.target as Node;
+      if (menu && menuRef.current && !menuRef.current.contains(target)) setMenu(false);
+      if (shareUrl && shareRef.current && !shareRef.current.contains(target)) setShareUrl(null);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") { setMenu(false); setShareUrl(null); }
@@ -32,7 +30,7 @@ export default function SessionMenu({ sessionId, afterDelete }: { sessionId: str
   }, [menu, shareUrl]);
 
   async function del() {
-    if (!confirm("Fokusgruppe und alle Inhalte loeschen?")) return;
+    if (!confirm(t("menu.confirm.delete", locale))) return;
     setBusy(true); setMenu(false);
     const res = await fetch(`/api/sessions/${sessionId}`, { method: "DELETE" });
     setBusy(false);
@@ -67,21 +65,21 @@ export default function SessionMenu({ sessionId, afterDelete }: { sessionId: str
       </button>
       {menu && (
         <div ref={menuRef} className="absolute top-9 right-0 z-50 rounded-xl border border-stone-400/60 bg-stone-50 shadow-2xl min-w-[210px] overflow-hidden text-sm">
-          <button onClick={finalReport} className="w-full text-left px-3 py-2 hover:bg-rose-700/10 text-rose-800 font-medium">Abschlussbericht (PDF)</button>
+          <button onClick={finalReport} className="w-full text-left px-3 py-2 hover:bg-rose-700/10 text-rose-800 font-medium">{t("menu.report", locale)}</button>
           <div className="h-px bg-stone-200"></div>
-          <button onClick={exportPdf} className="w-full text-left px-3 py-2 hover:bg-amber-100">Chat-Verlauf PDF</button>
-          <button onClick={share} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-amber-100 disabled:opacity-50">Teilen</button>
+          <button onClick={exportPdf} className="w-full text-left px-3 py-2 hover:bg-amber-100">{t("menu.chatPdf", locale)}</button>
+          <button onClick={share} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-amber-100 disabled:opacity-50">{t("menu.share", locale)}</button>
           <div className="h-px bg-stone-200"></div>
-          <button onClick={del} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-red-100 text-red-700 font-medium disabled:opacity-50">Loeschen</button>
+          <button onClick={del} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-red-100 text-red-700 font-medium disabled:opacity-50">{t("menu.delete", locale)}</button>
         </div>
       )}
       {shareUrl && (
         <div ref={shareRef} className="absolute top-9 right-0 z-50 rounded-xl border border-rose-700/40 bg-rose-50 shadow-2xl p-3 text-xs min-w-[300px]">
-          <div className="text-rose-800 font-semibold mb-1">Link kopiert</div>
+          <div className="text-rose-800 font-semibold mb-1">{t("menu.share.copied", locale)}</div>
           <div className="text-stone-800 break-all font-medium">{shareUrl}</div>
           <div className="flex gap-2 mt-2">
-            <button onClick={() => setShareUrl(null)} className="text-stone-700 hover:text-stone-900 font-medium">Schliessen</button>
-            <button onClick={unshare} className="text-red-700 hover:text-red-800 font-medium">Link widerrufen</button>
+            <button onClick={() => setShareUrl(null)} className="text-stone-700 hover:text-stone-900 font-medium">{t("menu.share.close", locale)}</button>
+            <button onClick={unshare} className="text-red-700 hover:text-red-800 font-medium">{t("menu.share.revoke", locale)}</button>
           </div>
         </div>
       )}

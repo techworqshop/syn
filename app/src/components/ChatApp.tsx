@@ -7,14 +7,16 @@ import MessageBubble from "./MessageBubble";
 import PersonaSidebar from "./PersonaSidebar";
 import AudiencePanel from "./AudiencePanel";
 import SessionMenu from "./SessionMenu";
+import { t, type Locale } from "@/lib/i18n";
 
 type Props = {
   sessionId: string;
   session: SessionRow;
   initialMessages: Message[];
+  locale?: Locale;
 };
 
-export default function ChatApp({ sessionId, session, initialMessages }: Props) {
+export default function ChatApp({ sessionId, session, initialMessages, locale = "de" }: Props) {
   const [msgs, setMsgs] = useState<Message[]>(initialMessages);
   const [title, setTitle] = useState<string>(session.title);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -126,7 +128,7 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
 
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden">
-      <PersonaSidebar sessionId={sessionId} refreshToken={refreshToken} onSelect={setOpenSlot} />
+      <PersonaSidebar sessionId={sessionId} refreshToken={refreshToken} onSelect={setOpenSlot} locale={locale} />
       <div className="flex-1 flex flex-col min-w-0 relative">
         <div className="relative z-30 border-b border-white/40 px-6 py-1.5 glass flex items-center justify-between">
           <div>
@@ -142,30 +144,30 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
             ) : (
               <button onClick={() => setEditingTitle(true)}
                 className="font-medium hover:text-rose-700 transition-colors text-left"
-                title="Klick zum Umbenennen">{title}</button>
+                title={locale === "en" ? "Click to rename" : "Klick zum Umbenennen"}>{title}</button>
             )}
             <div className="text-xs text-stone-500">
               {isClosed
-                ? <><span className="font-semibold" style={{ color: "#9F1239" }}>Runde 3 abgeschlossen</span> · {personaCount} Personas · {filesList.length} Dateien</>
-                : <>Runde {currentRound} · {personaCount} Personas · {filesList.length} Dateien</>}
+                ? <><span className="font-semibold" style={{ color: "#9F1239" }}>{t("chat.round3Done", locale)}</span> · {personaCount} {t("chat.personasShort", locale)} · {filesList.length} {t("chat.filesShort", locale)}</>
+                : <>{t("chat.round", locale)} {currentRound} · {personaCount} {t("chat.personasShort", locale)} · {filesList.length} {t("chat.filesShort", locale)}</>}
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/app/dashboard" className="text-sm text-stone-600 hover:text-stone-900">Alle Sessions</Link>
-            <SessionMenu sessionId={sessionId} afterDelete={() => window.location.href = "/app/dashboard"} />
+            <Link href="/app/dashboard" className="text-sm text-stone-600 hover:text-stone-900">{t("chat.allSessions", locale)}</Link>
+            <SessionMenu sessionId={sessionId} afterDelete={() => window.location.href = "/app/dashboard"} locale={locale} />
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
           {msgs.length === 0 && (
             <div className="text-stone-500 text-center py-12">
-              Starte die Fokusgruppe. Beschreib dein Thema (du kannst auch Dateien reinziehen), und Syn fuehrt dich durch.
+              {t("chat.empty", locale)}
             </div>
           )}
-          {msgs.map(m => <MessageBubble key={m.id} m={m} />)}
+          {msgs.map(m => <MessageBubble key={m.id} m={m} locale={locale} />)}
           {waiting && (
             <div className="flex items-center gap-2 text-stone-500 text-sm">
               <span className="inline-block w-2 h-2 bg-rose-700 rounded-full animate-pulse" />
-              <span className="italic">{status || "Syn denkt nach..."}</span>
+              <span className="italic">{status || t("chat.thinking", locale)}</span>
             </div>
           )}
           <div ref={bottomRef} />
@@ -192,10 +194,8 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                 <polyline points="22 4 12 14.01 9 11.01" />
               </svg>
-              <span className="font-semibold" style={{ color: "#9F1239" }}>Diskussion abgeschlossen.</span>
-              <span className="text-stone-700">
-                <span className="font-semibold">Abschlussbericht</span> via 3-Punkte-Menü · <span className="font-semibold">1:1-Chat</span> mit Personas in der Sidebar
-              </span>
+              <span className="font-semibold" style={{ color: "#9F1239" }}>{t("chat.closed.title", locale)}</span>
+              <span className="text-stone-700">{t("chat.closed.hint", locale)}</span>
             </div>
           </div>
         ) : (
@@ -206,18 +206,18 @@ export default function ChatApp({ sessionId, session, initialMessages }: Props) 
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!waiting && !sending) send(); } }}
               rows={1}
-              placeholder={waiting ? "Syn arbeitet — du kannst schon vorschreiben, senden geht gleich wieder ..." : "Nachricht an Syn..."}
+              placeholder={waiting ? t("chat.placeholder.busy", locale) : t("chat.placeholder.idle", locale)}
               className="block w-full px-4 pt-3 pb-1 bg-transparent focus:outline-none resize-none text-[14px] leading-relaxed placeholder:text-stone-500 overflow-y-auto" />
             <div className="flex items-center justify-between px-2 py-2">
               <button onClick={() => setShowUpload(true)}
-                title="Dateien hochladen"
+                title={t("chat.upload", locale)}
                 className="w-9 h-9 rounded-lg flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
                   <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 0 1 17.99 8.85L9.42 17.42a2 2 0 0 1-2.83-2.83l8.49-8.48" />
                 </svg>
               </button>
               <button disabled={sending || waiting || !input.trim()} onClick={send}
-                title="Senden"
+                title={t("chat.send", locale)}
                 className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${(!input.trim() || sending || waiting) ? "text-stone-400 bg-stone-200/50 cursor-not-allowed" : "btn-primary text-white"}`}>
                 {sending ? (
                   <span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
