@@ -17,9 +17,36 @@ Echte Fokusgruppen sind teuer, langsam, und die Probanden sind selten exakt die 
 
 Zielgruppe: Worqshop-Kunden + interne Strategiearbeit. Pricing-Hypothese: ~50€/Fokusgruppe.
 
-**Live:** https://syn.worqshop.io
+**Live (Developer-Instanz):** https://syn.worqshop.io
 **Repo:** https://github.com/techworqshop/syn
 **Host:** worqshop Server (`128.140.8.255`, Ubuntu 24.04)
+**Production-Domain (geplant):** `asksin.com` (oder vergleichbar — `syn.com` ist vergeben)
+
+### URL-Strategie
+
+**Heute (Developer / syn.worqshop.io):**
+| Pfad | Zweck |
+|---|---|
+| `/` | Auto-Redirect: angemeldet → `/app/dashboard`, anonym → `/landing` |
+| `/landing` | Public Marketing-Landing-Page (Stub, wird ausgebaut) |
+| `/login` · `/invite/[token]` | Auth-Flows |
+| `/app/*` | Die eigentliche App (Dashboard, Sessions, Admin, Help) |
+| `/share/[token]` | Read-Only-Share-Links |
+| `/api/*` | REST + Webhook-Endpoints |
+
+**Produktions-Plan (asksin.com):**
+| Domain | Pfad | Inhalt |
+|---|---|---|
+| `asksin.com` | `/` | Landing (heute `/landing`) |
+| `app.asksin.com` | `/*` | App (heute alles unter `/app/*`) |
+| `app.asksin.com` | `/api/*` | API |
+
+**Migration ohne Code-Refactor:** Caddy/Reverse-Proxy macht das Subdomain-Routing → auf `app.asksin.com` wird intern `/dashboard` zu `/app/dashboard` gerewriten (oder die Routes werden im Next-Build umstrukturiert). Das interne Filesystem-Layout (`/app/src/app/app/*`) bleibt unverändert; die Migration ist eine reine Domain-/Rewrite-Konfiguration.
+
+Vorbereitet ist:
+- `/landing` lebt schon als Route auf der Dev-Instanz und kann iterativ weiter ausgebaut werden ohne die App zu beeinflussen
+- Alle internen Links innerhalb der App sind absolute Pfade `/app/...` — bei Subdomain-Split werden die zu `/...` per Sed-Pass (oder gleich Caddy-Rewrite)
+- Die `PUBLIC_BASE_URL` env-Variable steuert nach außen sichtbare URLs (Share-Links, Mail-Invites) — bei Domain-Switch wird sie auf `https://app.asksin.com` bzw. `https://asksin.com` umgestellt
 
 ---
 
