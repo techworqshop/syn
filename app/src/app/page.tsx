@@ -285,12 +285,12 @@ const LANDING_COPY: Record<Locale, LandingCopy> = {
     },
     how: {
       label: "Wie es funktioniert",
-      title: "Drei Runden. Du gibst die Methodik.",
-      intro: "Das ist der Standard-Ablauf. Wenn dir was anderes besser passt, sag's — der Agent richtet sich nach deiner Methodik.",
+      title: "Du gibst die Methodik.",
+      intro: "Syn ist ein anpassbares Diskursformat. Anzahl der Runden, Persona-Profile und Synthesetiefe bestimmst du.",
       steps: [
-        { round: "Runde 1", title: "Bauchgefühl",            body: "Erste Reaktionen. Was triggert, was irritiert, was bleibt hängen." },
-        { round: "Runde 2", title: "Konstruktive Vorschläge", body: "Was würde besser? Welche Ansätze würden anders gelöst?" },
-        { round: "Runde 3", title: "Priorisierte Handlungsliste", body: "Konsolidierte Empfehlungen. Was zuerst, was später, was lieber lassen." }
+        { round: "Bis zu 3", title: "Runden",    body: "Du entscheidest, wie viele Diskussions-Runden es gibt und was in jeder Runde besprochen wird." },
+        { round: "Bis zu 5", title: "Personas",  body: "Eigenständige Charaktere mit klar abgegrenzten Haltungen. Standard-Set oder eigene Personas — deine Wahl." },
+        { round: "Bis zu 3", title: "Synthesen", body: "Jede Runde wird zu einer Synthese verdichtet. Im Abschlussbericht gebündelt als priorisierte Handlungsliste." }
       ]
     },
     use: {
@@ -365,12 +365,12 @@ const LANDING_COPY: Record<Locale, LandingCopy> = {
     },
     how: {
       label: "How it works",
-      title: "Three rounds. You set the method.",
-      intro: "This is the standard flow. If something else fits better — say so. The agent adapts to your methodology.",
+      title: "You set the method.",
+      intro: "Syn is a customizable discourse format. You decide the round count, persona profiles, and synthesis depth.",
       steps: [
-        { round: "Round 1", title: "Gut feeling",        body: "First reactions. What triggers, irritates, sticks." },
-        { round: "Round 2", title: "Constructive ideas", body: "What would be better? Which approaches would be solved differently?" },
-        { round: "Round 3", title: "Prioritised actions", body: "Consolidated recommendations. What first, what later, what to skip." }
+        { round: "Up to 3", title: "Rounds",     body: "Decide how many discussion rounds there are and what each round explores." },
+        { round: "Up to 5", title: "Personas",   body: "Distinct characters with clearly defined stances. Standard set or build your own — your call." },
+        { round: "Up to 3", title: "Syntheses",  body: "Each round gets compressed into a synthesis. The final report bundles them into a prioritised action list." }
       ]
     },
     use: {

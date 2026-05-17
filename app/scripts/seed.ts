@@ -15,8 +15,10 @@ async function main() {
     console.log(`User ${email} already exists - skipping seed.`);
   } else {
     const hash = await bcrypt.hash(password, 12);
-    await sql`INSERT INTO users (email, password_hash, name) VALUES (${email}, ${hash}, 'Tech Worqshop')`;
-    console.log(`Seeded admin: ${email}`);
+    const isWorqshop = email.endsWith("@worqshop.io");
+    await sql`INSERT INTO users (email, password_hash, name, is_admin, email_verified_at)
+              VALUES (${email}, ${hash}, 'Tech Worqshop', ${isWorqshop}, now())`;
+    console.log(`Seeded admin: ${email}${isWorqshop ? " (auto-admin, verified)" : ""}`);
   }
   await sql.end();
 }
