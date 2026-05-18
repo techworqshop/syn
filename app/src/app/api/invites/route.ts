@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
 import { db } from "@/lib/db";
 import { invites, users } from "@/db/schema";
+import { audit } from "@/lib/log";
+import { headers } from "next/headers";
 import { adminGuard, requireAdmin } from "@/lib/current-user";
 import { sendInviteEmail } from "@/lib/n8n";
 import { desc, eq } from "drizzle-orm";
@@ -36,6 +38,16 @@ export async function POST(req: Request) {
     recipientEmail: email,
     inviterName: u.name || u.email,
     inviteUrl
+  });
+  const h = await headers();
+  await audit({
+    actorId: u.id,
+    actorEmail: u.email,
+    action: "invite.create",
+    targetType: "invite",
+    targetId: inv.id,
+    metadata: { recipientEmail: email, mailed },
+    ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? undefined
   });
   return NextResponse.json({ invite: inv, inviteUrl, mailed });
 }

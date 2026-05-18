@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { users } from "@/db/schema";
 import { adminGuard, requireAdmin } from "@/lib/current-user";
 import { eq } from "drizzle-orm";
+import { audit } from "@/lib/log";
+import { headers } from "next/headers";
 
 type P = { params: Promise<{ id: string }> };
 
@@ -22,5 +24,15 @@ export async function PATCH(req: Request, { params }: P) {
   const [row] = await db.update(users).set({ isAdmin: body.isAdmin, updatedAt: new Date() })
     .where(eq(users.id, id)).returning({ id: users.id, email: users.email, isAdmin: users.isAdmin });
   if (!row) return NextResponse.json({ error: "user not found" }, { status: 404 });
+  const h = await headers();
+  await audit({
+    actorId: me.id,
+    actorEmail: me.email,
+    action: body.isAdmin ? "user.promote_admin" : "user.demote_admin",
+    targetType: "user",
+    targetId: id,
+    metadata: { targetEmail: row.email },
+    ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? undefined
+  });
   return NextResponse.json({ ok: true, user: row });
 }

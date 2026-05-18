@@ -133,3 +133,16 @@ export const emailChangeTokens = pgTable("email_change_tokens", {
   usedAt: timestamp("used_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
 }, (t) => [index("email_change_tokens_token_idx").on(t.token), index("email_change_tokens_user_idx").on(t.userId)]);
+
+
+export const adminAuditLog = pgTable("admin_audit_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  actorId: uuid("actor_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  actorEmail: text("actor_email").notNull(),
+  action: text("action").notNull(),
+  targetType: text("target_type"),
+  targetId: uuid("target_id"),
+  metadata: jsonb("metadata"),
+  ip: text("ip"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+}, (t) => [index("admin_audit_log_actor_idx").on(t.actorId), index("admin_audit_log_created_idx").on(t.createdAt), index("admin_audit_log_action_idx").on(t.action)]);
