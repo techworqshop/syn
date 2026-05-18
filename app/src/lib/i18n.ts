@@ -27,6 +27,10 @@ export const DICT: Dict = {
   "login.password":    { de: "Passwort",                       en: "Password" },
   "login.submit":      { de: "Einloggen",                      en: "Sign in" },
   "login.invalid":     { de: "Falsche E-Mail oder Passwort.",  en: "Wrong email or password." },
+  "login.unverified":  { de: "Bitte bestaetige zuerst deine E-Mail. Wir haben dir bei der Registrierung einen Link geschickt — checke dein Postfach (auch Spam).", en: "Please confirm your email first. We sent you a link at registration — check your inbox (including spam)." },
+  "login.resendVerify":{ de: "Verify-Mail erneut senden",      en: "Resend verification email" },
+  "login.deleted":     { de: "Dieser Account wurde zur Loeschung markiert. Schreib uns auf tech@worqshop.io um ihn zu reaktivieren.", en: "This account has been flagged for deletion. Contact tech@worqshop.io to reactivate." },
+  "login.verifiedBanner": { de: "E-Mail bestaetigt. Du kannst dich jetzt einloggen.", en: "Email confirmed. You can now sign in." },
 
   // ============================================================
   // Auth-Shared (Login / Register / Recovery)

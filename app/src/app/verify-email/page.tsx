@@ -10,11 +10,11 @@ import { getLocaleFromCookies, t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ token?: string; verified?: string }>;
+type SearchParams = Promise<{ token?: string; verified?: string; email?: string }>;
 
 export default async function VerifyEmailPage({ searchParams }: { searchParams: SearchParams }) {
   const locale = await getLocaleFromCookies();
-  const { token = "", verified } = await searchParams;
+  const { token = "", verified, email: emailParam } = await searchParams;
 
   // ───── 1) Token-Klick aus Mail: Validieren + User markieren
   if (token) {
@@ -43,7 +43,7 @@ export default async function VerifyEmailPage({ searchParams }: { searchParams: 
           .set({ usedAt: new Date() })
           .where(eq(emailVerificationTokens.id, row.id));
       }
-      redirect("/verify-email?verified=1");
+      redirect("/login?verified=1");
     }
     // Ungueltig / abgelaufen: zeige Error-State
     return (
@@ -62,22 +62,30 @@ export default async function VerifyEmailPage({ searchParams }: { searchParams: 
     );
   }
 
-  // ───── 3) Pending-State: User ist eingeloggt, wartet auf Bestaetigung
+  // ───── 3) Pending-State: User entweder eingeloggt ODER kommt frisch
+  // von der Registrierung (?email=X param, ohne Session).
   const session = await auth();
-  const email = session?.user?.email ?? "";
+  const email = emailParam ?? session?.user?.email ?? "";
+  const showLogout = !!session?.user;
 
   return (
     <AuthShell
       locale={locale}
       navRight={
-        <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
-          <button type="submit" className="text-sm hover:text-stone-900 transition-colors" style={{ color: "#4A4640" }}>
-            {t("verify.logout", locale)}
-          </button>
-        </form>
+        showLogout ? (
+          <form action={async () => { "use server"; await signOut({ redirectTo: "/login" }); }}>
+            <button type="submit" className="text-sm hover:text-stone-900 transition-colors" style={{ color: "#4A4640" }}>
+              {t("verify.logout", locale)}
+            </button>
+          </form>
+        ) : (
+          <a href="/login" className="text-sm hover:text-stone-900 transition-colors" style={{ color: "#4A4640" }}>
+            {t("auth.login", locale)}
+          </a>
+        )
       }
     >
-      <VerifyPending locale={locale} email={email} />
+      <VerifyPending locale={locale} email={email} hasSession={showLogout} />
     </AuthShell>
   );
 }

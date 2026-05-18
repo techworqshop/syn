@@ -5,8 +5,11 @@ import { getLocaleFromCookies, t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage() {
+type SearchParams = Promise<{ verified?: string }>;
+
+export default async function LoginPage({ searchParams }: { searchParams: SearchParams }) {
   const locale = await getLocaleFromCookies();
+  const { verified } = await searchParams;
   return (
     <AuthShell
       locale={locale}
@@ -17,7 +20,7 @@ export default async function LoginPage() {
         </Link>
       }
     >
-      <LoginForm locale={locale} />
+      <LoginForm locale={locale} justVerified={verified === "1"} />
     </AuthShell>
   );
 }

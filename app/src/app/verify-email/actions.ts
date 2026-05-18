@@ -57,3 +57,30 @@ export async function resendVerificationAction(_prev: unknown, _formData: FormDa
     return { sent: false, error: t("verify.resendFailed", locale) };
   }
 }
+
+
+// Resend-Variante OHNE Auth: User ist nicht eingeloggt (kommt von /login mit
+// unverifiziertem Status, oder direkt nach Registrierung). Anti-Enumeration:
+// gibt immer "sent" zurueck, egal ob User existiert.
+export async function resendVerificationByEmailAction(_prev: unknown, formData: FormData) {
+  const locale = await getLocaleFromCookies();
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  if (!email || !email.includes("@")) {
+    return { sent: false, error: t("register.invalidEmail", locale) };
+  }
+  try {
+    const [u] = await db
+      .select({ id: users.id, email: users.email, emailVerifiedAt: users.emailVerifiedAt })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+    if (u && !u.emailVerifiedAt) {
+      await issueVerificationToken(u.id, u.email);
+    }
+    // Auch wenn User nicht existiert oder bereits verifiziert: gleiche Antwort.
+    return { sent: true, error: null };
+  } catch (e) {
+    console.error("[resend-verification-by-email] failed", e);
+    return { sent: false, error: t("verify.resendFailed", locale) };
+  }
+}

@@ -4,9 +4,11 @@ import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/db/schema";
-import { signIn } from "@/lib/auth";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
 import { issueVerificationToken } from "@/app/verify-email/actions";
+
+// Test-Accounts die NIE Auto-Admin werden, auch wenn @worqshop.io.
+const NEVER_AUTO_ADMIN = new Set(["lukasz+1@worqshop.io"]);
 
 // Public Sign-Up:
 // - Email + Passwort + Bestaetigung + AGB
@@ -47,15 +49,17 @@ export async function registerAction(_prev: unknown, formData: FormData) {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const isWorqshop = email.endsWith("@worqshop.io");
+  const allowAutoAdmin = isWorqshop && !NEVER_AUTO_ADMIN.has(email);
 
   let userId: string;
   try {
     const [inserted] = await db.insert(users).values({
       email,
       passwordHash,
-      isAdmin: isWorqshop,
+      isAdmin: allowAutoAdmin,
       mustChangePassword: "false",
-      emailVerifiedAt: isWorqshop ? new Date() : null
+      // Production-Flow: JEDER muss Email bestaetigen — keine Shortcuts.
+      emailVerifiedAt: null
     }).returning({ id: users.id });
     userId = inserted.id;
   } catch (e) {
@@ -63,25 +67,16 @@ export async function registerAction(_prev: unknown, formData: FormData) {
     return { error: t("register.failed", locale) };
   }
 
-  // Nicht-Worqshop: Verify-Token erstellen + Mail verschicken (best-effort)
-  if (!isWorqshop) {
-    try {
-      await issueVerificationToken(userId, email);
-    } catch (e) {
-      console.error("[register] verification token issuance failed", e);
-      // Trotzdem weiter — User kann auf /verify-email "Resend" klicken
-    }
+  // Verify-Token erstellen + Mail verschicken (best-effort)
+  try {
+    await issueVerificationToken(userId, email);
+  } catch (e) {
+    console.error("[register] verification token issuance failed", e);
+    // Trotzdem weiter — User kann auf der Verify-Page "Resend" klicken
   }
 
-  // Auto-Login + Redirect:
-  // - Worqshop -> Dashboard (verified)
-  // - Sonst -> /verify-email (pending state)
-  await signIn("credentials", {
-    email,
-    password,
-    redirectTo: isWorqshop ? "/app/dashboard" : "/verify-email"
-  });
-
-  // Sollte nicht erreicht werden (signIn throws NEXT_REDIRECT).
-  redirect("/login");
+  // KEIN Auto-Login. User soll erst die Mail bestaetigen, dann selbst einloggen.
+  // Redirect zur Verify-Email-Page mit der Adresse als Hint, damit die Pending-Page
+  // dem User zeigt wo der Link hingeschickt wurde.
+  redirect(`/verify-email?email=${encodeURIComponent(email)}`);
 }

@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
 import { useActionState } from "react";
-import { resendVerificationAction } from "./actions";
+import { resendVerificationAction, resendVerificationByEmailAction } from "./actions";
 import { t, type Locale } from "@/lib/i18n";
 
-export default function VerifyPending({ locale, email }: { locale: Locale; email: string }) {
-  const [state, action, pending] = useActionState(resendVerificationAction, { sent: false, error: null as string | null });
+export default function VerifyPending({ locale, email, hasSession }: { locale: Locale; email: string; hasSession: boolean }) {
+  const action_fn = hasSession ? resendVerificationAction : resendVerificationByEmailAction;
+  const [state, action, pending] = useActionState(action_fn, { sent: false, error: null as string | null });
 
   return (
     <>
@@ -29,6 +30,7 @@ export default function VerifyPending({ locale, email }: { locale: Locale; email
       </div>
 
       <form action={action}>
+        {!hasSession && <input type="hidden" name="email" value={email} />}
         <button
           type="submit"
           disabled={pending || state?.sent}

@@ -5,14 +5,23 @@ import { loginAction } from "./actions";
 import { t, type Locale } from "@/lib/i18n";
 import { authStyles as s } from "@/components/auth/AuthShell";
 
-export default function LoginForm({ locale }: { locale: Locale }) {
-  const [state, action, pending] = useActionState(loginAction, { error: null as string | null });
+export default function LoginForm({ locale, justVerified = false }: { locale: Locale; justVerified?: boolean }) {
+  const [state, action, pending] = useActionState(loginAction, { error: null as string | null, unverifiedEmail: undefined as string | undefined });
   const [showPwd, setShowPwd] = useState(false);
 
   return (
     <>
       <h1 className={s.title} style={s.titleColor}>{t("login.title", locale)}</h1>
       <p className={s.sub} style={s.subColor}>{t("login.subtitle2", locale)}</p>
+
+      {justVerified && (
+        <div
+          className="rounded-[10px] px-4 py-3 mb-5 text-sm leading-relaxed"
+          style={{ background: "rgba(58,126,88,0.10)", border: "1px solid rgba(58,126,88,0.30)", color: "#1F2420" }}
+        >
+          {t("login.verifiedBanner", locale)}
+        </div>
+      )}
 
       <form action={action} className="space-y-5">
         <div>
@@ -69,7 +78,16 @@ export default function LoginForm({ locale }: { locale: Locale }) {
         </label>
 
         {state?.error && (
-          <p className="text-sm" style={{ color: "#9F1239" }}>{state.error}</p>
+          <div>
+            <p className="text-sm" style={{ color: "#9F1239" }}>{state.error}</p>
+            {state.unverifiedEmail && (
+              <a href={`/verify-email?email=${encodeURIComponent(state.unverifiedEmail)}`}
+                className="text-xs font-medium hover:underline inline-block mt-1.5"
+                style={{ color: "#BE123C" }}>
+                {t("login.resendVerify", locale)}
+              </a>
+            )}
+          </div>
         )}
 
         <button
