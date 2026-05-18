@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { users } from "@/db/schema";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
 import { issueVerificationToken } from "@/app/verify-email/actions";
+import { ratelimit, getClientIp } from "@/lib/ratelimit";
 
 // Test-Accounts die NIE Auto-Admin werden, auch wenn @worqshop.io.
 const NEVER_AUTO_ADMIN = new Set(["lukasz+1@worqshop.io"]);
@@ -17,6 +18,11 @@ const NEVER_AUTO_ADMIN = new Set(["lukasz+1@worqshop.io"]);
 //   Redirect zu /verify-email statt /app/dashboard
 export async function registerAction(_prev: unknown, formData: FormData) {
   const locale = await getLocaleFromCookies();
+  // Rate-Limit per-IP: 5 Registrierungen pro 10 Min (anti-Mass-Signup)
+  const ip = await getClientIp();
+  const rl = await ratelimit(`register:${ip}`, 5, 600);
+  if (!rl.ok) return { error: t("ratelimit.tooMany", locale) };
+
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const password = String(formData.get("password") || "");
   const password2 = String(formData.get("password2") || "");

@@ -6,6 +6,7 @@ import { users, emailVerificationTokens } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { sendVerificationEmail } from "@/lib/n8n";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
+import { ratelimit, getClientIp } from "@/lib/ratelimit";
 
 const TOKEN_TTL_HOURS = 24;
 
@@ -65,6 +66,11 @@ export async function resendVerificationAction(_prev: unknown, _formData: FormDa
 export async function resendVerificationByEmailAction(_prev: unknown, formData: FormData) {
   const locale = await getLocaleFromCookies();
   const email = String(formData.get("email") || "").trim().toLowerCase();
+  // Rate-Limit per-IP+Email: 3 Resends pro 10 Min
+  const ip = await getClientIp();
+  const rl = await ratelimit(`verify-resend:${ip}:${email}`, 3, 600);
+  if (!rl.ok) return { sent: false, error: t("ratelimit.tooMany", locale) };
+
   if (!email || !email.includes("@")) {
     return { sent: false, error: t("register.invalidEmail", locale) };
   }

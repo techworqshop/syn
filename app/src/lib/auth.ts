@@ -28,8 +28,43 @@ function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PATHS.some(p => pathname === p || pathname.startsWith(p + "/"));
 }
 
+const isProd = process.env.NODE_ENV === "production";
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  session: { strategy: "jwt" },
+  // Trust-Host muss zur Caddy-Proxy-Konfig passen
+  trustHost: true,
+  session: {
+    strategy: "jwt",
+    maxAge: 60 * 60 * 24 * 30,    // 30 Tage absolute Lebensdauer
+    updateAge: 60 * 60 * 24        // Token wird taeglich erneuert
+  },
+  cookies: {
+    sessionToken: {
+      name: isProd ? "__Secure-authjs.session-token" : "authjs.session-token",
+      options: {
+        httpOnly: true,            // kein JS-Zugriff -> CSRF/XSS-Hardening
+        sameSite: "lax",           // CSRF-Schutz, erlaubt aber Top-Level-Navigation
+        path: "/",
+        secure: isProd,            // nur ueber HTTPS in Prod
+      }
+    },
+    csrfToken: {
+      name: isProd ? "__Host-authjs.csrf-token" : "authjs.csrf-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: isProd,
+      }
+    },
+    callbackUrl: {
+      name: isProd ? "__Secure-authjs.callback-url" : "authjs.callback-url",
+      options: {
+        sameSite: "lax",
+        path: "/",
+        secure: isProd,
+      }
+    }
+  },
   pages: { signIn: "/login" },
   providers: [
     Credentials({

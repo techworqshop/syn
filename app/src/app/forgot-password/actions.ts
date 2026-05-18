@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { users, passwordResetTokens } from "@/db/schema";
 import { sendPasswordResetEmail } from "@/lib/n8n";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
+import { ratelimit, getClientIp } from "@/lib/ratelimit";
 
 const TOKEN_TTL_MIN = 30;
 
@@ -19,6 +20,11 @@ const TOKEN_TTL_MIN = 30;
 export async function requestResetAction(_prev: unknown, formData: FormData) {
   const locale = await getLocaleFromCookies();
   const email = String(formData.get("email") || "").trim().toLowerCase();
+  // Rate-Limit per-IP+Email: 3 Versuche pro 10 Min (anti-Spam)
+  const ip = await getClientIp();
+  const rl = await ratelimit(`forgot:${ip}:${email}`, 3, 600);
+  if (!rl.ok) return { sent: false, email: null, error: t("ratelimit.tooMany", locale) };
+
   if (!email || !email.includes("@")) {
     return { sent: false, email: null, error: t("register.invalidEmail", locale) };
   }

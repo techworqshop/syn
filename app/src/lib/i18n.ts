@@ -31,6 +31,7 @@ export const DICT: Dict = {
   "login.resendVerify":{ de: "Verify-Mail erneut senden",      en: "Resend verification email" },
   "login.deleted":     { de: "Dieser Account wurde zur Loeschung markiert. Schreib uns auf tech@worqshop.io um ihn zu reaktivieren.", en: "This account has been flagged for deletion. Contact tech@worqshop.io to reactivate." },
   "login.verifiedBanner": { de: "E-Mail bestaetigt. Du kannst dich jetzt einloggen.", en: "Email confirmed. You can now sign in." },
+  "ratelimit.tooMany": { de: "Zu viele Versuche. Bitte warte ein paar Minuten und versuche es nochmal.", en: "Too many attempts. Please wait a few minutes and try again." },
 
   // ============================================================
   // Auth-Shared (Login / Register / Recovery)
