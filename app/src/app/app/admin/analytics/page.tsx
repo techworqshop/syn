@@ -223,6 +223,21 @@ export default async function AdminAnalyticsPage({
         </div>
       </div>
 
+      {/* Empty-State: wenn noch keine Sessions, klar kommunizieren */}
+      {c.total_sessions === 0 && (
+        <div className="rounded-2xl p-5 mb-6 brand-card">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-white text-lg font-bold" style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>i</div>
+            <div className="flex-1">
+              <p className="font-semibold mb-1" style={{ color: "#1F2420" }}>Noch keine Sessions</p>
+              <p className="text-sm leading-relaxed" style={{ color: "#4A4640" }}>
+                Sobald die ersten Fokusgruppen laufen, fuellen sich KPIs, Funnel, Tageskurve und Token-Kosten automatisch hier auf. Aktuell: {c.total_users} Account{c.total_users === 1 ? "" : "s"} angelegt, keine Sessions gestartet.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Counter Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <Card label="User insgesamt" value={c.total_users} sub={`+${c.new_users} im Zeitraum`} />

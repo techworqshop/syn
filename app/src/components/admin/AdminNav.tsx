@@ -2,8 +2,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+// "Analytics" ist die Default-Landing (/app/admin -> /app/admin/analytics).
+// Daher in den Tabs nicht mehr noetig — Admin-Hauptmenue IST Analytics.
 const TABS: Array<{ href: string; label: string }> = [
-  { href: "/app/admin/analytics", label: "Analytics" },
   { href: "/app/admin/users",     label: "Users" },
   { href: "/app/admin/sessions",  label: "Sessions" },
   { href: "/app/admin/errors",    label: "Errors" },
@@ -14,7 +15,10 @@ export default function AdminNav() {
   const path = usePathname();
   return (
     <div className="relative z-20 px-6 py-2 flex items-center gap-1 overflow-x-auto" style={{ background: "#F3EFE2", borderBottom: "1px solid rgba(31,36,32,0.08)" }}>
-      <div className="text-xs uppercase tracking-wider text-stone-500 font-bold mr-4">Admin</div>
+      <Link href="/app/admin/analytics"
+        className={"text-xs uppercase tracking-wider font-bold mr-4 transition-colors " + (path === "/app/admin/analytics" ? "text-stone-900" : "text-stone-500 hover:text-stone-700")}>
+        Admin
+      </Link>
       {TABS.map(t => {
         const active = path.startsWith(t.href);
         return (
