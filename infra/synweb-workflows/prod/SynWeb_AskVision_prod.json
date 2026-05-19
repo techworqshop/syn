@@ -1,0 +1,249 @@
+[
+  {
+    "updatedAt": "2026-05-19T19:03:42.650Z",
+    "createdAt": "2026-05-10T17:44:54.600Z",
+    "id": "Q4MEDGpNMcyTxwGl",
+    "name": "SynWeb_AskVision_prod",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "trigger",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "session_id"
+              },
+              {
+                "name": "question"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "get-files",
+        "name": "Get Session Files",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          240,
+          0
+        ],
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_files"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.session_id }}"
+              }
+            ]
+          },
+          "limit": 10
+        },
+        "alwaysOutputData": true
+      },
+      {
+        "id": "download",
+        "name": "Download File",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          480,
+          0
+        ],
+        "parameters": {
+          "url": "={{ $json.file_url }}",
+          "options": {}
+        }
+      },
+      {
+        "id": "build-body",
+        "name": "Build Gemini Body",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          0
+        ],
+        "parameters": {
+          "jsCode": "var question=$('Execute Workflow Trigger').first().json.question||'Beschreibe das Bild detailliert.';var items=$input.all();var parts=[{text:'Du bist Vision-Forensik. Beantworte die folgende Frage praezise auf Basis der angehaengten Bilder/Dokumente. Sei konkret und visuell, nicht abstrakt. Antwort auf Deutsch, plain text.\\n\\nFRAGE: '+question}];for(var i=0;i<items.length;i++){if(items[i].binary){var bk=Object.keys(items[i].binary);for(var k=0;k<bk.length;k++){var b=items[i].binary[bk[k]];var buf=await this.helpers.getBinaryDataBuffer(i,bk[k]);parts.push({inline_data:{mime_type:b.mimeType||'application/octet-stream',data:buf.toString('base64')}});}}}return [{json:{contents:[{parts:parts}],generationConfig:{temperature:0.2,maxOutputTokens:32768,thinkingConfig:{thinkingBudget:-1}}}}];"
+        }
+      },
+      {
+        "id": "gemini",
+        "name": "Gemini Vision",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          960,
+          0
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googlePalmApi",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json) }}",
+          "options": {
+            "timeout": 60000
+          }
+        },
+        "credentials": {
+          "googlePalmApi": {
+            "id": "RsBy4nIm3pzcJC2k",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 3000
+      },
+      {
+        "id": "extract",
+        "name": "Extract Answer",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1200,
+          0
+        ],
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "1",
+                "name": "answer",
+                "value": "={{ $json.candidates && $json.candidates[0] && $json.candidates[0].content && $json.candidates[0].content.parts ? $json.candidates[0].content.parts.filter(p => p.text).map(p => p.text).join('\\n') : 'Keine Antwort' }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        }
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Get Session Files",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Session Files": {
+        "main": [
+          [
+            {
+              "node": "Download File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download File": {
+        "main": [
+          [
+            {
+              "node": "Build Gemini Body",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Gemini Body": {
+        "main": [
+          [
+            {
+              "node": "Gemini Vision",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Vision": {
+        "main": [
+          [
+            {
+              "node": "Extract Answer",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "6e6be21d-8d71-4403-b3e4-f59ef5e137c8",
+    "activeVersionId": "6e6be21d-8d71-4403-b3e4-f59ef5e137c8",
+    "versionCounter": 31,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-19T19:02:17.000Z",
+        "createdAt": "2026-05-19T19:02:17.000Z",
+        "role": "workflow:owner",
+        "workflowId": "Q4MEDGpNMcyTxwGl",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

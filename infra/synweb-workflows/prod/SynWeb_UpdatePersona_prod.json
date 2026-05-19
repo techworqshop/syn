@@ -1,0 +1,101 @@
+[
+  {
+    "updatedAt": "2026-05-19T19:03:41.386Z",
+    "createdAt": "2026-04-19T21:59:11.661Z",
+    "id": "4gMX10J89nmDrKii",
+    "name": "SynWeb_UpdatePersona_prod",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "hook",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          300
+        ],
+        "parameters": {
+          "path": "synweb/update-persona-prod",
+          "httpMethod": "POST",
+          "responseMode": "lastNode"
+        },
+        "webhookId": "prod-b391cfaa-644b-432e-9461-dbb35e7fe78e"
+      },
+      {
+        "id": "upd",
+        "name": "Update Row",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          450,
+          300
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "UPDATE \"data_table_user_oAfVlk69fSh57ABR\" SET rigidity = $3, \"updatedAt\" = NOW() WHERE session_id = $1 AND slack_slot = $2 RETURNING persona_id, name, slack_slot, rigidity",
+          "options": {
+            "queryReplacement": "={{ $json.body.sessionId }},{{ $json.body.slot }},{{ $json.body.rigidity }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Update Row",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "bc8bf585-2c3e-4ec7-9fd6-f180db742978",
+    "activeVersionId": "bc8bf585-2c3e-4ec7-9fd6-f180db742978",
+    "versionCounter": 16,
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-19T19:02:24.242Z",
+        "createdAt": "2026-05-19T19:02:24.242Z",
+        "role": "workflow:owner",
+        "workflowId": "4gMX10J89nmDrKii",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]
