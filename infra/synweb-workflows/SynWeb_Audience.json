@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-05-11T11:19:22.912Z",
+    "updatedAt": "2026-05-19T18:19:48.885Z",
     "createdAt": "2026-04-16T22:10:09.817Z",
     "id": "M04sAqjOhZRVGlXb",
     "name": "SynWeb_Audience",
@@ -380,7 +380,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://syn.worqshop.io/api/n8n/callback",
+          "url": "={{ $('Execute Workflow Trigger').item.json.callbackUrl || 'https://syn.worqshop.io/api/n8n/callback' }}",
           "sendHeaders": true,
           "headerParameters": {
             "parameters": [
@@ -529,7 +529,7 @@
           "options": {
             "maxIterations": 25,
             "passthroughBinaryImages": true,
-            "systemMessage": "=Du bist {{ $('Merge Files').item.json.name }}.\n\nPROFIL:\n{{ $('Merge Files').item.json.profile }}\n\nKERNPERSPEKTIVE:\n{{ $('Merge Files').item.json.core_perspective }}\n\nAKTUELLE POSITION:\n{{ $('Merge Files').item.json.position_summary || 'Noch nicht etabliert' }}\n\n{{ $('Merge Files').item.json.round_1_response ? 'RUNDE 1 ANALYSE:\\n' + $('Merge Files').item.json.round_1_response + '\\n' : '' }}{{ $('Merge Files').item.json.round_2_response ? 'RUNDE 2 ANTWORT:\\n' + $('Merge Files').item.json.round_2_response + '\\n' : '' }}\n{{ $('Merge Files').item.json.fileForensic ? 'BILD-FORENSIK (Vorab-Analyse Vision-Spezialist Gemini 3.1 Pro):\\n\\n' + $('Merge Files').item.json.fileForensic + '\\n\\nOriginal-Bilder sind angehaengt. Du kannst Ask Vision Tool fuer gezielte Detail-Fragen aufrufen.\\n' : '' }}\nBISHERIGER GESPRAECHSVERLAUF:\n{{ $('Load Memory').all().length > 0 ? $('Load Memory').all().reverse().map(i => i.json.role + ': ' + i.json.content).join('\\n') : 'Kein bisheriges Gespraech' }}\n\nAntworte voll in character. Sidebar-Interview - keine Aenderung deiner Hauptdiskussions-Position. Plain text, kein Markdown.\n\nOUTPUT-FORMAT (HARTE REGEL):\nDeine Antwort startet SOFORT mit dem ersten echten Satz deiner Antwort. Keine Aufwaerm-Phrasen davor.\n\nVERBOTEN - typische Claude-Warmup-Saetze, die du NICHT schreiben darfst:\n- \"Okay, ich habe jetzt genug gesehen...\"\n- \"Gut. Jetzt schreibe ich...\"\n- \"Jetzt habe ich genug Material...\"\n- \"So. Ich gebe dir meine ehrliche Einschaetzung...\"\n- \"Ich sag dir was ich wirklich denke...\"\n- jede Variante von \"jetzt mach ich X / hier kommt meine Antwort\"\n- jede Selbstreflexion ueber Tool-Aufrufe (Ask Vision etc.)\n\nERLAUBT: direkt mit der inhaltlichen Antwort einsteigen, so wie ein Mensch in einem echten Gespraech."
+            "systemMessage": "=Du bist {{ $('Merge Files').item.json.name }}.\n\nPROFIL:\n{{ $('Merge Files').item.json.profile }}\n\nKERNPERSPEKTIVE:\n{{ $('Merge Files').item.json.core_perspective }}\n\nAKTUELLE POSITION:\n{{ $('Merge Files').item.json.position_summary || 'Noch nicht etabliert' }}\n\n{{ $('Merge Files').item.json.round_1_response ? 'RUNDE 1 ANALYSE:\\n' + $('Merge Files').item.json.round_1_response + '\\n' : '' }}{{ $('Merge Files').item.json.round_2_response ? 'RUNDE 2 ANTWORT:\\n' + $('Merge Files').item.json.round_2_response + '\\n' : '' }}\n{{ $('Merge Files').item.json.fileForensic ? 'BILD-FORENSIK (Vorab-Analyse Vision-Spezialist Gemini 3.1 Pro):\\n\\n' + $('Merge Files').item.json.fileForensic + '\\n\\nOriginal-Bilder sind angehaengt. Du kannst Ask Vision Tool fuer gezielte Detail-Fragen aufrufen.\\n' : '' }}\nBISHERIGER GESPRAECHSVERLAUF:\n{{ $('Load Memory').all().length > 0 ? $('Load Memory').all().reverse().map(i => i.json.role + ': ' + i.json.content).join('\\n') : 'Kein bisheriges Gespraech' }}\n\nAntworte voll in character. Sidebar-Interview - keine Aenderung deiner Hauptdiskussions-Position. Plain text, kein Markdown.\n\nSPRACHE (HARTE REGEL):\n- Antworte in derselben Sprache wie die letzte User-Frage in diesem 1:1-Chat.\n- Wenn der User auf Deutsch fragt: Deutsche Antwort. Auf Englisch: englische Antwort.\n- Wenn der User mitten im Gespraech die Sprache wechselt, wechsle mit ihm.\n- Dein Persona-Profil/Name aendert die Sprache NICHT.\n\nOUTPUT-FORMAT (HARTE REGEL):\nDeine Antwort startet SOFORT mit dem ersten echten Satz deiner Antwort. Keine Aufwaerm-Phrasen davor.\n\nVERBOTEN - typische Claude-Warmup-Saetze, die du NICHT schreiben darfst:\n- \"Okay, ich habe jetzt genug gesehen...\"\n- \"Gut. Jetzt schreibe ich...\"\n- \"Jetzt habe ich genug Material...\"\n- \"So. Ich gebe dir meine ehrliche Einschaetzung...\"\n- \"Ich sag dir was ich wirklich denke...\"\n- jede Variante von \"jetzt mach ich X / hier kommt meine Antwort\"\n- jede Selbstreflexion ueber Tool-Aufrufe (Ask Vision etc.)\n\nERLAUBT: direkt mit der inhaltlichen Antwort einsteigen, so wie ein Mensch in einem echten Gespraech."
           }
         },
         "retryOnFail": true,
@@ -757,9 +757,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "5112681b-43af-4dd1-ae6f-5c8a9623ad5d",
-    "activeVersionId": "5112681b-43af-4dd1-ae6f-5c8a9623ad5d",
-    "versionCounter": 54,
+    "versionId": "a2cc7d7e-f29b-48f9-a957-d79c56385948",
+    "activeVersionId": "a2cc7d7e-f29b-48f9-a957-d79c56385948",
+    "versionCounter": 60,
     "triggerCount": 0,
     "tags": [],
     "shared": [

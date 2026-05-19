@@ -7,12 +7,15 @@ export async function forwardToGateway(payload: {
   targetPersona?: number | null;
   hasFiles?: boolean;
 }) {
+  const callbackBase = process.env.APP_PUBLIC_BASE || process.env.PUBLIC_BASE_URL || "https://syn.worqshop.io";
   const body = {
     sessionId: payload.sessionId,
     userId: payload.userId,
     cleanMessage: payload.cleanMessage,
     targetPersona: payload.targetPersona != null ? String(payload.targetPersona) : "",
-    hasFiles: !!payload.hasFiles
+    hasFiles: !!payload.hasFiles,
+    // Stack-aware Callback-URL — Gateway forwarded das zu allen Sub-Workflows.
+    callbackUrl: `${callbackBase}/api/n8n/callback`
   };
   // n8n's responseNode mode keeps the upstream connection open while the
   // workflow keeps running (~several minutes). Caddy buffers the body,

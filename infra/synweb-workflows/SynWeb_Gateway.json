@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-20T19:16:48.441Z",
+    "updatedAt": "2026-05-19T18:19:38.070Z",
     "createdAt": "2026-04-16T22:10:51.612Z",
     "id": "V0CpwraeTYxQh6BM",
     "name": "SynWeb_Gateway",
@@ -71,6 +71,12 @@
                 "id": "a6",
                 "name": "channelId",
                 "value": "web",
+                "type": "string"
+              },
+              {
+                "id": "a7",
+                "name": "callbackUrl",
+                "value": "={{ $json.body.callbackUrl || 'https://syn.worqshop.io/api/n8n/callback' }}",
                 "type": "string"
               }
             ]
@@ -146,7 +152,8 @@
               "userId": "={{ $json.userId }}",
               "channelId": "={{ $json.channelId }}",
               "cleanMessage": "={{ $json.cleanMessage }}",
-              "hasFiles": "={{ $json.hasFiles }}"
+              "hasFiles": "={{ $json.hasFiles }}",
+              "callbackUrl": "={{ $json.callbackUrl }}"
             }
           }
         },
@@ -174,7 +181,8 @@
               "slotNumber": "={{ parseInt($json.targetPersona) }}",
               "cleanMessage": "={{ $json.cleanMessage }}",
               "channelId": "={{ $json.channelId }}",
-              "userId": "={{ $json.userId }}"
+              "userId": "={{ $json.userId }}",
+              "callbackUrl": "={{ $json.callbackUrl }}"
             }
           }
         },
@@ -191,7 +199,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://syn.worqshop.io/api/n8n/callback",
+          "url": "={{ $('Extract Body').item.json.callbackUrl || 'https://syn.worqshop.io/api/n8n/callback' }}",
           "sendHeaders": true,
           "headerParameters": {
             "parameters": [
@@ -207,7 +215,7 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({ sessionId: $('Extract Body').item.json.sessionId, kind: 'error', text: '\u26a0\ufe0f Da ist was schiefgelaufen. Probier bitte nochmal.' }) }}",
+          "jsonBody": "={{ JSON.stringify({ sessionId: $('Extract Body').item.json.sessionId, kind: 'error', text: '⚠️ Da ist was schiefgelaufen. Probier bitte nochmal.' }) }}",
           "options": {
             "timeout": 10000
           }
@@ -298,9 +306,9 @@
     "staticData": null,
     "meta": null,
     "pinData": null,
-    "versionId": "e8dc67e2-a968-4a9c-9607-645ea0e0be04",
-    "activeVersionId": "e8dc67e2-a968-4a9c-9607-645ea0e0be04",
-    "versionCounter": 18,
+    "versionId": "dfeddd13-11bd-41c1-b6fb-77e85cc2cdf3",
+    "activeVersionId": "dfeddd13-11bd-41c1-b6fb-77e85cc2cdf3",
+    "versionCounter": 25,
     "triggerCount": 1,
     "tags": [],
     "shared": [
