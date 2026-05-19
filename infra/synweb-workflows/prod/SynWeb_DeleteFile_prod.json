@@ -1,0 +1,101 @@
+[
+  {
+    "updatedAt": "2026-05-19T18:40:37.939Z",
+    "createdAt": "2026-04-19T13:13:51.259Z",
+    "id": "AdIKrNLwDUcvayws",
+    "name": "SynWeb_DeleteFile_prod",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "8b4e204d-641d-41a2-a995-ec283119cacf",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          300
+        ],
+        "webhookId": "prod-d9371c13-58ea-432a-a548-dd53801ee6b5",
+        "parameters": {
+          "path": "synweb/delete-file-prod",
+          "httpMethod": "POST",
+          "responseMode": "lastNode"
+        }
+      },
+      {
+        "id": "pg-delete-row",
+        "name": "Delete Row",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          450,
+          300
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "DELETE FROM \"data_table_user_rxTwhshiPYLWHSsq\" WHERE file_id = $1",
+          "options": {
+            "queryReplacement": "={{ $json.body.fileId }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Delete Row",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "97b81e7f-21d6-4bd0-82f4-9f5d5059b1ab",
+    "activeVersionId": "97b81e7f-21d6-4bd0-82f4-9f5d5059b1ab",
+    "versionCounter": 15,
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-19T18:36:17.536Z",
+        "createdAt": "2026-05-19T18:36:17.536Z",
+        "role": "workflow:owner",
+        "workflowId": "AdIKrNLwDUcvayws",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

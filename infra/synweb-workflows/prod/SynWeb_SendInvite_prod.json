@@ -1,0 +1,107 @@
+[
+  {
+    "updatedAt": "2026-05-19T18:40:41.891Z",
+    "createdAt": "2026-04-19T17:33:56.485Z",
+    "id": "EDX4RwwzekKrVAuf",
+    "name": "SynWeb_SendInvite_prod",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "a3dee326-c70c-43cf-bb6c-0cfb0bb36711",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          300
+        ],
+        "webhookId": "prod-cf0f8067-0272-43eb-baac-af53fcdb836e",
+        "parameters": {
+          "path": "synweb/send-invite-prod",
+          "httpMethod": "POST",
+          "responseMode": "lastNode"
+        }
+      },
+      {
+        "id": "ce8bcac1-9bab-40e3-96a4-4cb3497726ed",
+        "name": "Send Gmail",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          450,
+          300
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "send",
+          "sendTo": "={{ $json.body.recipientEmail }}",
+          "subject": "Einladung zu Syn",
+          "emailType": "html",
+          "message": "=<!DOCTYPE html><html lang=\"de\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Einladung zu Syn</title></head><body style=\"margin:0;padding:0;background:#E8E2D2;font-family:'Inter',-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#1F2420;-webkit-font-smoothing:antialiased;\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background:#E8E2D2;padding:40px 16px;\"><tr><td align=\"center\"><table role=\"presentation\" width=\"540\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:540px;background:#F3EFE2;border-radius:20px;overflow:hidden;border:1px solid rgba(31,36,32,0.06);\"><tr><td height=\"4\" style=\"height:4px;background-color:#9F1239;background-image:linear-gradient(90deg,#4C1D95 0%,#9F1239 55%,#BE123C 100%);font-size:0;line-height:0;\">&nbsp;</td></tr><tr><td style=\"padding:36px 40px 8px;\"><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"32\" style=\"padding-right:10px;vertical-align:middle;\"><div style=\"width:32px;height:32px;border-radius:50%;background-color:#9F1239;background-image:linear-gradient(180deg,#4C1D95,#BE123C);text-align:center;line-height:32px;color:#F3EFE2;font-weight:600;font-size:15px;font-family:'Inter',Helvetica,Arial,sans-serif;\">S</div></td><td style=\"vertical-align:middle;\"><span style=\"font-weight:600;font-size:20px;color:#BE123C;letter-spacing:-0.01em;font-family:'Inter',Helvetica,Arial,sans-serif;\">Syn</span></td></tr></table></td></tr><tr><td style=\"padding:20px 40px 8px;\"><h1 style=\"font-size:24px;font-weight:600;letter-spacing:-0.02em;margin:0;color:#1F2420;font-family:'Inter',Helvetica,Arial,sans-serif;\">Du bist eingeladen.</h1></td></tr><tr><td style=\"padding:8px 40px 24px;\"><p style=\"font-size:15px;color:#4A4640;line-height:1.65;margin:0 0 22px;font-family:'Inter',Helvetica,Arial,sans-serif;\"><strong style=\"color:#1F2420;font-weight:500;\">{{ $json.body.inviterName }}</strong> hat dich zu Syn eingeladen — synthetische Fokusgruppen für Konzepte, die noch nicht raus sind.</p><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td style=\"background-color:#9F1239;background-image:linear-gradient(180deg,#4C1D95 0%,#9F1239 55%,#BE123C 100%);border-radius:11px;\"><a href=\"{{ $json.body.inviteUrl }}\" style=\"display:inline-block;padding:13px 28px;color:#ffffff;text-decoration:none;font-size:15px;font-weight:500;font-family:'Inter',Helvetica,Arial,sans-serif;\">Account erstellen</a></td></tr></table><p style=\"font-size:12px;color:#7A7268;margin:22px 0 0;line-height:1.5;font-family:'Inter',Helvetica,Arial,sans-serif;\">Oder kopier den Link in deinen Browser:<br><a href=\"{{ $json.body.inviteUrl }}\" style=\"color:#BE123C;word-break:break-all;text-decoration:underline;\">{{ $json.body.inviteUrl }}</a></p><p style=\"font-size:12px;color:#7A7268;margin:18px 0 0;line-height:1.5;font-family:'Inter',Helvetica,Arial,sans-serif;\">Der Link ist 14 Tage gültig.</p></td></tr><tr><td style=\"padding:20px 40px 30px;border-top:1px solid rgba(31,36,32,0.08);\"><p style=\"font-size:11.5px;color:#7A7268;margin:0;line-height:1.55;text-align:center;font-family:'Inter',Helvetica,Arial,sans-serif;\">Worqshop IO UG · In den Alboingärten 17 · 12103 Berlin<br><a href=\"https://asksyn.com/impressum\" style=\"color:#7A7268;text-decoration:underline;\">Impressum</a> · <a href=\"https://asksyn.com/datenschutz\" style=\"color:#7A7268;text-decoration:underline;\">Datenschutz</a></p></td></tr></table></td></tr></table></body></html>",
+          "options": {}
+        },
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "odAVdvK7z8b00965",
+            "name": "hello@asksyn.com"
+          }
+        },
+        "webhookId": "c6efb555-87d1-4083-8b60-dc846321dd72"
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Send Gmail",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataSuccessExecution": "all",
+      "saveDataErrorExecution": "all",
+      "saveManualExecutions": true,
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "1b1b36b7-672a-419f-aaae-89f230588abe",
+    "activeVersionId": "1b1b36b7-672a-419f-aaae-89f230588abe",
+    "versionCounter": 18,
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-19T18:36:24.823Z",
+        "createdAt": "2026-05-19T18:36:24.823Z",
+        "role": "workflow:owner",
+        "workflowId": "EDX4RwwzekKrVAuf",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

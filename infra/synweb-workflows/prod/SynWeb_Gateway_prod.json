@@ -1,0 +1,338 @@
+[
+  {
+    "updatedAt": "2026-05-19T18:41:14.897Z",
+    "createdAt": "2026-04-16T22:10:51.612Z",
+    "id": "XUdKnmoziQVdU5wu",
+    "name": "SynWeb_Gateway_prod",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "21657c7b-da65-4c84-96a8-83930b57de1e",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          300
+        ],
+        "webhookId": "prod-f7d6ece8-72da-423c-962b-a46cd5f6ade5",
+        "parameters": {
+          "path": "synweb/inbound-prod",
+          "httpMethod": "POST",
+          "responseMode": "responseNode",
+          "options": {}
+        }
+      },
+      {
+        "id": "eb0e7862-d8c2-4d5a-8ac9-1184bd10a1c9",
+        "name": "Extract Body",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          400,
+          300
+        ],
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "a1",
+                "name": "sessionId",
+                "value": "={{ $json.body.sessionId }}",
+                "type": "string"
+              },
+              {
+                "id": "a2",
+                "name": "userId",
+                "value": "={{ $json.body.userId }}",
+                "type": "string"
+              },
+              {
+                "id": "a3",
+                "name": "cleanMessage",
+                "value": "={{ $json.body.cleanMessage }}",
+                "type": "string"
+              },
+              {
+                "id": "a4",
+                "name": "targetPersona",
+                "value": "={{ $json.body.targetPersona || '' }}",
+                "type": "string"
+              },
+              {
+                "id": "a5",
+                "name": "hasFiles",
+                "value": "={{ $json.body.hasFiles || false }}",
+                "type": "boolean"
+              },
+              {
+                "id": "a6",
+                "name": "channelId",
+                "value": "web",
+                "type": "string"
+              },
+              {
+                "id": "a7",
+                "name": "callbackUrl",
+                "value": "={{ $json.body.callbackUrl || 'https://syn.worqshop.io/api/n8n/callback' }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "b5f9795c-1e91-4612-b6e0-ffa0f7a69c48",
+        "name": "Respond OK",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          400,
+          450
+        ],
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify({ok: true, sessionId: $json.body.sessionId}) }}"
+        }
+      },
+      {
+        "id": "213664f2-877c-441d-93d0-d1c504c71898",
+        "name": "Route by Target",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          600,
+          300
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "typeValidation": "strict",
+              "version": 2,
+              "leftValue": ""
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.targetPersona }}",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "be2c3213-3660-4e61-8107-67144b25b1df",
+        "name": "Execute Coordinator",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          850,
+          400
+        ],
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "CskmKreTjg3SuMWo"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "sessionId": "={{ $json.sessionId }}",
+              "userId": "={{ $json.userId }}",
+              "channelId": "={{ $json.channelId }}",
+              "cleanMessage": "={{ $json.cleanMessage }}",
+              "hasFiles": "={{ $json.hasFiles }}",
+              "callbackUrl": "={{ $json.callbackUrl }}"
+            }
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "id": "b32c2481-2b0a-4512-a611-c111d8050ecb",
+        "name": "Execute Audience",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          850,
+          200
+        ],
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "fcJ3Tqx7RG0dxjON"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "sessionId": "={{ $json.sessionId }}",
+              "slotNumber": "={{ parseInt($json.targetPersona) }}",
+              "cleanMessage": "={{ $json.cleanMessage }}",
+              "channelId": "={{ $json.channelId }}",
+              "userId": "={{ $json.userId }}",
+              "callbackUrl": "={{ $json.callbackUrl }}"
+            }
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      {
+        "id": "notify-web-error",
+        "name": "Notify Web Error",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1100,
+          300
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "={{ $('Extract Body').item.json.callbackUrl || 'https://asksyn.com/api/n8n/callback' }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({ sessionId: $('Extract Body').item.json.sessionId, kind: 'error', text: '⚠️ Da ist was schiefgelaufen. Probier bitte nochmal.' }) }}",
+          "options": {
+            "timeout": 10000
+          }
+        },
+        "continueOnFail": true
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Extract Body",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract Body": {
+        "main": [
+          [
+            {
+              "node": "Respond OK",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Route by Target",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Route by Target": {
+        "main": [
+          [
+            {
+              "node": "Execute Audience",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Execute Coordinator",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Coordinator": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Notify Web Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Audience": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Notify Web Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true,
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "de97770f-b47e-4e8b-ae53-00474bf68348",
+    "activeVersionId": "de97770f-b47e-4e8b-ae53-00474bf68348",
+    "versionCounter": 31,
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-19T18:35:05.753Z",
+        "createdAt": "2026-05-19T18:35:05.753Z",
+        "role": "workflow:owner",
+        "workflowId": "XUdKnmoziQVdU5wu",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

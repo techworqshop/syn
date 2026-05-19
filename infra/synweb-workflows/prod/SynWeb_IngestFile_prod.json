@@ -1,0 +1,231 @@
+[
+  {
+    "updatedAt": "2026-05-19T18:40:34.100Z",
+    "createdAt": "2026-04-17T15:57:36.835Z",
+    "id": "B1QLOA12kx9dgrZc",
+    "name": "SynWeb_IngestFile_prod",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "9eb0b2e3-c007-4546-a508-17ed68f3a4b4",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          300
+        ],
+        "webhookId": "prod-8da009db-0448-4e06-a9f6-4ba1a815b5e1",
+        "parameters": {
+          "path": "synweb/ingest-file-prod",
+          "httpMethod": "POST",
+          "responseMode": "lastNode",
+          "options": {}
+        }
+      },
+      {
+        "id": "a6ef610b-a3c4-4026-afe0-03ac95857463",
+        "name": "Download File",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          450,
+          300
+        ],
+        "parameters": {
+          "url": "={{ $json.body.fileUrl }}",
+          "options": {}
+        }
+      },
+      {
+        "id": "8bbe9e60-0b1c-48da-b4b7-729d6b0e0e3f",
+        "name": "Prep Row",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          950,
+          300
+        ],
+        "parameters": {
+          "jsCode": "const body = $('Webhook').first().json.body;\nconst out = $input.first().json;\nlet text = '';\nif (out.candidates && Array.isArray(out.candidates) && out.candidates[0]) {\n  const parts = out.candidates[0].content?.parts || [];\n  text = parts.filter(p => p.text).map(p => p.text).join('\\n');\n}\nif (!text && typeof out.message === 'string') text = out.message;\nif (!text && out.text) text = out.text;\nif (!text && out.output) text = out.output;\nreturn [{json:{session_id: body.sessionId, file_id: body.fileId, file_name: body.fileName, mime_type: body.mimeType, summary: text, extracted_text: text, upload_order: body.uploadOrder||1, char_count: text.length, file_url: body.fileUrl}}];"
+        }
+      },
+      {
+        "id": "03b1567b-482e-4e6d-96c5-fd0019dd31f3",
+        "name": "Save to Panel Files",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1200,
+          300
+        ],
+        "parameters": {
+          "operation": "insert",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_files"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": []
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "build-gemini",
+        "name": "Build Gemini Body",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          550,
+          300
+        ],
+        "parameters": {
+          "jsCode": "const item = $input.first();\nconst body = $('Webhook').first().json.body;\nconst binaryKey = Object.keys(item.binary || {})[0];\nif (!binaryKey) throw new Error('No binary attached');\nconst bin = item.binary[binaryKey];\nconst buf = await this.helpers.getBinaryDataBuffer(0, binaryKey);\nconst mime = bin.mimeType || body.mimeType || 'application/octet-stream';\nconst data = buf.toString('base64');\nconst prompt = `Du bist Vision-Forensik-Spezialist fuer eine Fokusgruppen-App. Erstelle eine maximal praezise, ausfuehrliche Bild-/Dokumentanalyse als Referenz fuer Personas, die spaeter zu diesem Material Stellung beziehen. Andere AI-Modelle muessen sich auf deine Beobachtungen verlassen koennen.\\n\\nSEI EXTREM PRAEZISE. Wenn du etwas nicht eindeutig erkennen kannst, sag das explizit (\\\"unklar erkennbar\\\", \\\"vermutlich\\\"). Erfinde nichts.\\n\\nSTRUKTURIERE DEINE ANTWORT IN DIESE SEKTIONEN:\\n\\n## 1. Bildtyp & Setting\\n- Was fuer ein Bild ist das? (Hero-Bild, Produktshot, PDP, Kampagnenmotiv, Lifestyle, technisch)\\n- Wo wurde es aufgenommen? (Studio, Outdoor, konkret welches Setting)\\n- Beleuchtung, Stimmung, Bildsprache\\n\\n## 2. Personen (falls vorhanden)\\nFUER JEDE PERSON EINZELN:\\n- Geschlecht (eindeutig benennen, nicht ausweichen)\\n- Geschaetztes Alter\\n- Koerperbau (Statur, Proportion, soweit sichtbar)\\n- Pose, Haltung, Bewegung\\n- Kleidung exakt (Marke wenn erkennbar, Schnitt, Farbe, Material)\\n- Gesichtsausdruck, Blickrichtung\\n- Was tut die Person, welcher Aktivitaet ist sie zugeordnet\\n\\n## 3. Marken-/Produkt-Elemente\\n- Logos exakt benennen, Position im Bild\\n- Texte und Claims WOERTLICH abschreiben (auch klein gedruckte)\\n- Produkte detailliert: Farbe, Schnitt, Features sichtbar\\n- Branding-Konsistenz oder -Bruch\\n\\n## 4. Visuelle Stilkritik\\n- Was funktioniert handwerklich (Komposition, Licht, Farbe)\\n- Was wirkt fragwuerdig oder schwach\\n- Stimmen Bildbotschaft und behauptete Markenpositionierung ueberein\\n- Welche Zielgruppe wird visuell wirklich angesprochen, welche eher nicht\\n\\n## 5. Bei PDFs/Dokumenten\\n- Kernaussagen woertlich oder paraphrasiert\\n- Daten, Tabellen, Zahlen exakt\\n- Strukturhinweise, Aufbau-Logik\\n- Visuelle Elemente in PDFs auch beschreiben\\n\\nAntwort nur auf Deutsch. Kein Markdown ausser Zwischenueberschriften (## Sektion). Plain text. Sei AUSFUEHRLICH (1500-3000 Woerter), nicht zusammenfassend - das ist das einzige was nachfolgende Persona-Modelle zur visuellen Faktenbasis bekommen.`;\nreturn [{json: {sessionId: body.sessionId, fileId: body.fileId, fileName: body.fileName, mimeType: body.mimeType, fileUrl: body.fileUrl, uploadOrder: body.uploadOrder || 1, geminiBody: {contents: [{parts: [{text: prompt}, {inline_data: {mime_type: mime, data: data}}]}], generationConfig: {temperature: 0.2, maxOutputTokens: 32768, thinkingConfig: {thinkingBudget: -1}}}}}];"
+        }
+      },
+      {
+        "id": "gemini-analyze",
+        "name": "Gemini Analyze",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          800,
+          300
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "googlePalmApi",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json.geminiBody) }}",
+          "options": {
+            "timeout": 90000
+          }
+        },
+        "credentials": {
+          "googlePalmApi": {
+            "id": "RsBy4nIm3pzcJC2k",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 3000
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Download File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prep Row": {
+        "main": [
+          [
+            {
+              "node": "Save to Panel Files",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download File": {
+        "main": [
+          [
+            {
+              "node": "Build Gemini Body",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Gemini Body": {
+        "main": [
+          [
+            {
+              "node": "Gemini Analyze",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gemini Analyze": {
+        "main": [
+          [
+            {
+              "node": "Prep Row",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataSuccessExecution": "all",
+      "saveDataErrorExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true,
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "e7f3bb56-6b21-4a02-a229-a86c83056a00",
+    "activeVersionId": "e7f3bb56-6b21-4a02-a229-a86c83056a00",
+    "versionCounter": 45,
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-19T18:36:10.276Z",
+        "createdAt": "2026-05-19T18:36:10.276Z",
+        "role": "workflow:owner",
+        "workflowId": "B1QLOA12kx9dgrZc",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

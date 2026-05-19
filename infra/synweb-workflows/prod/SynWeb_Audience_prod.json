@@ -1,0 +1,789 @@
+[
+  {
+    "updatedAt": "2026-05-19T18:40:57.730Z",
+    "createdAt": "2026-04-16T22:10:09.817Z",
+    "id": "fcJ3Tqx7RG0dxjON",
+    "name": "SynWeb_Audience_prod",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_personas"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $json.sessionId }}"
+              },
+              {
+                "keyName": "slack_slot",
+                "keyValue": "={{ $json.slotNumber }}"
+              }
+            ]
+          },
+          "limit": 1
+        },
+        "id": "get-persona",
+        "name": "Get Persona for Slot",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          624,
+          352
+        ],
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.name }}",
+                "operator": {
+                  "type": "string",
+                  "operation": "exists",
+                  "singleValue": true
+                },
+                "id": "cond-1"
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "persona-found",
+        "name": "Persona Found?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1056,
+          352
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\n\n// If DataTable returned 0 rows, create an empty item so the IF node can route to false-branch\nif (items.length === 0 || !items[0].json || Object.keys(items[0].json).length === 0) {\n  return [{\n    json: {\n      name: null,\n      profile: null,\n      session_id: null,\n      persona_id: null,\n      slack_slot: null,\n      _noPersonaFound: true\n    }\n  }];\n}\n\nreturn items;"
+        },
+        "id": "d3f6e1a7-3da5-40eb-aa47-8348126688f4",
+        "name": "Ensure Item",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          832,
+          352
+        ]
+      },
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "sessionId"
+              },
+              {
+                "name": "channelId"
+              },
+              {
+                "name": "userId"
+              },
+              {
+                "name": "cleanMessage"
+              },
+              {
+                "name": "hasFiles",
+                "type": "boolean"
+              },
+              {
+                "name": "fileStatus"
+              },
+              {
+                "name": "botName"
+              },
+              {
+                "name": "slotNumber",
+                "type": "number"
+              },
+              {
+                "name": "targetWorkflow"
+              },
+              {
+                "name": "fileUrl"
+              }
+            ]
+          }
+        },
+        "id": "99bfbd12-88e0-46bc-ad8c-b9c783bfe1aa",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          400,
+          352
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_files"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            ]
+          },
+          "limit": 10
+        },
+        "id": "b01dcacb-a948-4022-a233-b2707db4bbd1",
+        "name": "Get File URL",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1280,
+          224
+        ],
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.file_url }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "slackApi",
+          "options": {}
+        },
+        "id": "5b80a9c0-0631-42ad-890f-5abcc206ce35",
+        "name": "Download File",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1712,
+          112
+        ],
+        "credentials": {
+          "slackApi": {
+            "id": "LGc2ErEQ4dgP1qnJ",
+            "name": "Syn"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Merge all downloaded file binaries + add binaryKeys for Anthropic node\nconst triggerData = $('Execute Workflow Trigger').first().json;\nconst personaData = $('Ensure Item').first().json;\nconst downloadedItems = $input.all();\n\nconst mergedBinary = {};\nconst keys = [];\nlet fileCount = 0;\n\nfor (const item of downloadedItems) {\n  if (item.binary) {\n    for (const [key, value] of Object.entries(item.binary)) {\n      const newKey = `file_${fileCount}`;\n      mergedBinary[newKey] = value;\n      keys.push(newKey);\n      fileCount++;\n    }\n  }\n}\n\nreturn [{\n  json: {\n    ...personaData,\n    sessionId: triggerData.sessionId,\n    channelId: triggerData.channelId,\n    cleanMessage: triggerData.cleanMessage || '',\n    slotNumber: triggerData.slotNumber,\n    botName: triggerData.botName,\n    fileCount,\n    binaryKeys: keys.join(','),\n    fileForensic: ($('Get File URL').all() || []).map(function(r,i){var j=r.json||{};return j.extracted_text?'=== Datei '+(i+1)+': '+(j.file_name||'?')+' ===\\n'+j.extracted_text:null;}).filter(Boolean).join('\\n\\n---\\n\\n')\n  },\n  binary: fileCount > 0 ? mergedBinary : undefined\n}];"
+        },
+        "id": "0705bbe1-09cb-4f64-9bc0-cd91f1f7f82a",
+        "name": "Merge Files",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1920,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT message FROM n8n_chat_histories WHERE session_id = 'synweb_aud_{{ $json.slotNumber }}_{{ $json.sessionId }}' ORDER BY id DESC LIMIT 20",
+          "options": {}
+        },
+        "id": "35767640-062a-4603-851c-c977cd226bd3",
+        "name": "Load Memory",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2112,
+          240
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO n8n_chat_histories (session_id, message) VALUES ('synweb_aud_{{ $('Prep Audience').item.json.slotNumber }}_{{ $('Prep Audience').item.json.sessionId }}', '{\"type\":\"constructor\",\"id\":[\"langchain_core\",\"messages\",\"HumanMessage\"],\"kwargs\":{\"content\":\"{{ $('Prep Audience').item.json.cleanMessage.replace(/'/g, \"''\").replace(/\"/g, '\\\\\"') }}\",\"additional_kwargs\":{},\"response_metadata\":{}}}'), ('synweb_aud_{{ $('Prep Audience').item.json.slotNumber }}_{{ $('Prep Audience').item.json.sessionId }}', '{\"type\":\"constructor\",\"id\":[\"langchain_core\",\"messages\",\"AIMessage\"],\"kwargs\":{\"content\":\"{{ ($json.output || ($json.content && $json.content[0] ? $json.content[0].text : '')).replace(/'/g, \"''\").replace(/\"/g, '\\\\\"').replace(/\\n/g, '\\\\n') }}\",\"tool_calls\":[],\"additional_kwargs\":{},\"response_metadata\":{},\"invalid_tool_calls\":[]}}')",
+          "options": {}
+        },
+        "id": "8f4a5a75-8a53-429a-af8e-29ba6f1dc68a",
+        "name": "Save Memory",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2720,
+          240
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Re-attach binaries from Merge Files + combine with Load Memory results\nconst mergeItem = $('Merge Files').first();\nconst memoryItems = $('Load Memory').all();\n\n// Build conversation history\nlet conversationHistory = 'Kein bisheriges Gespraech';\nif (memoryItems.length > 0 && memoryItems[0].json && Object.keys(memoryItems[0].json).length > 0) {\n  const history = memoryItems.reverse().map(i => {\n    const j = i.json;\n    const role = j.role || j.type || 'unknown';\n    const content = j.content || j.message || j.text || JSON.stringify(j);\n    return role + ': ' + content;\n  }).join('\\n');\n  if (history.trim()) conversationHistory = history;\n}\n\nreturn [{\n  json: {\n    ...mergeItem.json,\n    conversationHistory\n  },\n  binary: mergeItem.binary || undefined\n}];"
+        },
+        "id": "7a713647-8fbd-43ae-b413-b5c0fa22758a",
+        "name": "Prep Audience",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2288,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT message FROM n8n_chat_histories WHERE session_id = 'synweb_aud_{{ $('Execute Workflow Trigger').item.json.slotNumber }}_{{ $('Execute Workflow Trigger').item.json.sessionId }}' ORDER BY id DESC LIMIT 20",
+          "options": {}
+        },
+        "id": "75ec1793-2942-4292-8141-58e7671bd309",
+        "name": "Load Memory1",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2208,
+          448
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-sonnet-4-6",
+            "mode": "id",
+            "cachedResultName": "Claude Sonnet 4.6"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=Du bist {{ $('Ensure Item').item.json.name }}.\n\nPROFIL:\n{{ $('Ensure Item').item.json.profile }}\n\nKERNPERSPEKTIVE:\n{{ $('Ensure Item').item.json.core_perspective }}\n\nAKTUELLE POSITION:\n{{ $('Ensure Item').item.json.position_summary || 'Noch nicht etabliert' }}\n\n{{ $('Ensure Item').item.json.round_1_response ? 'RUNDE 1 ANALYSE:\\n' + $('Ensure Item').item.json.round_1_response + '\\n' : '' }}{{ $('Ensure Item').item.json.round_2_response ? 'RUNDE 2 ANTWORT:\\n' + $('Ensure Item').item.json.round_2_response + '\\n' : '' }}\nBISHERIGER GESPRAECHSVERLAUF:\n{{ $('Load Memory1').all().length > 0 && $('Load Memory1').first().json.message ? $('Load Memory1').all().map(i => i.json.message).join('\\n') : 'Kein bisheriges Gespraech' }}\n\nFRAGE VOM OPERATOR:\n{{ $('Execute Workflow Trigger').item.json.cleanMessage }}\n\nAntworte voll in character. Sidebar-Interview - keine Aenderung deiner Hauptdiskussions-Position. Plain text, kein Markdown."
+              }
+            ]
+          },
+          "options": {
+            "maxTokens": 20000,
+            "temperature": 0.7
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          2400,
+          448
+        ],
+        "id": "9f2ec138-23a4-4e5c-a5fc-7bc6865c037d",
+        "name": "Audience Response1",
+        "credentials": {
+          "anthropicApi": {
+            "id": "6YlHfpAGGCKl1H1S",
+            "name": "Anthropic account 2"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 5,
+        "waitBetweenTries": 3000
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO n8n_chat_histories (session_id, message) VALUES ('synweb_aud_{{ $('Execute Workflow Trigger').item.json.slotNumber }}_{{ $('Execute Workflow Trigger').item.json.sessionId }}', '{\"type\":\"constructor\",\"id\":[\"langchain_core\",\"messages\",\"HumanMessage\"],\"kwargs\":{\"content\":\"{{ $('Execute Workflow Trigger').item.json.cleanMessage.replace(/'/g, \"''\").replace(/\"/g, '\\\\\"') }}\",\"additional_kwargs\":{},\"response_metadata\":{}}}'), ('synweb_aud_{{ $('Execute Workflow Trigger').item.json.slotNumber }}_{{ $('Execute Workflow Trigger').item.json.sessionId }}', '{\"type\":\"constructor\",\"id\":[\"langchain_core\",\"messages\",\"AIMessage\"],\"kwargs\":{\"content\":\"{{ $json.content[0].text.replace(/'/g, \"''\").replace(/\"/g, '\\\\\"').replace(/\\n/g, '\\\\n') }}\",\"tool_calls\":[],\"additional_kwargs\":{},\"response_metadata\":{},\"invalid_tool_calls\":[]}}')",
+          "options": {}
+        },
+        "id": "be9338e8-a0d7-42e4-bd57-8c88436a4cbc",
+        "name": "Save Memory1",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.5,
+        "position": [
+          2720,
+          448
+        ],
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "59909a14-79ea-47d6-b8f0-d0d1632ab4ae",
+                "leftValue": "={{ $json.file_url }}",
+                "operator": {
+                  "type": "string",
+                  "operation": "exists",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1488,
+          224
+        ],
+        "id": "9167fa4b-a4b8-4584-84b3-2adab107c0a7",
+        "name": "If"
+      },
+      {
+        "id": "b3ab2c82-0c8b-480f-82dc-3e742acbfbc6",
+        "name": "Web Callback",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1700,
+          304
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "={{ $('Execute Workflow Trigger').item.json.callbackUrl || 'https://asksyn.com/api/n8n/callback' }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "=a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').item.json.sessionId, personaId: $('Execute Workflow Trigger').item.json.slotNumber, kind: 'audience_reply', text: ($('Audience Agent').isExecuted ? ($('Audience Agent').first().json.output || '') : ($('Audience Response1').first().json.content?.[0]?.text || ''))}) }}",
+          "options": {
+            "timeout": 15000
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "id": "27c29c3b-7a81-452b-9319-c8c1ef634981",
+        "name": "No Persona Callback",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1100,
+          500
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://asksyn.com/api/n8n/callback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "=a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').item.json.sessionId, personaId: $('Execute Workflow Trigger').item.json.slotNumber, kind: 'audience_no_persona', text: 'Dieser Persona wurde noch keine Rolle zugewiesen.'}) }}",
+          "options": {
+            "timeout": 15000
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "id": "aud-chat-model",
+        "name": "Audience Chat Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+        "typeVersion": 1.3,
+        "position": [
+          2448,
+          100
+        ],
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "claude-sonnet-4-6",
+            "mode": "id",
+            "cachedResultName": "Claude Sonnet 4.6"
+          },
+          "options": {
+            "maxTokensToSample": 20000,
+            "temperature": 0.7
+          }
+        },
+        "credentials": {
+          "anthropicApi": {
+            "id": "xryPDagnAi6vifng",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "id": "aud-ask-vision",
+        "name": "Audience Ask Vision",
+        "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+        "typeVersion": 2.2,
+        "position": [
+          2640,
+          100
+        ],
+        "parameters": {
+          "description": "Stelle gezielte Fragen zu visuellen Details der Bilder. Nutze dieses Tool wenn der Operator nach konkreten Bilddetails fragt, die du genauer pruefen willst. Inputs: question (deine Frage).",
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "jMQEQggtVPu7XOwK"
+          },
+          "workflowInputs": {
+            "schema": [
+              {
+                "id": "session_id",
+                "displayName": "session_id",
+                "type": "string",
+                "required": true,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              },
+              {
+                "id": "question",
+                "displayName": "question",
+                "type": "string",
+                "required": true,
+                "display": true,
+                "removed": false,
+                "readOnly": false,
+                "defaultMatch": false
+              }
+            ],
+            "mappingMode": "defineBelow",
+            "value": {
+              "session_id": "={{ $('Execute Workflow Trigger').item.json.sessionId }}",
+              "question": "={{ $fromAI('question', 'Konkrete Frage zu visuellen Details der angehaengten Bilder/PDFs') }}"
+            }
+          }
+        }
+      },
+      {
+        "id": "aud-agent",
+        "name": "Audience Agent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          2448,
+          240
+        ],
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $('Merge Files').item.json.cleanMessage }}",
+          "hasOutputParser": false,
+          "needsFallback": false,
+          "options": {
+            "maxIterations": 25,
+            "passthroughBinaryImages": true,
+            "systemMessage": "=Du bist {{ $('Merge Files').item.json.name }}.\n\nPROFIL:\n{{ $('Merge Files').item.json.profile }}\n\nKERNPERSPEKTIVE:\n{{ $('Merge Files').item.json.core_perspective }}\n\nAKTUELLE POSITION:\n{{ $('Merge Files').item.json.position_summary || 'Noch nicht etabliert' }}\n\n{{ $('Merge Files').item.json.round_1_response ? 'RUNDE 1 ANALYSE:\\n' + $('Merge Files').item.json.round_1_response + '\\n' : '' }}{{ $('Merge Files').item.json.round_2_response ? 'RUNDE 2 ANTWORT:\\n' + $('Merge Files').item.json.round_2_response + '\\n' : '' }}\n{{ $('Merge Files').item.json.fileForensic ? 'BILD-FORENSIK (Vorab-Analyse Vision-Spezialist Gemini 3.1 Pro):\\n\\n' + $('Merge Files').item.json.fileForensic + '\\n\\nOriginal-Bilder sind angehaengt. Du kannst Ask Vision Tool fuer gezielte Detail-Fragen aufrufen.\\n' : '' }}\nBISHERIGER GESPRAECHSVERLAUF:\n{{ $('Load Memory').all().length > 0 ? $('Load Memory').all().reverse().map(i => i.json.role + ': ' + i.json.content).join('\\n') : 'Kein bisheriges Gespraech' }}\n\nAntworte voll in character. Sidebar-Interview - keine Aenderung deiner Hauptdiskussions-Position. Plain text, kein Markdown.\n\nSPRACHE (HARTE REGEL):\n- Antworte in derselben Sprache wie die letzte User-Frage in diesem 1:1-Chat.\n- Wenn der User auf Deutsch fragt: Deutsche Antwort. Auf Englisch: englische Antwort.\n- Wenn der User mitten im Gespraech die Sprache wechselt, wechsle mit ihm.\n- Dein Persona-Profil/Name aendert die Sprache NICHT.\n\nOUTPUT-FORMAT (HARTE REGEL):\nDeine Antwort startet SOFORT mit dem ersten echten Satz deiner Antwort. Keine Aufwaerm-Phrasen davor.\n\nVERBOTEN - typische Claude-Warmup-Saetze, die du NICHT schreiben darfst:\n- \"Okay, ich habe jetzt genug gesehen...\"\n- \"Gut. Jetzt schreibe ich...\"\n- \"Jetzt habe ich genug Material...\"\n- \"So. Ich gebe dir meine ehrliche Einschaetzung...\"\n- \"Ich sag dir was ich wirklich denke...\"\n- jede Variante von \"jetzt mach ich X / hier kommt meine Antwort\"\n- jede Selbstreflexion ueber Tool-Aufrufe (Ask Vision etc.)\n\nERLAUBT: direkt mit der inhaltlichen Antwort einsteigen, so wie ein Mensch in einem echten Gespraech."
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 5,
+        "waitBetweenTries": 3000
+      }
+    ],
+    "connections": {
+      "Persona Found?": {
+        "main": [
+          [
+            {
+              "node": "Get File URL",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "No Persona Callback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Persona for Slot": {
+        "main": [
+          [
+            {
+              "node": "Ensure Item",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ensure Item": {
+        "main": [
+          [
+            {
+              "node": "Persona Found?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Get Persona for Slot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get File URL": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download File": {
+        "main": [
+          [
+            {
+              "node": "Merge Files",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge Files": {
+        "main": [
+          [
+            {
+              "node": "Load Memory",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save Memory": {
+        "main": [
+          [
+            {
+              "node": "Web Callback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Memory": {
+        "main": [
+          [
+            {
+              "node": "Prep Audience",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Load Memory1": {
+        "main": [
+          [
+            {
+              "node": "Audience Response1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Audience Response1": {
+        "main": [
+          [
+            {
+              "node": "Save Memory1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save Memory1": {
+        "main": [
+          [
+            {
+              "node": "Web Callback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Download File",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Load Memory1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Audience Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Audience Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Audience Ask Vision": {
+        "ai_tool": [
+          [
+            {
+              "node": "Audience Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prep Audience": {
+        "main": [
+          [
+            {
+              "node": "Audience Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Audience Agent": {
+        "main": [
+          [
+            {
+              "node": "Save Memory",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true,
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false,
+      "binaryMode": "separate",
+      "timeSavedMode": "fixed",
+      "errorWorkflow": "k_1wGROZ77CNjRE1INOwj"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": null,
+    "versionId": "dbe484e9-1f74-4eac-9756-64c5868135d1",
+    "activeVersionId": "dbe484e9-1f74-4eac-9756-64c5868135d1",
+    "versionCounter": 64,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-19T18:35:20.193Z",
+        "createdAt": "2026-05-19T18:35:20.193Z",
+        "role": "workflow:owner",
+        "workflowId": "fcJ3Tqx7RG0dxjON",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

@@ -1,0 +1,195 @@
+[
+  {
+    "updatedAt": "2026-05-19T18:40:26.385Z",
+    "createdAt": "2026-04-19T23:47:02.938Z",
+    "id": "pZc6MOe0cl3uQhVT",
+    "name": "SynWeb_FinalReport_prod",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "hook",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          300
+        ],
+        "parameters": {
+          "path": "synweb/final-report-prod",
+          "httpMethod": "POST",
+          "responseMode": "onReceived"
+        },
+        "webhookId": "prod-2adbc14a-5656-4ec8-b1c4-79af25b0aaeb"
+      },
+      {
+        "id": "gen",
+        "name": "Generate Report",
+        "type": "@n8n/n8n-nodes-langchain.anthropic",
+        "typeVersion": 1,
+        "position": [
+          450,
+          300
+        ],
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "claude-opus-4-7",
+            "cachedResultName": "Claude Opus 4.7"
+          },
+          "messages": {
+            "values": [
+              {
+                "content": "=WICHTIG SPRACHE: Schreibe den Bericht IN DERSELBEN SPRACHE wie die unten stehenden Persona-Antworten und Runden-Synthesen. Wenn diese auf Englisch sind, schreibe Englisch (auch alle Section-Titles uebersetzen: Final Report / Executive Summary / Question / Panel / Course / Key Tensions / Insights & Recommendations / Limits). Wenn deutsch, dann deutsch.\n\nErstelle einen strukturierten Abschlussbericht zu dieser Fokusgruppe. Direkt, substanziell, basierend auf den Daten. Keine Platzhalter.\n\nSESSION: {{ $json.body.title }}\nERSTELLT: {{ $json.body.createdAt }}\n\nPROBLEM-BRIEF:\n{{ $json.body.problemBrief || 'nicht verfuegbar' }}\n\nPANEL:\n{{ $json.body.personasContext }}\n\nRUNDEN-SYNTHESEN:\n{{ $json.body.synthesesContext || 'keine Synthesen' }}\n\nDATEIEN:\n{{ $json.body.filesContext || 'keine' }}\n\nDISKUSSIONSAUSZUG:\n{{ $json.body.messagesContext || 'keine' }}\n\nOUTPUT in Markdown, genau diese Struktur:\n\n# Abschlussbericht\n\n## Executive Summary\n3-4 Saetze: Kernerkenntnis aus der Fokusgruppe. Was wurde konkret sichtbar?\n\n## Fragestellung\nProblem-Brief in 2-3 Saetzen zusammengefasst.\n\n## Panel\nFuer jede Persona eine Zeile: **Name** - Rolle (Haltung: standhaft/ausgewogen/offen). Ein Satz zur Kernperspektive.\n\n## Verlauf\nPro Runde eine Subsection: ### Runde N - Titel. Darunter: 2-3 Konsens-Punkte, 2-3 Spannungen, 1-2 Ueberraschungen, alles als kurze Bullets.\n\n## Zentrale Spannungslinien\nDie 3-5 wichtigsten produktiven Spannungen quer ueber alle Runden, jeweils eine namentliche Zuordnung wer welche Position vertritt.\n\n## Erkenntnisse & Empfehlungen\n4-6 actionable Insights als Bullets. Konkret, abgeleitet aus den Panel-Daten, keine Meta-Allgemeinplaetze."
+              }
+            ]
+          },
+          "options": {
+            "maxTokens": 20000,
+            "systemMessage": "Du bist Senior Research Analyst. Du schreibst prazise, substanzielle Abschlussberichte fuer Fokusgruppen. Weise Ideen namentlich zu. Keine vorgetaeuschten Konsense. Nur Markdown-Output, keine Einleitung vor dem #-Header. Keine Laengenbegrenzung."
+          }
+        },
+        "credentials": {
+          "anthropicApi": {
+            "id": "xryPDagnAi6vifng",
+            "name": "Anthropic account"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 5,
+        "waitBetweenTries": 3000
+      },
+      {
+        "id": "out",
+        "name": "Extract",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          700,
+          300
+        ],
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "1",
+                "name": "report",
+                "value": "={{ $json.content ? $json.content[0].text : ($json.output || '') }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "web-cb",
+        "name": "Web Callback",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          940,
+          300
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://asksyn.com/api/n8n/callback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Webhook').first().json.body.sessionId, kind: 'final_report', text: $json.report}) }}",
+          "options": {
+            "timeout": 60000
+          }
+        },
+        "continueOnFail": true
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Generate Report",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Report": {
+        "main": [
+          [
+            {
+              "node": "Extract",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract": {
+        "main": [
+          [
+            {
+              "node": "Web Callback",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "callerPolicy": "workflowsFromSameOwner",
+      "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "51f3f3be-fda0-4752-9146-b4584dbd315a",
+    "activeVersionId": "51f3f3be-fda0-4752-9146-b4584dbd315a",
+    "versionCounter": 44,
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-19T18:35:56.249Z",
+        "createdAt": "2026-05-19T18:35:56.249Z",
+        "role": "workflow:owner",
+        "workflowId": "pZc6MOe0cl3uQhVT",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]
