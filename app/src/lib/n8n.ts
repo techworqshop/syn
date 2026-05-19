@@ -22,30 +22,51 @@ export async function forwardToGateway(payload: {
   // undici hits its 300s bodyTimeout, and we see "fetch failed" even
   // though Respond OK already fired in milliseconds. Hard-cap the call
   // at 15s and don't bother reading the body — we only need the 200.
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 15_000);
-  try {
-    const res = await fetch(HOOK, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: ctrl.signal
-    });
-    if (!res.ok) {
-      throw new Error(`n8n gateway responded ${res.status}`);
+  // Retry-Logic: bei 502/503/504/network-EOF einmal nach 1s wiederholen.
+  // Schuetzt vor transienten Issues z.B. nach n8n-Restart wo Caddy
+  // tote keepalive-connections im Pool hat.
+  async function attempt(): Promise<Response> {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 15_000);
+    try {
+      return await fetch(HOOK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: ctrl.signal
+      });
+    } finally {
+      clearTimeout(timer);
     }
-    return {};
+  }
+  const isTransient = (status: number) => [502, 503, 504].includes(status);
+  let res: Response;
+  try {
+    res = await attempt();
+    if (isTransient(res.status)) {
+      console.warn(`[gateway] transient ${res.status} — retrying in 1s`);
+      await new Promise(r => setTimeout(r, 1000));
+      res = await attempt();
+    }
   } catch (e) {
-    // If the abort fired AFTER the webhook accepted the request, the
-    // workflow IS running — silently succeed instead of polluting chat
-    // with a misleading "Gateway-Fehler".
     if (e instanceof Error && e.name === "AbortError") {
+      // Webhook accepted but Respond OK delayed by Caddy buffering — workflow runs.
       return {};
     }
-    throw e;
-  } finally {
-    clearTimeout(timer);
+    // Network-level error (EOF, ECONNRESET, etc.) — retry once
+    console.warn(`[gateway] network error — retrying in 1s`, e instanceof Error ? e.message : e);
+    await new Promise(r => setTimeout(r, 1000));
+    try {
+      res = await attempt();
+    } catch (e2) {
+      if (e2 instanceof Error && e2.name === "AbortError") return {};
+      throw e2;
+    }
   }
+  if (!res.ok) {
+    throw new Error(`n8n gateway responded ${res.status}`);
+  }
+  return {};
 }
 
 const READSTATE = process.env.SYNWEB_READSTATE_WEBHOOK!;
