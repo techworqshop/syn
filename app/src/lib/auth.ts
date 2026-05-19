@@ -88,9 +88,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     // Embed isAdmin in the JWT so edge middleware can check without DB hit.
     // Source-of-truth bleibt requireAdmin() in den Server-Components / API-Routes.
     async jwt({ token, user }) {
-      // Initial sign-in: user-object hat isAdmin direkt aus authorize()
+      // Initial sign-in: user-object hat id + isAdmin direkt aus authorize()
       if (user) {
         token.isAdmin = (user as unknown as { isAdmin?: boolean }).isAdmin === true;
+        token.userId = (user as unknown as { id?: string }).id;
       }
       // Bestehende Sessions (vor dem isAdmin-Rollout) haben isAdmin = undefined.
       // Wir holen es hier einmal nach, anhand der Email im Token, ohne Sign-Out
@@ -106,7 +107,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       if (session?.user) {
-        (session.user as unknown as { isAdmin?: boolean }).isAdmin = token.isAdmin === true;
+        const u = session.user as unknown as { id?: string; isAdmin?: boolean };
+        u.isAdmin = token.isAdmin === true;
+        // Stale-Session-Fallback: falls token.userId nicht da ist (alte
+        // JWTs vor diesem Fix), lookup per Email aus der DB.
+        if (token.userId) {
+          u.id = token.userId as string;
+        } else if (token.email) {
+          try {
+            const [row] = await db.select({ id: users.id }).from(users).where(eq(users.email, token.email as string)).limit(1);
+            if (row) u.id = row.id;
+          } catch { /* fail-open */ }
+        }
       }
       return session;
     },
