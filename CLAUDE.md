@@ -140,6 +140,9 @@ systemctl reload caddy
 - **Auto-Admin**: Alle @worqshop.io Mails werden beim Invite-Accept automatisch Admin.
 - **Commands im Chat dürfen 1000 chars nicht überschreiten** (SSH MCP Limit)
 - **Nach jedem Workflow-Import** muss er über `n8n_update_partial_workflow` aktiviert werden
+- **🔒 DEV-ONLY MODE seit 2026-05-21**: Live-Version (asksyn.com, *_prod Workflows, .env.prod, synweb-prod-* Container) eingefroren. User testet sie nur. ALLE Features + Fixes ab jetzt NUR auf DEV.
+- **PROMOTE PROD**: erst wenn User explizit sagt promote/auf live ziehen. n8n_update_partial_workflow nur DEV-IDs, App-Builds nur docker compose build app (kein -f prod).
+- **n8n $json-Falle**: Bei neuen Nodes zwischen Trigger/Downstream alle $json.x-Refs pruefen - sie zeigen auf den UNMITTELBAR vorigen Node. Fuer trigger-Daten explizit $('Execute Workflow Trigger').first().json.x.
 
 ## Offene Punkte
 

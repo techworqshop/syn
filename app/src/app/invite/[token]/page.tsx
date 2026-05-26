@@ -35,7 +35,7 @@ export default function InvitePage() {
     });
     setBusy(false);
     const d = await r.json().catch(() => ({}));
-    if (r.ok) router.push("/login?registered=1");
+    if (r.ok) router.push(`/verify-email?email=${encodeURIComponent(email ?? "")}`);
     else setError(d.error || "Fehler");
   }
 
@@ -53,10 +53,10 @@ export default function InvitePage() {
     );
   }
 
-  const inp = "w-full px-4 py-2.5 rounded-xl bg-white/80 border border-stone-300 focus:outline-none focus:border-rose-700/50";
+  const inp = "w-full px-4 py-2.5 rounded-md bg-white/80 border border-stone-300 focus:outline-none focus:border-rose-700/50";
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
-      <form onSubmit={submit} className="w-full max-w-md space-y-4 p-8 rounded-2xl border border-stone-200 glass shadow-2xl">
+      <form onSubmit={submit} className="w-full max-w-md space-y-4 p-8 rounded-md border border-stone-200 glass shadow-2xl">
         <div className="flex items-center justify-center mb-4">
           <img src="/api/assets/syn-avatar" alt="" className="w-14 h-14 rounded-full ring-2 ring-rose-700/30" />
         </div>
@@ -68,7 +68,7 @@ export default function InvitePage() {
         <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Passwort (min. 8)" required className={inp} />
         <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Passwort bestaetigen" required className={inp} />
         {error && <p className="text-sm text-red-400">{error}</p>}
-        <button disabled={busy} className="w-full btn-primary py-2.5 rounded-xl font-medium disabled:opacity-50">
+        <button disabled={busy} className="w-full btn-primary py-2.5 rounded-md font-medium disabled:opacity-50">
           {busy ? "..." : "Account erstellen"}
         </button>
       </form>

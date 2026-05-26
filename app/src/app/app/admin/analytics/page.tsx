@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { db } from "@/lib/db";
 import { sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/current-user";
@@ -60,12 +61,6 @@ export default async function AdminAnalyticsPage({
   let hours: HourRow[];
   let fileCats: FileCatRow[];
   let duration: DurationRow;
-  let tokens: {
-    input: number; output: number; total: number; calls: number; executions: number;
-    costUsd: number;
-    byModel: Array<{ family: string; raw_model: string; input: number; output: number; calls: number; cost_usd: number }>;
-  } | null = null;
-  let tokensError: string | null = null;
   try {
     const countersRaw = await db.execute<Counters>(sql`
       SELECT
@@ -184,16 +179,6 @@ export default async function AdminAnalyticsPage({
     return <AdminError where="Analytics" error={e} />;
   }
 
-  // Token-Sync aus n8n separat — wenn n8n unerreichbar ist, bricht nicht
-  // die ganze Seite zusammen, sondern wir zeigen nur eine kleine Fehlermeldung
-  // an der Token-Karte.
-  try {
-    tokens = await fetchTokenTotals(sinceISO);
-  } catch (e) {
-    console.error("[admin/analytics] n8n token sync failed", e);
-    tokensError = e instanceof Error ? e.message : "n8n unerreichbar";
-  }
-
   const funnelMap = Object.fromEntries(funnel.map(f => [f.stage, f.n]));
   const funnelMax = Math.max(1, ...funnel.map(f => f.n));
 
@@ -206,7 +191,7 @@ export default async function AdminAnalyticsPage({
           <h1 className="text-2xl font-semibold tracking-tight text-stone-900">Analytics</h1>
           <p className="text-sm text-stone-600 mt-1">Nutzungsdaten · {rangeLabel(range)}</p>
         </div>
-        <div className="flex gap-1 rounded-lg bg-stone-200 p-1">
+        <div className="flex gap-1 rounded-md bg-stone-200 p-1">
           {(["7d","30d","90d","all"] as const).map(r => {
             const url = q
               ? `/app/admin/analytics?range=${r}&q=${encodeURIComponent(q)}`
@@ -225,7 +210,7 @@ export default async function AdminAnalyticsPage({
 
       {/* Empty-State: wenn noch keine Sessions, klar kommunizieren */}
       {c.total_sessions === 0 && (
-        <div className="rounded-2xl p-5 mb-6 brand-card">
+        <div className="rounded-md p-5 mb-6 brand-card">
           <div className="flex items-start gap-3.5">
             <div className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-white text-lg font-bold" style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>i</div>
             <div className="flex-1">
@@ -247,26 +232,13 @@ export default async function AdminAnalyticsPage({
         <Card label="Files hochgeladen" value={c.total_files} sub={formatBytes(Number(c.total_bytes ?? 0))} />
         <Card label="Reports generiert" value={c.total_reports} sub="Abschlussberichte (all-time)" />
         <Card label="Ø Session-Dauer" value={duration.avg_minutes ? `${duration.avg_minutes} Min` : "—"} sub={duration.median_minutes ? `Median ${Math.round(Number(duration.median_minutes) * 10) / 10} Min` : undefined} />
-        <Card
-          label="LLM-Tokens"
-          value={tokens ? formatCompact(tokens.total) : "—"}
-          sub={
-            tokens
-              ? `${formatCompact(tokens.input)} in · ${formatCompact(tokens.output)} out · ${tokens.calls} calls`
-              : tokensError
-                ? `n8n nicht erreichbar`
-                : "lade..."
-          }
-        />
-        <Card
-          label="LLM-Kosten (geschätzt)"
-          value={tokens ? `$${tokens.costUsd.toFixed(2)}` : "—"}
-          sub={tokens ? `≈ €${(tokens.costUsd * 0.93).toFixed(2)} · alle Modelle` : tokensError ? "n8n nicht erreichbar" : "lade..."}
-        />
+        <Suspense fallback={<TokenKpiCardsSkeleton />}>
+          <TokenKpiCards sinceISO={sinceISO} />
+        </Suspense>
       </div>
 
       {/* Funnel */}
-      <div className="rounded-2xl p-5 mb-6 brand-card">
+      <div className="rounded-md p-5 mb-6 brand-card">
         <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Funnel: Created → Report</h2>
         <FunnelChart funnel={funnel} max={funnelMax} />
         <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2 text-xs text-stone-600">
@@ -284,55 +256,27 @@ export default async function AdminAnalyticsPage({
       </div>
 
       {/* Tages-Verlauf (Bar) */}
-      <div className="rounded-2xl p-5 mb-6 brand-card">
+      <div className="rounded-md p-5 mb-6 brand-card">
         <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Aktivität pro Tag</h2>
         <BarChart data={series} />
       </div>
 
       {/* Hourly Heatmap + File-Cats nebeneinander */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <div className="rounded-2xl p-5 soft-card">
+        <div className="rounded-md p-5 soft-card">
           <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Tagesverteilung (Stunden)</h2>
           <HourChart data={hours} />
         </div>
-        <div className="rounded-2xl p-5 soft-card">
+        <div className="rounded-md p-5 soft-card">
           <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Dateien nach Kategorie</h2>
           <FileCatList rows={fileCats} />
         </div>
       </div>
 
       {/* LLM-Kosten pro Modell */}
-      {tokens && tokens.byModel.length > 0 && (
-        <div className="rounded-2xl overflow-hidden mb-6 brand-card">
-          <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 px-4 pt-4 pb-2">
-            Tokens & Kosten pro Modell
-          </h2>
-          <div className="grid grid-cols-12 gap-2 px-4 py-2 text-[11px] uppercase tracking-wide text-stone-600 font-bold border-b border-stone-300 bg-stone-100/60">
-            <div className="col-span-4">Modell</div>
-            <div className="col-span-2 text-right">Calls</div>
-            <div className="col-span-2 text-right">Input</div>
-            <div className="col-span-2 text-right">Output</div>
-            <div className="col-span-2 text-right">Kosten (USD)</div>
-          </div>
-          <ul className="divide-y divide-stone-200">
-            {tokens.byModel.map(m => (
-              <li key={m.family + m.raw_model} className="grid grid-cols-12 gap-2 px-4 py-2.5 items-center">
-                <div className="col-span-4 min-w-0">
-                  <div className="font-medium text-stone-900 truncate">{m.family}</div>
-                  <div className="text-[10px] text-stone-500 truncate" title={m.raw_model}>{m.raw_model}</div>
-                </div>
-                <div className="col-span-2 text-right text-sm text-stone-700">{m.calls}</div>
-                <div className="col-span-2 text-right text-sm text-stone-700">{formatCompact(m.input)}</div>
-                <div className="col-span-2 text-right text-sm text-stone-700">{formatCompact(m.output)}</div>
-                <div className="col-span-2 text-right text-sm text-stone-900 font-semibold">${m.cost_usd.toFixed(2)}</div>
-              </li>
-            ))}
-          </ul>
-          <div className="px-4 py-2 text-[11px] text-stone-500 border-t border-stone-200">
-            Schätzung basierend auf öffentlichen API-Preisen Q1 2026 (USD per Million Tokens). Unbekannte Modelle = 0 €.
-          </div>
-        </div>
-      )}
+      <Suspense fallback={<TokenByModelSkeleton />}>
+        <TokenByModelCard sinceISO={sinceISO} />
+      </Suspense>
 
       {/* Top User */}
       <div className="mb-3">
@@ -343,7 +287,7 @@ export default async function AdminAnalyticsPage({
           ? topUsers.filter(u => u.email.toLowerCase().includes(q) || (u.name ?? "").toLowerCase().includes(q))
           : topUsers;
       return (
-      <div className="rounded-2xl overflow-hidden brand-card">
+      <div className="rounded-md overflow-hidden brand-card">
         <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 px-4 pt-4 pb-2">Top 10 aktive User{q && filtered.length !== topUsers.length ? ` (${filtered.length} gefiltert)` : ""}</h2>
         <div className="grid grid-cols-12 gap-2 px-4 py-2 text-[11px] uppercase tracking-wide text-stone-600 font-bold border-b border-stone-300 bg-stone-100/60">
           <div className="col-span-5">User</div>
@@ -388,7 +332,7 @@ function rangeLabel(r: Range): string {
 
 function Card({ label, value, sub }: { label: string; value: number | string; sub?: string }) {
   return (
-    <div className="rounded-xl p-4 soft-card">
+    <div className="rounded-md p-4 soft-card">
       <div className="text-[10px] uppercase tracking-wide text-stone-600 font-bold">{label}</div>
       <div className="text-2xl font-semibold text-stone-900 mt-1">{value}</div>
       {sub && <div className="text-xs text-stone-500 mt-1">{sub}</div>}
@@ -579,6 +523,96 @@ function FileCatList({ rows }: { rows: Array<{ category: string; cnt: number; by
           </div>
         );
       })}
+    </div>
+  );
+}
+
+async function TokenKpiCards({ sinceISO }: { sinceISO: string | null }) {
+  let tokens: Awaited<ReturnType<typeof fetchTokenTotals>> | null = null;
+  let errMsg: string | null = null;
+  try {
+    tokens = await fetchTokenTotals(sinceISO);
+  } catch (e) {
+    console.error("[admin/analytics] token sync failed", e);
+    errMsg = e instanceof Error ? e.message : "n8n nicht erreichbar";
+  }
+  if (!tokens) {
+    return (
+      <>
+        <Card label="LLM-Tokens" value="—" sub={errMsg ?? "n8n nicht erreichbar"} />
+        <Card label="LLM-Kosten (geschätzt)" value="—" sub={errMsg ?? "n8n nicht erreichbar"} />
+      </>
+    );
+  }
+  return (
+    <>
+      <Card
+        label="LLM-Tokens"
+        value={formatCompact(tokens.total)}
+        sub={`${formatCompact(tokens.input)} in · ${formatCompact(tokens.output)} out · ${tokens.calls} calls`}
+      />
+      <Card
+        label="LLM-Kosten (geschätzt)"
+        value={`$${tokens.costUsd.toFixed(2)}`}
+        sub={`≈ €${(tokens.costUsd * 0.93).toFixed(2)} · alle Modelle`}
+      />
+    </>
+  );
+}
+
+function TokenKpiCardsSkeleton() {
+  return (
+    <>
+      <Card label="LLM-Tokens" value="···" sub="laedt…" />
+      <Card label="LLM-Kosten (geschätzt)" value="···" sub="laedt…" />
+    </>
+  );
+}
+
+async function TokenByModelCard({ sinceISO }: { sinceISO: string | null }) {
+  let tokens: Awaited<ReturnType<typeof fetchTokenTotals>> | null = null;
+  try { tokens = await fetchTokenTotals(sinceISO); } catch { return null; }
+  if (!tokens || tokens.byModel.length === 0) return null;
+  return (
+    <div className="rounded-md overflow-hidden mb-6 brand-card">
+      <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 px-4 pt-4 pb-2">
+        Tokens & Kosten pro Modell
+      </h2>
+      <div className="grid grid-cols-12 gap-2 px-4 py-2 text-[11px] uppercase tracking-wide text-stone-600 font-bold border-b border-stone-300 bg-stone-100/60">
+        <div className="col-span-4">Modell</div>
+        <div className="col-span-2 text-right">Calls</div>
+        <div className="col-span-2 text-right">Input</div>
+        <div className="col-span-2 text-right">Output</div>
+        <div className="col-span-2 text-right">Kosten (USD)</div>
+      </div>
+      <ul className="divide-y divide-stone-200">
+        {tokens.byModel.map(m => (
+          <li key={m.family + m.raw_model} className="grid grid-cols-12 gap-2 px-4 py-2.5 items-center">
+            <div className="col-span-4 min-w-0">
+              <div className="font-medium text-stone-900 truncate">{m.family}</div>
+              <div className="text-[10px] text-stone-500 truncate" title={m.raw_model}>{m.raw_model}</div>
+            </div>
+            <div className="col-span-2 text-right text-sm text-stone-700">{m.calls}</div>
+            <div className="col-span-2 text-right text-sm text-stone-700">{formatCompact(m.input)}</div>
+            <div className="col-span-2 text-right text-sm text-stone-700">{formatCompact(m.output)}</div>
+            <div className="col-span-2 text-right text-sm text-stone-900 font-semibold">${m.cost_usd.toFixed(2)}</div>
+          </li>
+        ))}
+      </ul>
+      <div className="px-4 py-2 text-[11px] text-stone-500 border-t border-stone-200">
+        Schätzung basierend auf öffentlichen API-Preisen Q1 2026 (USD per Million Tokens). Unbekannte Modelle = 0 €.
+      </div>
+    </div>
+  );
+}
+
+function TokenByModelSkeleton() {
+  return (
+    <div className="rounded-md overflow-hidden mb-6 brand-card animate-pulse">
+      <h2 className="text-sm uppercase tracking-wide font-bold text-stone-400 px-4 pt-4 pb-2">
+        Tokens & Kosten pro Modell — laedt…
+      </h2>
+      <div className="px-4 py-6 text-xs text-stone-500">Bitte einen Moment.</div>
     </div>
   );
 }

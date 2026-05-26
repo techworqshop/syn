@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-05-19T18:40:10.754Z",
+    "updatedAt": "2026-05-19T23:39:39.026Z",
     "createdAt": "2026-04-16T22:10:03.276Z",
     "id": "cM4K3qGsjfBvEfqV",
     "name": "SynWeb_RunPersona_prod",
@@ -32,7 +32,10 @@
                 "name": "file_context"
               },
               {
-                "name": "previous_synthesis"
+                "name": "own_history"
+              },
+              {
+                "name": "synthesis_history"
               },
               {
                 "name": "rigidity",
@@ -279,7 +282,7 @@
           "messages": {
             "values": [
               {
-                "content": "=Du bist {{ $('Execute Workflow Trigger').item.json.persona_id }} mit folgendem Profil:\n\n{{ $('Execute Workflow Trigger').item.json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $('Execute Workflow Trigger').item.json.problem_brief }}\n\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\nHALTUNG: {{ ($json.rigidity ?? 5) <= 3 ? 'Du bist offen. Aktualisiere deine Position aktiv basierend auf neuen Infos.' : ($json.rigidity ?? 5) <= 6 ? 'Ausgewogen. Update bei wirklich starken neuen Argumenten.' : 'Du bist standhaft. Bleib bei deiner Position, selbst bei guten Gegenargumenten.' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nDies ist Runde {{ $('Execute Workflow Trigger').item.json.round_number }}.\n\nFORMATTING: Kein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt.\n\nAnalysiere das Problem aus deiner spezifischen Perspektive. Sei direkt und substanziell. Schreib so ausfuehrlich wie noetig - keine Wortbegrenzung, aber kein Geschwafel."
+                "content": "=Du bist {{ $('Execute Workflow Trigger').item.json.persona_id }} mit folgendem Profil:\n\n{{ $('Execute Workflow Trigger').item.json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $('Execute Workflow Trigger').item.json.problem_brief }}\n\n{{ $json.synthesis_history ? 'SYNTHESEN AUS DEN BISHERIGEN RUNDEN (vom Coordinator kondensiert, chronologisch):\\n' + $json.synthesis_history + '\\n' : '' }}\n{{ $json.own_history ? 'DEINE EIGENEN BEITRAEGE BISHER (chronologisch):\\n' + $json.own_history + '\\n\\nNutze die Synthesen um zu sehen wie sich die Gruppen-Debatte entwickelt hat. Halte oder schaerfe deine Position je nach HALTUNG. Begruende Position-Updates kurz wenn du sie machst.\\n' : '' }}\nHALTUNG: {{ ($json.rigidity ?? 5) <= 3 ? 'Du bist offen. Aktualisiere deine Position aktiv basierend auf neuen Infos.' : ($json.rigidity ?? 5) <= 6 ? 'Ausgewogen. Update bei wirklich starken neuen Argumenten.' : 'Du bist standhaft. Bleib bei deiner Position, selbst bei guten Gegenargumenten.' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nDies ist Runde {{ $('Execute Workflow Trigger').item.json.round_number }}.\n\nFORMATTING: Kein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt.\n\nAnalysiere das Problem aus deiner spezifischen Perspektive. Sei direkt und substanziell. Schreib so ausfuehrlich wie noetig - keine Wortbegrenzung, aber kein Geschwafel."
               }
             ]
           },
@@ -416,7 +419,7 @@
           "workflowId": {
             "__rl": true,
             "mode": "id",
-            "value": "jMQEQggtVPu7XOwK"
+            "value": "Q4MEDGpNMcyTxwGl"
           },
           "workflowInputs": {
             "schema": [
@@ -610,9 +613,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "8a85919a-5171-4e8f-aaf4-614b3b9177ba",
-    "activeVersionId": "8a85919a-5171-4e8f-aaf4-614b3b9177ba",
-    "versionCounter": 74,
+    "versionId": "b4992c76-a018-4031-a399-aba91427b6ef",
+    "activeVersionId": "b4992c76-a018-4031-a399-aba91427b6ef",
+    "versionCounter": 98,
     "triggerCount": 0,
     "tags": [],
     "shared": [

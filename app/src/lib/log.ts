@@ -58,6 +58,10 @@ export type AuditAction =
   | "invite.create"
   | "invite.delete"
   | "session.delete_other"
+  | "session.delete_own"
+  | "session.restore_own"
+  | "session.archive_own"
+  | "session.create"
   | "admin.export.users"
   | "admin.export.sessions";
 

@@ -28,11 +28,7 @@ export default async function BillingShell({ children, centered = true, stripeVa
     <main
       className="min-h-screen flex flex-col"
       style={{
-        background:
-          "radial-gradient(ellipse 900px 700px at 12% 8%, rgba(101,134,70,0.10), transparent 60%)," +
-          "radial-gradient(ellipse 1000px 800px at 88% 32%, rgba(214,165,88,0.09), transparent 60%)," +
-          "radial-gradient(ellipse 800px 600px at 50% 95%, rgba(143,122,80,0.10), transparent 60%)," +
-          "#E8E2D2",
+        background: "#F4F1EA",
         color: "#1F2420",
         fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
       }}
@@ -48,7 +44,7 @@ export default async function BillingShell({ children, centered = true, stripeVa
       >
         <Link href="/app/dashboard" className="flex items-center gap-2.5">
           <img src="/api/assets/syn-avatar" alt="Syn" className="w-7 h-7 rounded-full ring-1 ring-white/40 object-cover" />
-          <span className="font-semibold text-lg tracking-tight" style={{ color: "#BE123C" }}>Syn</span>
+          <span className="font-serif text-xl font-medium tracking-tight" style={{ color: "#1F2420" }}>Syn</span>
         </Link>
         <span className="text-sm" style={{ color: "#4A4640" }}>{email}</span>
       </nav>
@@ -61,7 +57,7 @@ export default async function BillingShell({ children, centered = true, stripeVa
               maxWidth: cardMaxWidth,
               background: "#F3EFE2",
               border: "1px solid rgba(31,36,32,0.06)",
-              borderRadius: "20px"
+              borderRadius: "6px"
             }}
           >
             <span aria-hidden className="absolute top-0 left-0 right-0" style={{ height: "4px", background: stripe }} />

@@ -13,7 +13,7 @@ export default function PersonaAvatar({ sessionId, slot, initials, tintClass, si
   const [failed, setFailed] = useState(false);
   if (failed) {
     return (
-      <div className={`${size} rounded-xl ${tintClass} flex items-center justify-center text-white text-base font-bold ring-1 ring-white/10 shrink-0`}>
+      <div className={`${size} rounded-md ${tintClass} flex items-center justify-center text-white text-base font-bold ring-1 ring-white/10 shrink-0`}>
         {initials}
       </div>
     );
@@ -23,7 +23,7 @@ export default function PersonaAvatar({ sessionId, slot, initials, tintClass, si
       src={`/api/persona-images/${sessionId}/${slot}`}
       alt={initials}
       onError={() => setFailed(true)}
-      className={`${size} rounded-xl object-cover ring-1 ring-white/10 shrink-0 bg-stone-50`}
+      className={`${size} rounded-md object-cover ring-1 ring-white/10 shrink-0 bg-stone-50`}
     />
   );
 }

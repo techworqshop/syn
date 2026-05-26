@@ -30,6 +30,9 @@ export const DICT: Dict = {
   "login.unverified":  { de: "Bitte bestaetige zuerst deine E-Mail. Wir haben dir bei der Registrierung einen Link geschickt — checke dein Postfach (auch Spam).", en: "Please confirm your email first. We sent you a link at registration — check your inbox (including spam)." },
   "login.resendVerify":{ de: "Verify-Mail erneut senden",      en: "Resend verification email" },
   "login.deleted":     { de: "Dieser Account wurde zur Loeschung markiert. Schreib uns auf tech@worqshop.io um ihn zu reaktivieren.", en: "This account has been flagged for deletion. Contact tech@worqshop.io to reactivate." },
+  "login.deleted_with_restore": { de: "Dieser Account ist zur Loeschung markiert. Du kannst die Loeschung jetzt noch zuruecknehmen.", en: "This account is flagged for deletion. You can still undo the deletion." },
+  "login.restore_cta": { de: "Loeschung zuruecknehmen + einloggen", en: "Undo deletion + sign in" },
+  "login.restore_done": { de: "Loeschung zurueckgenommen. Du kannst dich jetzt wie gewohnt einloggen.", en: "Deletion undone. You can sign in as usual." },
   "login.verifiedBanner": { de: "E-Mail bestaetigt. Du kannst dich jetzt einloggen.", en: "Email confirmed. You can now sign in." },
   "ratelimit.tooMany": { de: "Zu viele Versuche. Bitte warte ein paar Minuten und versuche es nochmal.", en: "Too many attempts. Please wait a few minutes and try again." },
 
@@ -173,6 +176,7 @@ export const DICT: Dict = {
   "settings.danger.warn_3":            { de: "Sessions, Berichte und Personas bleiben 30 Tage inaktiv, danach werden sie endgueltig geloescht.", en: "Sessions, reports and personas stay inactive for 30 days, then permanently deleted." },
   "settings.danger.confirm_label":     { de: "Zur Bestaetigung tippe {token}",             en: "Type {token} to confirm" },
   "settings.danger.confirm_wrong":     { de: "Bestaetigung stimmt nicht.",                 en: "Confirmation does not match." },
+  "settings.danger.block_active_sub": { de: "Bitte erst dein Abo kuendigen, dann kann der Account geloescht werden.", en: "Please cancel your subscription first, then the account can be deleted." },
 
   // Confirm Email Change
   "confirmEmail.successTitle":         { de: "E-Mail aktualisiert",                        en: "Email updated" },
@@ -214,6 +218,7 @@ export const DICT: Dict = {
 
   "chat.closed.title":   { de: "Diskussion abgeschlossen.",                                                            en: "Discussion completed." },
   "chat.closed.hint":    { de: "Abschlussbericht via 3-Punkte-Menü · 1:1-Chat mit Personas in der Sidebar",            en: "Final report via 3-dot menu · 1:1 chat with personas in the sidebar" },
+  "chat.closed.hintDone": { de: "1:1-Chat mit Personas in der Sidebar",                            en: "1:1 chat with personas in the sidebar" },
 
   "chat.mehr_lesen":     { de: "Mehr lesen",      en: "Read more" },
   "chat.weniger":        { de: "Weniger anzeigen", en: "Show less" },

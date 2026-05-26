@@ -1,0 +1,592 @@
+"use client";
+import { useState, useEffect } from "react";
+import type { Locale } from "@/lib/i18n";
+import PaymentMethodModal from "./PaymentMethodModal";
+import type { PlanId } from "@/lib/chargebee";
+
+type QuotaProps = {
+  totalQuota: number; slotsInUse: number; remaining: number;
+  consumed: number; drafts: number; purchasedExtras: number;
+  bypass: boolean; planId: PlanId | null;
+  cycle: "monthly" | "yearly" | null;
+  periodEnd: string | null;
+};
+type ExtrasRow = {
+  id: string;
+  createdAt: string;
+  expiresAt: string | null;
+  quantity: number;
+  quantityUsed: number;
+  unitPriceEur: number;
+};
+
+type Props = {
+  locale: Locale;
+  hasActiveSub: boolean;
+  configured: boolean;
+  quota: QuotaProps;
+  extrasHistory?: ExtrasRow[];
+};
+
+type PlanCardData = {
+  id: PlanId;
+  name: string;
+  basePrice: number;
+  yearlyPrice: number;
+  includedSessions: number;
+  overagePerSession: number;
+  highlight?: boolean;
+};
+
+const PLAN_CARDS: PlanCardData[] = [
+  { id: "basic",      name: "Basic",      basePrice: 150, yearlyPrice: 1440, includedSessions: 5,  overagePerSession: 35 },
+  { id: "pro",        name: "Pro",        basePrice: 350, yearlyPrice: 3360, includedSessions: 15, overagePerSession: 28, highlight: true },
+  { id: "enterprise", name: "Enterprise", basePrice: 900, yearlyPrice: 8640, includedSessions: 50, overagePerSession: 22 }
+];
+
+export default function BillingActions({ locale, hasActiveSub, configured, quota, extrasHistory = [] }: Props) {
+  const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [cycle, setCycle] = useState<"monthly" | "yearly">("yearly");
+  const [confirmExtras, setConfirmExtras] = useState<number | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [invoices, setInvoices] = useState<Array<{id:string;date:number;total:number;status:string;currency:string}>>([]);
+  useEffect(() => {
+    if (!hasActiveSub) return;
+    fetch("/api/billing/invoices").then(r => r.json()).then(d => setInvoices(d.invoices || [])).catch(() => {});
+  }, [hasActiveSub]);
+
+  async function startCheckout(plan: PlanId) {
+    setError(null); setLoading(`checkout-${plan}`);
+    try {
+      const r = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan, cycle })
+      });
+      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      const j = await r.json();
+      if (j.url) { window.location.href = j.url; return; }
+      throw new Error("No redirect URL returned");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "unknown error");
+      setLoading(null);
+    }
+  }
+
+  async function buyExtras(quantity: number) {
+    setError(null); setLoading(`extras-${quantity}`);
+    try {
+      const r = await fetch("/api/billing/buy-extras", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quantity })
+      });
+      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      const j = await r.json().catch(() => ({})) as { quantity?: number; unitPriceEur?: number };
+      const total = ((j.quantity ?? quantity) * (j.unitPriceEur ?? 0) * 1.19).toFixed(2);
+      setConfirmExtras(null);
+      setSuccessMsg(locale === "en"
+        ? `${j.quantity ?? quantity} extra session(s) added. EUR ${total} (incl. VAT) charged to your payment method.`
+        : `${j.quantity ?? quantity} Session(s) hinzugefuegt. EUR ${total} (inkl. MwSt.) wurden von deiner Zahlungsmethode abgebucht.`);
+      setTimeout(() => window.location.reload(), 3000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "unknown error");
+      setLoading(null);
+    }
+  }
+
+  async function doCancel() {
+    setError(null); setLoading("cancel");
+    try {
+      const r = await fetch("/api/billing/cancel", { method: "POST" });
+      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      setConfirmCancel(false);
+      setSuccessMsg(locale === "en" ? "Subscription cancelled at end of term." : "Abo zum Periodenende gekuendigt.");
+      setTimeout(() => window.location.reload(), 2000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "unknown");
+      setLoading(null);
+    }
+  }
+
+  async function doPlanSwitch(planId: PlanId, switchCycle: "monthly"|"yearly") {
+    setError(null); setLoading(`switch-${planId}`);
+    try {
+      const r = await fetch("/api/billing/change-plan", { method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: planId, cycle: switchCycle })
+      });
+      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      setSuccessMsg(locale === "en" ? "Plan switched. Reloading..." : "Plan gewechselt. Lade...");
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "unknown");
+      setLoading(null);
+    }
+  }
+
+  function doPaymentUpdate() {
+    setError(null);
+    setShowPaymentModal(true);
+  }
+
+  async function openPortal() {
+    setError(null); setLoading("portal");
+    try {
+      const r = await fetch("/api/billing/portal", { method: "POST" });
+      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      const j = await r.json();
+      if (j.url) { window.location.href = j.url; return; }
+      throw new Error("No redirect URL returned");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "unknown error");
+      setLoading(null);
+    }
+  }
+
+  if (hasActiveSub) {
+    const OVERAGE: Record<PlanId, number> = { basic: 35, pro: 28, enterprise: 22 };
+    const unitNet = quota.planId ? OVERAGE[quota.planId] : 0;
+    return (
+      <>
+        <div className="space-y-4">
+          {error && (
+            <div className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm" style={{ color: "#9F1239" }}>{error}</div>
+          )}
+          {successMsg && (
+            <div className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm" style={{ color: "#0F5132" }}>{successMsg}</div>
+          )}
+        <QuotaCard locale={locale} quota={quota} loading={loading} onBuy={(qty) => { setError(null); setConfirmExtras(qty); }} />
+          {extrasHistory.length > 0 && <ExtrasHistory locale={locale} rows={extrasHistory} />}
+        <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-stone-300/70 text-xs uppercase tracking-wider font-semibold" style={{ color: "#7A7268" }}>
+            {locale === "en" ? "Manage subscription" : "Abo verwalten"}
+          </div>
+          <BillingControls locale={locale} quota={quota} loading={loading}
+            onPlanSwitch={doPlanSwitch} onPaymentUpdate={doPaymentUpdate}
+            onCancel={() => setConfirmCancel(true)} />
+        </div>
+        <InvoicesList locale={locale} invoices={invoices} />
+        <p className="text-xs" style={{ color: "#7A7268" }}>
+          {locale === "en"
+            ? "Payments are processed by Chargebee. You'll be redirected to a secure hosted page."
+            : "Zahlungen werden ueber Chargebee abgewickelt. Du wirst zu einer sicheren externen Seite weitergeleitet."}
+          </p>
+        </div>
+        {confirmExtras !== null && (
+          <ConfirmExtrasModal
+            locale={locale}
+            quantity={confirmExtras}
+            unitNet={unitNet}
+            busy={loading?.startsWith("extras-") ?? false}
+            onCancel={() => setConfirmExtras(null)}
+            onConfirm={() => buyExtras(confirmExtras)}
+          />
+        )}
+        {confirmCancel && (
+          <ConfirmCancelModal
+            locale={locale}
+            periodEnd={quota.periodEnd}
+            busy={loading === "cancel"}
+            onCancel={() => setConfirmCancel(false)}
+            onConfirm={doCancel}
+          />
+        )}
+        {showPaymentModal && (
+          <PaymentMethodModal
+            locale={locale}
+            onClose={() => setShowPaymentModal(false)}
+            onSuccess={() => {
+              setShowPaymentModal(false);
+              setSuccessMsg(locale === "en" ? "Card updated successfully." : "Karte erfolgreich aktualisiert.");
+            }}
+          />
+        )}
+      </>
+    );
+  }
+
+  // No active sub -> 3-tier picker
+  return (
+    <div className="space-y-4">
+      {error && (
+        <div className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm" style={{ color: "#9F1239" }}>{error}</div>
+      )}
+      <div className="flex items-center justify-center mb-4">
+        <div className="inline-flex rounded-full border border-stone-300 bg-white p-1 shadow-sm">
+          <button onClick={() => setCycle("yearly")}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${cycle === "yearly" ? "bg-rose-700 text-white" : "text-stone-700 hover:text-rose-700"}`}>
+            {locale === "en" ? "Yearly" : "Jaehrlich"}
+            <span className={`ml-1.5 text-[10px] font-bold ${cycle === "yearly" ? "text-rose-100" : "text-emerald-700"}`}>-20%</span>
+          </button>
+          <button onClick={() => setCycle("monthly")}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${cycle === "monthly" ? "bg-rose-700 text-white" : "text-stone-700 hover:text-rose-700"}`}>
+            {locale === "en" ? "Monthly" : "Monatlich"}
+          </button>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {PLAN_CARDS.map(p => {
+          const busy = loading === `checkout-${p.id}`;
+          const anyBusy = loading !== null;
+          const cta = busy
+            ? (locale === "en" ? "Loading..." : "Lade...")
+            : (locale === "en" ? "Start free trial" : "Kostenlos testen");
+          return (
+            <div key={p.id} className={`rounded-2xl border bg-[#F3EFE2] shadow-sm flex flex-col relative ${p.highlight ? "border-rose-700 ring-2 ring-rose-700/30" : "border-stone-300"}`}>
+              <div className="px-5 py-4 border-b border-stone-300/70 relative">
+                {p.highlight && (
+                  <span className="absolute -top-2 right-4 px-2 py-0.5 rounded-full text-[10px] font-semibold text-white" style={{ background: "#9F1239" }}>
+                    {locale === "en" ? "MOST POPULAR" : "BELIEBT"}
+                  </span>
+                )}
+                <div className="text-lg font-semibold tracking-tight" style={{ color: "#1F2420" }}>{p.name}</div>
+                <div className="mt-2 flex items-baseline gap-1">
+                  <span className="text-3xl font-semibold" style={{ color: "#1F2420" }}>{p.id === "enterprise" ? "ab " : ""}€{cycle === "yearly" ? Math.round(p.yearlyPrice / 12) : p.basePrice}</span>
+                  <span className="text-sm" style={{ color: "#7A7268" }}>/{locale === "en" ? "mo" : "Mo"}</span>
+                </div>
+                <div className="text-xs mt-1" style={{ color: "#7A7268" }}>
+                  {cycle === "yearly"
+                    ? (locale === "en" ? `€${p.yearlyPrice} billed annually` : `€${p.yearlyPrice} pro Jahr`)
+                    : (locale === "en" ? "Billed monthly" : "Monatliche Abrechnung")}
+                </div>
+              </div>
+              <div className="px-5 py-4 flex-1 space-y-2 text-sm" style={{ color: "#1F2420" }}>
+                <div className="flex items-start gap-2">
+                  <span className="text-emerald-700 mt-0.5">✓</span>
+                  <span><span className="font-semibold">{p.includedSessions}</span> {locale === "en" ? "sessions / month included" : "Sessions / Monat inklusive"}</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-emerald-700 mt-0.5">✓</span>
+                  <span>{locale === "en" ? "Each additional session:" : "Jede weitere Session:"} <span className="font-semibold">€{p.overagePerSession}</span></span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-emerald-700 mt-0.5">✓</span>
+                  <span>{locale === "en" ? "14-day free trial" : "14 Tage kostenlos testen"}</span>
+                </div>
+              </div>
+              <div className="px-5 pb-5">
+                <button disabled={anyBusy || !configured} onClick={() => startCheckout(p.id)}
+                  className={`w-full px-4 py-2.5 rounded-xl font-semibold transition-all ${(!configured || anyBusy) ? "text-stone-400 bg-stone-200/60 cursor-not-allowed" : p.highlight ? "btn-primary text-white" : "border border-stone-400 bg-white text-stone-900 hover:bg-stone-50"}`}>
+                  {cta}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-xs" style={{ color: "#7A7268" }}>
+        {locale === "en"
+          ? "Payments are processed by Chargebee. You'll be redirected to a secure hosted page. Cancel anytime during the trial."
+          : "Zahlungen werden ueber Chargebee abgewickelt. Du wirst zu einer sicheren externen Seite weitergeleitet. Waehrend der Testphase jederzeit kuendbar."}
+      </p>
+    </div>
+  );
+}
+
+type QuotaCardProps = {
+  locale: Locale;
+  quota: QuotaProps;
+  loading: string | null;
+  onBuy: (qty: number) => void;
+};
+
+function QuotaCard({ locale, quota, loading, onBuy }: QuotaCardProps) {
+  if (quota.bypass) {
+    return (
+      <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] px-6 py-5 text-sm" style={{ color: "#7A7268" }}>
+        {locale === "en" ? "Admin account — unlimited sessions." : "Admin-Account — unbegrenzte Sessions."}
+      </div>
+    );
+  }
+
+  const pct = quota.totalQuota === 0 ? 100 : Math.min(100, Math.round((quota.slotsInUse / quota.totalQuota) * 100));
+  const barColor = pct >= 90 ? "#9F1239" : pct >= 70 ? "#A77E22" : "#3A7E58";
+
+  return (
+    <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] shadow-sm overflow-hidden">
+      <div className="px-6 py-5 border-b border-stone-300/70">
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="text-xs uppercase tracking-wider font-semibold" style={{ color: "#7A7268" }}>
+            {locale === "en" ? "This month's sessions" : "Sessions diesen Monat"}
+          </div>
+          {quota.cycle && (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold ring-1 ring-stone-300 bg-white" style={{ color: quota.cycle === "yearly" ? "#3A7E58" : "#7A7268" }}>
+              {quota.cycle === "yearly" ? (locale === "en" ? "YEARLY -20%" : "JAEHRLICH -20%") : (locale === "en" ? "MONTHLY" : "MONATLICH")}
+            </span>
+          )}
+        </div>
+        <div className="flex items-baseline gap-2">
+          <span className="text-3xl font-semibold" style={{ color: "#1F2420" }}>{quota.slotsInUse}</span>
+          <span className="text-base" style={{ color: "#7A7268" }}>/ {quota.totalQuota}</span>
+        </div>
+        <div className="mt-3 h-2 w-full rounded-full bg-stone-300/40 overflow-hidden">
+          <div className="h-full transition-all" style={{ width: `${pct}%`, backgroundColor: barColor }} />
+        </div>
+        <div className="mt-2 text-xs flex gap-4" style={{ color: "#7A7268" }}>
+          <span>{locale === "en" ? "Started" : "Begonnen"}: <span className="font-semibold" style={{ color: "#1F2420" }}>{quota.consumed}</span></span>
+          <span>{locale === "en" ? "Drafts" : "Entwuerfe"}: <span className="font-semibold" style={{ color: "#1F2420" }}>{quota.drafts}</span></span>
+          {quota.purchasedExtras > 0 && (
+            <span>{locale === "en" ? "Extras" : "Extras"}: <span className="font-semibold" style={{ color: "#1F2420" }}>+{quota.purchasedExtras}</span></span>
+          )}
+        </div>
+      </div>
+      <div className="px-6 py-5">
+        <div className="text-xs uppercase tracking-wider font-semibold mb-3" style={{ color: "#7A7268" }}>
+          {locale === "en" ? "Buy extra sessions (this month)" : "Sessions nachkaufen (dieser Monat)"}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[1, 5, 10].map(qty => {
+            const busy = loading === `extras-${qty}`;
+            const anyBusy = loading !== null;
+            return (
+              <button key={qty} disabled={anyBusy} onClick={() => onBuy(qty)}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${anyBusy ? "text-stone-400 bg-stone-100 border-stone-300 cursor-not-allowed" : "bg-white border-stone-400 text-stone-900 hover:border-rose-700 hover:text-rose-700"}`}>
+                {busy ? "..." : `+${qty}`}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-xs mt-2" style={{ color: "#7A7268" }}>
+          {locale === "en"
+            ? "Extras are billed immediately at your plan's per-session rate and expire at the end of the current billing period."
+            : "Extras werden sofort zum Tier-Preis pro Session abgerechnet und verfallen am Ende des aktuellen Abrechnungszeitraums."}
+        </p>
+        {quota.periodEnd && (
+          <p className="text-xs mt-2" style={{ color: "#7A7268" }}>
+            {locale === "en" ? "Renews on " : "Verlaengert am "}
+            <span className="font-semibold" style={{ color: "#1F2420" }}>
+              {new Date(quota.periodEnd).toLocaleDateString(locale === "en" ? "en-GB" : "de-DE", { year: "numeric", month: "long", day: "numeric" })}
+            </span>
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+type ConfirmExtrasProps = {
+  locale: Locale;
+  quantity: number;
+  unitNet: number;
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+};
+
+function ConfirmExtrasModal({ locale, quantity, unitNet, busy, onCancel, onConfirm }: ConfirmExtrasProps) {
+  const net = unitNet * quantity;
+  const vat = net * 0.19;
+  const gross = net + vat;
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl bg-[#F3EFE2] border border-stone-300 shadow-2xl overflow-hidden">
+        <div className="px-6 py-5 border-b border-stone-300/70">
+          <div className="text-lg font-semibold" style={{ color: "#1F2420" }}>
+            {locale === "en" ? "Confirm purchase" : "Kauf bestaetigen"}
+          </div>
+          <div className="text-sm mt-1" style={{ color: "#7A7268" }}>
+            {locale === "en"
+              ? `You are about to buy ${quantity} extra session${quantity === 1 ? "" : "s"} for this month.`
+              : `Du kaufst ${quantity} zusaetzliche Session${quantity === 1 ? "" : "s"} fuer diesen Monat.`}
+          </div>
+        </div>
+        <div className="px-6 py-5 space-y-2 text-sm" style={{ color: "#1F2420" }}>
+          <div className="flex justify-between"><span>{quantity} × {locale === "en" ? "Session" : "Session"}</span><span>€{net.toFixed(2)}</span></div>
+          <div className="flex justify-between" style={{ color: "#7A7268" }}><span>{locale === "en" ? "VAT 19%" : "MwSt. 19%"}</span><span>€{vat.toFixed(2)}</span></div>
+          <div className="flex justify-between text-base font-semibold pt-2 mt-2 border-t border-stone-300/70">
+            <span>{locale === "en" ? "Total" : "Gesamt"}</span><span>€{gross.toFixed(2)}</span>
+          </div>
+        </div>
+        <div className="px-6 pb-2 text-xs" style={{ color: "#7A7268" }}>
+          {locale === "en"
+            ? "Will be charged immediately to your saved payment method. VAT may differ based on your billing country and VAT-ID validation."
+            : "Wird sofort von deiner hinterlegten Zahlungsmethode abgebucht. MwSt. kann je nach Land und USt-ID-Validierung abweichen."}
+        </div>
+        <div className="px-6 py-5 flex gap-3 justify-end">
+          <button disabled={busy} onClick={onCancel}
+            className="px-4 py-2 rounded-xl text-sm font-semibold border border-stone-400 bg-white text-stone-900 hover:bg-stone-50 disabled:opacity-60">
+            {locale === "en" ? "Cancel" : "Abbrechen"}
+          </button>
+          <button disabled={busy} onClick={onConfirm}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold text-white ${busy ? "bg-stone-400 cursor-not-allowed" : "btn-primary"}`}>
+            {busy
+              ? (locale === "en" ? "Charging..." : "Wird abgebucht...")
+              : (locale === "en" ? `Buy now for €${gross.toFixed(2)}` : `Jetzt zahlungspflichtig kaufen — €${gross.toFixed(2)}`)}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExtrasHistory({ locale, rows }: { locale: Locale; rows: ExtrasRow[] }) {
+  const dateLocale = locale === "en" ? "en-GB" : "de-DE";
+  return (
+    <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] shadow-sm overflow-hidden">
+      <div className="px-6 py-4 border-b border-stone-300/70">
+        <div className="text-xs uppercase tracking-wider font-semibold" style={{ color: "#7A7268" }}>
+          {locale === "en" ? "Purchase history" : "Kaufhistorie"}
+        </div>
+      </div>
+      <div className="divide-y divide-stone-300/50">
+        {rows.map(r => {
+          const remaining = r.quantity - r.quantityUsed;
+          const expiresDate = r.expiresAt ? new Date(r.expiresAt) : null;
+          const isExpired = expiresDate ? expiresDate.getTime() < Date.now() : false;
+          const isDepleted = remaining <= 0;
+          const status = isExpired ? "expired" : isDepleted ? "depleted" : "active";
+          const statusColor = status === "active" ? "#3A7E58" : status === "depleted" ? "#7A7268" : "#9F1239";
+          const statusLabel = status === "active"
+            ? (locale === "en" ? "Active" : "Aktiv")
+            : status === "depleted"
+            ? (locale === "en" ? "Used up" : "Verbraucht")
+            : (locale === "en" ? "Expired" : "Abgelaufen");
+          return (
+            <div key={r.id} className="px-6 py-3 flex items-center gap-4 text-sm">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-semibold" style={{ color: "#1F2420" }}>
+                    {r.quantity} {locale === "en" ? (r.quantity === 1 ? "session" : "sessions") : (r.quantity === 1 ? "Session" : "Sessions")}
+                  </span>
+                  <span className="text-xs" style={{ color: "#7A7268" }}>
+                    {new Date(r.createdAt).toLocaleDateString(dateLocale, { day: "2-digit", month: "short", year: "numeric" })}
+                  </span>
+                </div>
+                <div className="text-xs mt-0.5" style={{ color: "#7A7268" }}>
+                  {remaining} {locale === "en" ? "remaining" : "uebrig"} · €{(r.unitPriceEur * r.quantity).toFixed(2)} {locale === "en" ? "net" : "netto"}
+                  {expiresDate && !isExpired && (
+                    <> · {locale === "en" ? "expires" : "gueltig bis"} {expiresDate.toLocaleDateString(dateLocale, { day: "2-digit", month: "short", year: "numeric" })}</>
+                  )}
+                </div>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold ring-1 ring-stone-300 bg-white whitespace-nowrap" style={{ color: statusColor }}>
+                {statusLabel}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+type ControlsProps = {
+  locale: Locale;
+  quota: QuotaProps;
+  loading: string | null;
+  onPlanSwitch: (p: PlanId, cycle: "monthly"|"yearly") => void;
+  onPaymentUpdate: () => void;
+  onCancel: () => void;
+};
+
+function BillingControls({ locale, quota, loading, onPlanSwitch, onPaymentUpdate, onCancel }: ControlsProps) {
+  const cur = quota.planId;
+  const cyc = (quota.cycle ?? "monthly") as "monthly" | "yearly";
+  const upgrade: PlanId | null = cur === "basic" ? "pro" : cur === "pro" ? "enterprise" : null;
+  const downgrade: PlanId | null = cur === "enterprise" ? "pro" : cur === "pro" ? "basic" : null;
+  const anyBusy = loading !== null;
+  return (
+    <div className="px-6 py-4 flex flex-wrap gap-2">
+      {upgrade && (
+        <button disabled={anyBusy} onClick={() => onPlanSwitch(upgrade, cyc)}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${anyBusy ? "bg-stone-300 text-stone-500 cursor-not-allowed" : "btn-primary text-white"}`}>
+          {loading === `switch-${upgrade}` ? "..." : (locale === "en" ? `Upgrade to ${upgrade}` : `Upgrade auf ${upgrade}`)}
+        </button>
+      )}
+      {downgrade && (
+        <button disabled={anyBusy} onClick={() => onPlanSwitch(downgrade, cyc)}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold border border-stone-400 bg-white text-stone-900 hover:bg-stone-50 ${anyBusy ? "opacity-60 cursor-not-allowed" : ""}`}>
+          {loading === `switch-${downgrade}` ? "..." : (locale === "en" ? `Downgrade to ${downgrade}` : `Downgrade auf ${downgrade}`)}
+        </button>
+      )}
+      <button disabled={anyBusy} onClick={onPaymentUpdate}
+        className={`px-4 py-2 rounded-xl text-sm font-semibold border border-stone-400 bg-white text-stone-900 hover:bg-stone-50 ${anyBusy ? "opacity-60 cursor-not-allowed" : ""}`}>
+        {loading === "payment" ? "..." : (locale === "en" ? "Update payment method" : "Zahlungsmethode aendern")}
+      </button>
+      <button disabled={anyBusy} onClick={onCancel}
+        className={`px-4 py-2 rounded-xl text-sm font-semibold border border-rose-300 bg-white text-rose-700 hover:bg-rose-50 ml-auto ${anyBusy ? "opacity-60 cursor-not-allowed" : ""}`}>
+        {locale === "en" ? "Cancel subscription" : "Abo kuendigen"}
+      </button>
+    </div>
+  );
+}
+
+type InvoiceProps = {
+  locale: Locale;
+  invoices: Array<{ id: string; date: number; total: number; status: string; currency: string }>;
+};
+
+function InvoicesList({ locale, invoices }: InvoiceProps) {
+  if (!invoices.length) return null;
+  const dateLocale = locale === "en" ? "en-GB" : "de-DE";
+  return (
+    <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] shadow-sm overflow-hidden">
+      <div className="px-6 py-4 border-b border-stone-300/70 text-xs uppercase tracking-wider font-semibold" style={{ color: "#7A7268" }}>
+        {locale === "en" ? "Invoices" : "Rechnungen"}
+      </div>
+      <div className="divide-y divide-stone-300/50">
+        {invoices.map(inv => {
+          const dateStr = new Date(inv.date * 1000).toLocaleDateString(dateLocale, { day:"2-digit", month:"short", year:"numeric" });
+          const amount = (inv.total / 100).toFixed(2);
+          const isPaid = inv.status === "paid";
+          return (
+            <div key={inv.id} className="px-6 py-3 flex items-center gap-4 text-sm">
+              <div className="flex-1">
+                <div style={{ color: "#1F2420" }}>{dateStr} · €{amount} {inv.currency}</div>
+                <div className="text-xs" style={{ color: isPaid ? "#3A7E58" : "#A77E22" }}>
+                  {isPaid ? (locale === "en" ? "Paid" : "Bezahlt") : inv.status}
+                </div>
+              </div>
+              <a href={`/api/billing/invoices/${inv.id}/pdf`} target="_blank" rel="noreferrer"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-stone-400 bg-white text-stone-900 hover:bg-stone-50">
+                PDF
+              </a>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+type ConfirmCancelProps = {
+  locale: Locale;
+  periodEnd: string | null;
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+};
+
+function ConfirmCancelModal({ locale, periodEnd, busy, onCancel, onConfirm }: ConfirmCancelProps) {
+  const endDate = periodEnd ? new Date(periodEnd).toLocaleDateString(locale === "en" ? "en-GB" : "de-DE", { day: "2-digit", month: "long", year: "numeric" }) : "—";
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl bg-[#F3EFE2] border border-stone-300 shadow-2xl overflow-hidden">
+        <div className="px-6 py-5 border-b border-stone-300/70">
+          <div className="text-lg font-semibold" style={{ color: "#9F1239" }}>
+            {locale === "en" ? "Cancel subscription?" : "Abo wirklich kuendigen?"}
+          </div>
+        </div>
+        <div className="px-6 py-5 text-sm" style={{ color: "#1F2420" }}>
+          {locale === "en"
+            ? <>Your subscription will remain active until <b>{endDate}</b>. After that, no new sessions will be available — but already purchased extras stay usable within their 12-month window.</>
+            : <>Dein Abo laeuft noch bis zum <b>{endDate}</b>. Danach sind keine neuen Sessions ueber dein Inklusiv-Kontingent moeglich — bereits gekaufte Extras bleiben innerhalb ihrer 12-Monats-Frist nutzbar.</>}
+        </div>
+        <div className="px-6 py-5 flex gap-3 justify-end">
+          <button disabled={busy} onClick={onCancel}
+            className="px-4 py-2 rounded-xl text-sm font-semibold border border-stone-400 bg-white text-stone-900 hover:bg-stone-50 disabled:opacity-60">
+            {locale === "en" ? "Keep subscription" : "Abo behalten"}
+          </button>
+          <button disabled={busy} onClick={onConfirm}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold text-white ${busy ? "bg-stone-400 cursor-not-allowed" : "bg-rose-700 hover:bg-rose-800"}`}>
+            {busy ? (locale === "en" ? "Cancelling..." : "Kuendige...") : (locale === "en" ? "Yes, cancel at end of term" : "Ja, zum Periodenende kuendigen")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

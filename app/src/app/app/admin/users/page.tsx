@@ -125,7 +125,7 @@ export default async function AdminUsersPage({
           <AdminFilterBar placeholder="Filter nach Email oder Name..." />
         </div>
         <a href={`/api/admin/export/users${q ? `?q=${encodeURIComponent(q)}` : ""}`}
-          className="rounded-xl bg-[#F3EFE2] border border-stone-300 px-3 shadow-sm text-xs font-bold text-stone-700 hover:text-rose-700 hover:border-rose-700 transition-colors flex items-center gap-1.5"
+          className="rounded-md bg-[#F3EFE2] border border-stone-300 px-3 shadow-sm text-xs font-bold text-stone-700 hover:text-rose-700 hover:border-rose-700 transition-colors flex items-center gap-1.5"
           title="Sichtbare Zeilen als CSV exportieren">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -136,7 +136,7 @@ export default async function AdminUsersPage({
         </a>
       </div>
 
-      <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
+      <div className="rounded-md border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
         <div className="grid grid-cols-12 gap-2 px-4 py-2.5 text-[11px] uppercase tracking-wide text-stone-600 font-bold border-b border-stone-300 bg-stone-100/60">
           <Link href={sortUrl("account")} className="col-span-3 hover:text-stone-900 transition-colors">Account{sortInd("account")}</Link>
           <Link href={sortUrl("sessions")} className="col-span-2 text-right hover:text-stone-900 transition-colors">Sessions{sortInd("sessions")}</Link>

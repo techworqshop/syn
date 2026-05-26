@@ -59,15 +59,44 @@ function composeContext(personas: Persona[], syntheses: Synth[], msgs: Msg[]) {
 
 const inFlight = new Set<string>();
 
-export async function POST(_: Request, { params }: P) {
-  const u = await requireUser();
+export async function POST(req: Request, { params }: P) {
   const { id } = await params;
-  const [sess] = await db.select().from(sessions)
-    .where(and(eq(sessions.id, id), eq(sessions.userId, u.id))).limit(1);
+  const secret = process.env.N8N_CALLBACK_SECRET || "";
+  const hdrSecret = req.headers.get("x-syn-callback-secret") || "";
+  const isAutoTrigger = secret && hdrSecret === secret;
+  let sess;
+  if (isAutoTrigger) {
+    [sess] = await db.select().from(sessions).where(eq(sessions.id, id)).limit(1);
+  } else {
+    const u = await requireUser();
+    [sess] = await db.select().from(sessions)
+      .where(and(eq(sessions.id, id), eq(sessions.userId, u.id))).limit(1);
+  }
   if (!sess) return NextResponse.json({ error: "not found" }, { status: 404 });
 
-  if (inFlight.has(id)) {
-    return NextResponse.json({ error: "already generating" }, { status: 429 });
+  // Persistenter Anti-Spam-Guard: ein Abschlussbericht pro Session.
+  // Sobald einmal angestossen, kein zweites Mal — verhindert unendliche
+  // Report-Generierung (Token-Schutz). report_status wird beim Start
+  // geschrieben + ueberlebt Container-Restarts (im Gegensatz zur inFlight-Set).
+  const prior = await db.select().from(messages).where(eq(messages.sessionId, id));
+  const finishedReport = prior.some(m => {
+    const k = (typeof m.metadata === "object" && m.metadata !== null ? (m.metadata as { kind?: string }).kind : undefined);
+    return k === "report" || k === "report_text";
+  });
+  if (finishedReport) {
+    return NextResponse.json({ error: "Abschlussbericht wurde fuer diese Session bereits erstellt.", code: "report_exists" }, { status: 409 });
+  }
+  // In-flight (report_status juenger als 15 min) -> laeuft gerade, nicht doppelt.
+  // Aelter -> wahrscheinlich fehlgeschlagen, Retry erlauben (kein Permanent-Lock).
+  const FIFTEEN_MIN = 15 * 60 * 1000;
+  const recentStatus = prior.some(m => {
+    const k = (typeof m.metadata === "object" && m.metadata !== null ? (m.metadata as { kind?: string }).kind : undefined);
+    if (k !== "report_status") return false;
+    const ts = m.createdAt ? new Date(m.createdAt as unknown as string).getTime() : 0;
+    return Date.now() - ts < FIFTEEN_MIN;
+  });
+  if (recentStatus || inFlight.has(id)) {
+    return NextResponse.json({ error: "Abschlussbericht wird gerade erstellt.", code: "report_generating" }, { status: 429 });
   }
   inFlight.add(id);
   setTimeout(() => inFlight.delete(id), 600000);
@@ -75,7 +104,7 @@ export async function POST(_: Request, { params }: P) {
   // Status message — visible immediately in chat
   const [statusRow] = await db.insert(messages).values({
     sessionId: id, role: "coordinator",
-    content: "⏳ Abschlussbericht wird erstellt... Das kann ein paar Minuten dauern. Du kannst das Fenster ruhig schliessen - der Bericht landet hier im Chat sobald er fertig ist.",
+    content: "⏳ Syn erstellt Abschlussbericht ... Das kann ein paar Minuten dauern. Du kannst das Fenster ruhig schliessen - der Bericht landet hier im Chat sobald er fertig ist.",
     metadata: { kind: "report_status" }
   }).returning();
   await publish(`session:${id}`, { type: "message", message: statusRow });

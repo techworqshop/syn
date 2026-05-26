@@ -39,10 +39,6 @@ function labelFor(m: { role: string; personaName?: string | null; personaSlot?: 
   if (m.role === "synthesis") return `Synthese - Runde ${m.roundNumber ?? ""}`.trim();
   return ROLE_LABEL[m.role] || m.role;
 }
-function colorFor(m: { role: string; personaSlot?: number | null }): string {
-  if (m.role === "persona" && m.personaSlot && SLOT_COLOR[m.personaSlot]) return SLOT_COLOR[m.personaSlot];
-  return ROLE_COLOR[m.role] || C_MUTED;
-}
 function drawRule(doc: InstanceType<typeof PDFDocument>, color = C_DIV, weight = 0.6) {
   const x1 = doc.page.margins.left;
   const x2 = doc.page.width - doc.page.margins.right;
@@ -102,6 +98,95 @@ function renderMarkdownBlock(doc: InstanceType<typeof PDFDocument>, text: string
     renderRichLine(doc, line, { fontSize: 10.5, color: C_BODY, lineGap: 2 });
     doc.moveDown(0.2);
   }
+}
+
+function ensureSpace(doc: InstanceType<typeof PDFDocument>, h: number) {
+  if (doc.y + h > doc.page.height - doc.page.margins.bottom) doc.addPage();
+}
+
+// Header line above a chat message: speaker name + time. User right, others left.
+function chatHeader(doc: InstanceType<typeof PDFDocument>, isUser: boolean, label: string, tsTxt: string, accent: string) {
+  const pageLeft = doc.page.margins.left;
+  const contentW = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+  ensureSpace(doc, 26);
+  if (isUser) {
+    doc.font("Helvetica-Bold").fontSize(9).fillColor(accent)
+      .text(`${label}  \u00b7  ${tsTxt}`, pageLeft, doc.y, { width: contentW, align: "right" });
+    doc.moveDown(0.15);
+  } else {
+    const y = doc.y;
+    doc.circle(pageLeft + 3, y + 5, 3).fillColor(accent).fill();
+    doc.font("Helvetica-Bold").fontSize(9.5).fillColor(accent).text(label, pageLeft + 12, y, { continued: true });
+    doc.font("Helvetica").fontSize(8).fillColor(C_FAINT).text(`   ${tsTxt}`);
+    doc.moveDown(0.15);
+  }
+}
+
+// One paragraph as a chat bubble. Long paragraphs that exceed a full page fall
+// back to plain flowing text so nothing gets clipped across page breaks.
+function bubbleChunk(doc: InstanceType<typeof PDFDocument>, text: string, isUser: boolean, accent: string) {
+  const pageLeft = doc.page.margins.left;
+  const pageRight = doc.page.width - doc.page.margins.right;
+  const contentW = pageRight - pageLeft;
+  const maxW = Math.min(372, contentW * 0.78);
+  const padX = 11, padY = 8;
+  const innerW = maxW - 2 * padX;
+  const pageBottom = doc.page.height - doc.page.margins.bottom;
+  const usable = doc.page.height - doc.page.margins.top - doc.page.margins.bottom;
+
+  doc.font("Helvetica").fontSize(10);
+  const bodyH = doc.heightOfString(text, { width: innerW, lineGap: 2.5 });
+
+  // Too tall for any single page -> plain flow, no box.
+  if (bodyH + 2 * padY > usable - 10) {
+    ensureSpace(doc, 40);
+    doc.font("Helvetica").fontSize(10).fillColor(C_BODY)
+      .text(text, pageLeft + (isUser ? 0 : 6), doc.y, { width: contentW - 6, lineGap: 2.5 });
+    doc.moveDown(0.4);
+    return;
+  }
+
+  const h = bodyH + 2 * padY;
+  if (doc.y + h + 6 > pageBottom) doc.addPage();
+  const x = isUser ? (pageRight - maxW) : pageLeft;
+  const y = doc.y;
+  doc.roundedRect(x, y, maxW, h, 9);
+  doc.fillColor(isUser ? "#E8F2EC" : "#FBF8F2").strokeColor(isUser ? "#CDE3D6" : "#EAE4D6").lineWidth(0.6).fillAndStroke();
+  const sw = 3;
+  doc.save();
+  doc.roundedRect(x, y, maxW, h, 9).clip();
+  doc.rect(isUser ? x + maxW - sw : x, y, sw, h).fillColor(accent).fill();
+  doc.restore();
+  doc.font("Helvetica").fontSize(10).fillColor(C_BODY)
+    .text(text, x + padX, y + padY, { width: innerW, lineGap: 2.5 });
+  doc.y = y + h + 5;
+}
+
+// Render a single chat message bubble-style. Synthesis = wide markdown block.
+function renderChatMessage(doc: InstanceType<typeof PDFDocument>, m: { role: string; personaName?: string | null; personaSlot?: number | null; content: string; roundNumber?: number | null; createdAt: Date | string }) {
+  const isUser = m.role === "user";
+  const isSynth = m.role === "synthesis";
+  const slot = m.personaSlot ?? 0;
+  let accent = m.role === "persona" && SLOT_COLOR[slot] ? SLOT_COLOR[slot] : (ROLE_COLOR[m.role] || C_MUTED);
+  if (isUser) accent = "#2F6F4F";
+  const label = labelFor(m);
+  const tsTxt = new Date(m.createdAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+
+  if (isSynth) {
+    ensureSpace(doc, 50);
+    doc.font("Helvetica-Bold").fontSize(10.5).fillColor(accent)
+      .text(`${label}`.toUpperCase(), doc.page.margins.left, doc.y, { characterSpacing: 0.8 });
+    doc.moveDown(0.25);
+    renderMarkdownBlock(doc, m.content);
+    doc.moveDown(0.6);
+    return;
+  }
+
+  chatHeader(doc, isUser, label, tsTxt, accent);
+  const paras = (m.content || "").replace(/\*\*/g, "").split(/\n{2,}/).map(t => t.trim()).filter(Boolean);
+  if (!paras.length) { doc.moveDown(0.4); return; }
+  for (const para of paras) bubbleChunk(doc, para, isUser, accent);
+  doc.moveDown(0.5);
 }
 
 function buildPDF(data: {
@@ -165,34 +250,21 @@ function buildPDF(data: {
     sectionTitle(doc, "Chat-Verlauf");
 
     let lastDate = "";
+    const fullW = doc.page.width - doc.page.margins.left - doc.page.margins.right;
     for (const m of data.messages) {
       const ts = new Date(m.createdAt);
       const dateKey = ts.toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" });
       if (dateKey !== lastDate) {
-        if (lastDate) doc.moveDown(0.4);
-        doc.font("Helvetica-Bold").fontSize(9).fillColor("#a16207").text(dateKey.toUpperCase(), { characterSpacing: 1.2 });
-        doc.moveDown(0.3);
-        drawRule(doc, "#d6d3d1", 0.5);
-        doc.moveDown(0.4);
+        if (lastDate) doc.moveDown(0.6);
+        ensureSpace(doc, 34);
+        doc.font("Helvetica-Bold").fontSize(8.5).fillColor("#a16207")
+          .text(dateKey.toUpperCase(), doc.page.margins.left, doc.y, { characterSpacing: 1.4, width: fullW, align: "center" });
+        doc.moveDown(0.35);
+        drawRule(doc, "#e7e2d6", 0.5);
+        doc.moveDown(0.6);
         lastDate = dateKey;
       }
-      const label = labelFor(m);
-      const color = colorFor(m);
-      const tsTxt = ts.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-      const slot = m.personaSlot ?? 0;
-      const accent = m.role === "persona" && SLOT_COLOR[slot] ? SLOT_COLOR[slot] : color;
-      const dotY = doc.y + 3;
-      const dotX = doc.page.margins.left;
-      doc.circle(dotX + 3, dotY + 2, 3).fillColor(accent).fill();
-      doc.font("Helvetica-Bold").fontSize(11).fillColor(accent).text(label, dotX + 14, doc.y - 1, { continued: true });
-      doc.font("Helvetica").fontSize(9).fillColor(C_FAINT).text(`   ${tsTxt}`);
-      doc.moveDown(0.25);
-      if (m.role === "synthesis") {
-        renderMarkdownBlock(doc, m.content);
-      } else {
-        renderRichLine(doc, m.content, { fontSize: 10.5, color: C_BODY, indent: 14, lineGap: 2 });
-      }
-      doc.moveDown(0.7);
+      renderChatMessage(doc, m);
     }
 
     if (data.syntheses.filter(s => s.round_number && s.synthesis_text).length) {

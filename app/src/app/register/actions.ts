@@ -1,9 +1,9 @@
 "use server";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { users } from "@/db/schema";
+import { invites, users } from "@/db/schema";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
 import { issueVerificationToken } from "@/app/verify-email/actions";
 import { ratelimit, getClientIp } from "@/lib/ratelimit";
@@ -41,9 +41,11 @@ export async function registerAction(_prev: unknown, formData: FormData) {
     return { error: t("register.agbRequired", locale) };
   }
 
-  // Sign-Up-Gate: aktuell nur @worqshop.io. Externe User werden
-  // bewusst nicht zugelassen, bis Beta-Launch.
-  if (!email.endsWith("@worqshop.io")) {
+  // Sign-Up-Gate: erlaubte Domains. Externe Domains koennen hier
+  // explizit freigeschaltet werden (Tester / Beta).
+  const ALLOWED_DOMAINS = ["@worqshop.io", "@connectima.net", "@funktio.ai"];
+  const ALLOWED_EMAILS = ["johannes@funktio.ai"];
+  if (!ALLOWED_DOMAINS.some(d => email.endsWith(d)) && !ALLOWED_EMAILS.includes(email)) {
     return { error: t("register.restrictedToWorqshop", locale) };
   }
 
@@ -71,6 +73,15 @@ export async function registerAction(_prev: unknown, formData: FormData) {
   } catch (e) {
     console.error("[register] insert failed", e);
     return { error: t("register.failed", locale) };
+  }
+
+  // Consume matching pending invite for this email so it doesn't keep showing as 'open'.
+  try {
+    await db.update(invites)
+      .set({ usedAt: new Date() })
+      .where(and(eq(invites.email, email), isNull(invites.usedAt)));
+  } catch (e) {
+    console.warn("[register] invite consume failed (continuing):", e);
   }
 
   // Verify-Token erstellen + Mail verschicken (best-effort)

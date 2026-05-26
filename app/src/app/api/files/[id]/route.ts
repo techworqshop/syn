@@ -31,6 +31,13 @@ export async function DELETE(_: Request, { params }: P) {
   const [sess] = await db.select().from(sessions)
     .where(and(eq(sessions.id, row.sessionId), eq(sessions.userId, u.id))).limit(1);
   if (!sess) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  // Lock-Guard: einmal abgeschickte Files sind eingefroren.
+  if (row.locked) {
+    return NextResponse.json({
+      error: "Diese Datei ist gesperrt — nach dem ersten Abschicken koennen Dateien nicht mehr geloescht werden.",
+      code: "file_locked"
+    }, { status: 423 });
+  }
   try { if (fs.existsSync(row.storagePath)) fs.unlinkSync(row.storagePath); } catch {}
   await db.delete(files).where(eq(files.id, id));
   await deleteFileFromPanel(id);

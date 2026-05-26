@@ -45,6 +45,9 @@ services:
     build:
       context: ./app
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_CHARGEBEE_SITE: ${NEXT_PUBLIC_CHARGEBEE_SITE}
+        NEXT_PUBLIC_CHARGEBEE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CHARGEBEE_PUBLISHABLE_KEY}
     container_name: synweb-app
     restart: unless-stopped
     depends_on:

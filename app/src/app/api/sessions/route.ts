@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { sessions } from "@/db/schema";
 import { requireUser } from "@/lib/current-user";
 import { eq, desc } from "drizzle-orm";
+import { canCreateSession } from "@/lib/quota";
 
 export async function GET() {
   const u = await requireUser();
@@ -12,6 +13,14 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const u = await requireUser();
+  const gate = await canCreateSession(u.id);
+  if (!gate.ok) {
+    const status = gate.reason === "no_subscription" ? 402 : 402;
+    return NextResponse.json({
+      error: gate.reason,
+      quota: gate.state
+    }, { status });
+  }
   const body = await req.json().catch(() => ({}));
   const title = (body?.title as string) || "Neue Fokusgruppe";
   const [row] = await db.insert(sessions).values({ userId: u.id, title }).returning();

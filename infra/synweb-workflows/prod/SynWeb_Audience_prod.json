@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-05-19T18:40:57.730Z",
+    "updatedAt": "2026-05-20T21:51:18.913Z",
     "createdAt": "2026-04-16T22:10:09.817Z",
     "id": "fcJ3Tqx7RG0dxjON",
     "name": "SynWeb_Audience_prod",
@@ -21,11 +21,11 @@
             "conditions": [
               {
                 "keyName": "session_id",
-                "keyValue": "={{ $json.sessionId }}"
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
               },
               {
                 "keyName": "slack_slot",
-                "keyValue": "={{ $json.slotNumber }}"
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.slotNumber }}"
               }
             ]
           },
@@ -76,7 +76,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const items = $input.all();\n\n// If DataTable returned 0 rows, create an empty item so the IF node can route to false-branch\nif (items.length === 0 || !items[0].json || Object.keys(items[0].json).length === 0) {\n  return [{\n    json: {\n      name: null,\n      profile: null,\n      session_id: null,\n      persona_id: null,\n      slack_slot: null,\n      _noPersonaFound: true\n    }\n  }];\n}\n\nreturn items;"
+          "jsCode": "const items=$input.all();\nconst syn=$('Get Syntheses').all();\nconst sh=syn.filter(s=>s.json.round_number&&s.json.synthesis_text).sort((a,b)=>(a.json.round_number||0)-(b.json.round_number||0)).map(s=>'RUNDE '+s.json.round_number+' (Synthese):\\n'+s.json.synthesis_text).join('\\n\\n---\\n\\n');\nconst first=items[0];\nif(!first||!first.json||Object.keys(first.json).length===0){\n  return [{json:{name:null,profile:null,session_id:null,persona_id:null,slack_slot:null,synthesis_history:sh,_noPersonaFound:true}}];\n}\nreturn [{json:{...first.json,synthesis_history:sh}}];"
         },
         "id": "d3f6e1a7-3da5-40eb-aa47-8348126688f4",
         "name": "Ensure Item",
@@ -288,7 +288,7 @@
           "messages": {
             "values": [
               {
-                "content": "=Du bist {{ $('Ensure Item').item.json.name }}.\n\nPROFIL:\n{{ $('Ensure Item').item.json.profile }}\n\nKERNPERSPEKTIVE:\n{{ $('Ensure Item').item.json.core_perspective }}\n\nAKTUELLE POSITION:\n{{ $('Ensure Item').item.json.position_summary || 'Noch nicht etabliert' }}\n\n{{ $('Ensure Item').item.json.round_1_response ? 'RUNDE 1 ANALYSE:\\n' + $('Ensure Item').item.json.round_1_response + '\\n' : '' }}{{ $('Ensure Item').item.json.round_2_response ? 'RUNDE 2 ANTWORT:\\n' + $('Ensure Item').item.json.round_2_response + '\\n' : '' }}\nBISHERIGER GESPRAECHSVERLAUF:\n{{ $('Load Memory1').all().length > 0 && $('Load Memory1').first().json.message ? $('Load Memory1').all().map(i => i.json.message).join('\\n') : 'Kein bisheriges Gespraech' }}\n\nFRAGE VOM OPERATOR:\n{{ $('Execute Workflow Trigger').item.json.cleanMessage }}\n\nAntworte voll in character. Sidebar-Interview - keine Aenderung deiner Hauptdiskussions-Position. Plain text, kein Markdown."
+                "content": "=Du bist {{ $('Ensure Item').item.json.name }}.\n\nPROFIL:\n{{ $('Ensure Item').item.json.profile }}\n\nKERNPERSPEKTIVE:\n{{ $('Ensure Item').item.json.core_perspective }}\n\nAKTUELLE POSITION:\n{{ $('Ensure Item').item.json.position_summary || 'Noch nicht etabliert' }}\n\n{{ $('Ensure Item').item.json.round_1_response ? 'DEIN BEITRAG RUNDE 1:\\n' + $('Ensure Item').item.json.round_1_response + '\\n' : '' }}{{ $('Ensure Item').item.json.round_2_response ? 'DEIN BEITRAG RUNDE 2:\\n' + $('Ensure Item').item.json.round_2_response + '\\n' : '' }}{{ $('Ensure Item').item.json.round_3_response ? 'DEIN BEITRAG RUNDE 3:\\n' + $('Ensure Item').item.json.round_3_response + '\\n' : '' }}{{ $('Ensure Item').item.json.synthesis_history ? '\\nSYNTHESEN DER GRUPPE (vom Coordinator kondensiert, chronologisch):\\n' + $('Ensure Item').item.json.synthesis_history + '\\n' : '' }}\nBISHERIGER GESPRAECHSVERLAUF:\n{{ $('Load Memory1').all().length > 0 && $('Load Memory1').first().json.message ? $('Load Memory1').all().map(i => i.json.message).join('\\n') : 'Kein bisheriges Gespraech' }}\n\nFRAGE VOM OPERATOR:\n{{ $('Execute Workflow Trigger').item.json.cleanMessage }}\n\nAntworte voll in character. Sidebar-Interview - keine Aenderung deiner Hauptdiskussions-Position. Plain text, kein Markdown."
               }
             ]
           },
@@ -318,7 +318,7 @@
       {
         "parameters": {
           "operation": "executeQuery",
-          "query": "INSERT INTO n8n_chat_histories (session_id, message) VALUES ('synweb_aud_{{ $('Execute Workflow Trigger').item.json.slotNumber }}_{{ $('Execute Workflow Trigger').item.json.sessionId }}', '{\"type\":\"constructor\",\"id\":[\"langchain_core\",\"messages\",\"HumanMessage\"],\"kwargs\":{\"content\":\"{{ $('Execute Workflow Trigger').item.json.cleanMessage.replace(/'/g, \"''\").replace(/\"/g, '\\\\\"') }}\",\"additional_kwargs\":{},\"response_metadata\":{}}}'), ('synweb_aud_{{ $('Execute Workflow Trigger').item.json.slotNumber }}_{{ $('Execute Workflow Trigger').item.json.sessionId }}', '{\"type\":\"constructor\",\"id\":[\"langchain_core\",\"messages\",\"AIMessage\"],\"kwargs\":{\"content\":\"{{ $json.content[0].text.replace(/'/g, \"''\").replace(/\"/g, '\\\\\"').replace(/\\n/g, '\\\\n') }}\",\"tool_calls\":[],\"additional_kwargs\":{},\"response_metadata\":{},\"invalid_tool_calls\":[]}}')",
+          "query": "INSERT INTO n8n_chat_histories (session_id, message) VALUES ('synweb_aud_{{ $('Execute Workflow Trigger').item.json.slotNumber }}_{{ $('Execute Workflow Trigger').item.json.sessionId }}', '{\"type\":\"constructor\",\"id\":[\"langchain_core\",\"messages\",\"HumanMessage\"],\"kwargs\":{\"content\":{{ JSON.stringify($('Execute Workflow Trigger').item.json.cleanMessage).replace(/'/g, \"''\") }},\"additional_kwargs\":{},\"response_metadata\":{}}}'), ('synweb_aud_{{ $('Execute Workflow Trigger').item.json.slotNumber }}_{{ $('Execute Workflow Trigger').item.json.sessionId }}', '{\"type\":\"constructor\",\"id\":[\"langchain_core\",\"messages\",\"AIMessage\"],\"kwargs\":{\"content\":{{ JSON.stringify($json.content[0].text).replace(/'/g, \"''\") }},\"tool_calls\":[],\"additional_kwargs\":{},\"response_metadata\":{},\"invalid_tool_calls\":[]}}')",
           "options": {}
         },
         "id": "be9338e8-a0d7-42e4-bd57-8c88436a4cbc",
@@ -479,7 +479,7 @@
           "workflowId": {
             "__rl": true,
             "mode": "id",
-            "value": "jMQEQggtVPu7XOwK"
+            "value": "Q4MEDGpNMcyTxwGl"
           },
           "workflowInputs": {
             "schema": [
@@ -529,12 +529,41 @@
           "options": {
             "maxIterations": 25,
             "passthroughBinaryImages": true,
-            "systemMessage": "=Du bist {{ $('Merge Files').item.json.name }}.\n\nPROFIL:\n{{ $('Merge Files').item.json.profile }}\n\nKERNPERSPEKTIVE:\n{{ $('Merge Files').item.json.core_perspective }}\n\nAKTUELLE POSITION:\n{{ $('Merge Files').item.json.position_summary || 'Noch nicht etabliert' }}\n\n{{ $('Merge Files').item.json.round_1_response ? 'RUNDE 1 ANALYSE:\\n' + $('Merge Files').item.json.round_1_response + '\\n' : '' }}{{ $('Merge Files').item.json.round_2_response ? 'RUNDE 2 ANTWORT:\\n' + $('Merge Files').item.json.round_2_response + '\\n' : '' }}\n{{ $('Merge Files').item.json.fileForensic ? 'BILD-FORENSIK (Vorab-Analyse Vision-Spezialist Gemini 3.1 Pro):\\n\\n' + $('Merge Files').item.json.fileForensic + '\\n\\nOriginal-Bilder sind angehaengt. Du kannst Ask Vision Tool fuer gezielte Detail-Fragen aufrufen.\\n' : '' }}\nBISHERIGER GESPRAECHSVERLAUF:\n{{ $('Load Memory').all().length > 0 ? $('Load Memory').all().reverse().map(i => i.json.role + ': ' + i.json.content).join('\\n') : 'Kein bisheriges Gespraech' }}\n\nAntworte voll in character. Sidebar-Interview - keine Aenderung deiner Hauptdiskussions-Position. Plain text, kein Markdown.\n\nSPRACHE (HARTE REGEL):\n- Antworte in derselben Sprache wie die letzte User-Frage in diesem 1:1-Chat.\n- Wenn der User auf Deutsch fragt: Deutsche Antwort. Auf Englisch: englische Antwort.\n- Wenn der User mitten im Gespraech die Sprache wechselt, wechsle mit ihm.\n- Dein Persona-Profil/Name aendert die Sprache NICHT.\n\nOUTPUT-FORMAT (HARTE REGEL):\nDeine Antwort startet SOFORT mit dem ersten echten Satz deiner Antwort. Keine Aufwaerm-Phrasen davor.\n\nVERBOTEN - typische Claude-Warmup-Saetze, die du NICHT schreiben darfst:\n- \"Okay, ich habe jetzt genug gesehen...\"\n- \"Gut. Jetzt schreibe ich...\"\n- \"Jetzt habe ich genug Material...\"\n- \"So. Ich gebe dir meine ehrliche Einschaetzung...\"\n- \"Ich sag dir was ich wirklich denke...\"\n- jede Variante von \"jetzt mach ich X / hier kommt meine Antwort\"\n- jede Selbstreflexion ueber Tool-Aufrufe (Ask Vision etc.)\n\nERLAUBT: direkt mit der inhaltlichen Antwort einsteigen, so wie ein Mensch in einem echten Gespraech."
+            "systemMessage": "=Du bist {{ $('Merge Files').item.json.name }}.\n\nPROFIL:\n{{ $('Merge Files').item.json.profile }}\n\nKERNPERSPEKTIVE:\n{{ $('Merge Files').item.json.core_perspective }}\n\nAKTUELLE POSITION:\n{{ $('Merge Files').item.json.position_summary || 'Noch nicht etabliert' }}\n\n{{ $('Merge Files').item.json.round_1_response ? 'DEIN BEITRAG RUNDE 1:\\n' + $('Merge Files').item.json.round_1_response + '\\n' : '' }}{{ $('Merge Files').item.json.round_2_response ? 'DEIN BEITRAG RUNDE 2:\\n' + $('Merge Files').item.json.round_2_response + '\\n' : '' }}{{ $('Merge Files').item.json.round_3_response ? 'DEIN BEITRAG RUNDE 3:\\n' + $('Merge Files').item.json.round_3_response + '\\n' : '' }}{{ $('Ensure Item').item.json.synthesis_history ? '\\nSYNTHESEN DER GRUPPE (vom Coordinator kondensiert, chronologisch):\\n' + $('Ensure Item').item.json.synthesis_history + '\\n' : '' }}\n{{ $('Merge Files').item.json.fileForensic ? 'BILD-FORENSIK (Vorab-Analyse Vision-Spezialist Gemini 3.1 Pro):\\n\\n' + $('Merge Files').item.json.fileForensic + '\\n\\nOriginal-Bilder sind angehaengt. Du kannst Ask Vision Tool fuer gezielte Detail-Fragen aufrufen.\\n' : '' }}\nBISHERIGER GESPRAECHSVERLAUF:\n{{ $('Load Memory').all().length > 0 ? $('Load Memory').all().reverse().map(i => i.json.role + ': ' + i.json.content).join('\\n') : 'Kein bisheriges Gespraech' }}\n\nAntworte voll in character. Sidebar-Interview - keine Aenderung deiner Hauptdiskussions-Position. Plain text, kein Markdown.\n\nSPRACHE (HARTE REGEL):\n- Antworte in derselben Sprache wie die letzte User-Frage in diesem 1:1-Chat.\n- Wenn der User auf Deutsch fragt: Deutsche Antwort. Auf Englisch: englische Antwort.\n- Wenn der User mitten im Gespraech die Sprache wechselt, wechsle mit ihm.\n- Dein Persona-Profil/Name aendert die Sprache NICHT.\n\nOUTPUT-FORMAT (HARTE REGEL):\nDeine Antwort startet SOFORT mit dem ersten echten Satz deiner Antwort. Keine Aufwaerm-Phrasen davor.\n\nVERBOTEN - typische Claude-Warmup-Saetze, die du NICHT schreiben darfst:\n- \"Okay, ich habe jetzt genug gesehen...\"\n- \"Gut. Jetzt schreibe ich...\"\n- \"Jetzt habe ich genug Material...\"\n- \"So. Ich gebe dir meine ehrliche Einschaetzung...\"\n- \"Ich sag dir was ich wirklich denke...\"\n- jede Variante von \"jetzt mach ich X / hier kommt meine Antwort\"\n- jede Selbstreflexion ueber Tool-Aufrufe (Ask Vision etc.)\n\nERLAUBT: direkt mit der inhaltlichen Antwort einsteigen, so wie ein Mensch in einem echten Gespraech."
           }
         },
         "retryOnFail": true,
         "maxTries": 5,
         "waitBetweenTries": 3000
+      },
+      {
+        "id": "137319ba-cdc5-417e-9091-f3755b935e56",
+        "name": "Get Syntheses",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          520,
+          200
+        ],
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_syntheses"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.sessionId }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "alwaysOutputData": true
       }
     ],
     "connections": {
@@ -572,17 +601,6 @@
           [
             {
               "node": "Persona Found?",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Execute Workflow Trigger": {
-        "main": [
-          [
-            {
-              "node": "Get Persona for Slot",
               "type": "main",
               "index": 0
             }
@@ -738,6 +756,28 @@
             }
           ]
         ]
+      },
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Get Syntheses",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Syntheses": {
+        "main": [
+          [
+            {
+              "node": "Get Persona for Slot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "settings": {
@@ -757,9 +797,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "dbe484e9-1f74-4eac-9756-64c5868135d1",
-    "activeVersionId": "dbe484e9-1f74-4eac-9756-64c5868135d1",
-    "versionCounter": 64,
+    "versionId": "305db48a-a2c5-4ea6-a8a2-f817d8e10748",
+    "activeVersionId": "305db48a-a2c5-4ea6-a8a2-f817d8e10748",
+    "versionCounter": 98,
     "triggerCount": 0,
     "tags": [],
     "shared": [

@@ -10,11 +10,7 @@ export default function PaymentFailedPage() {
     <main
       className="min-h-screen flex flex-col"
       style={{
-        background:
-          "radial-gradient(ellipse 900px 700px at 12% 8%, rgba(101,134,70,0.10), transparent 60%)," +
-          "radial-gradient(ellipse 1000px 800px at 88% 32%, rgba(214,165,88,0.09), transparent 60%)," +
-          "radial-gradient(ellipse 800px 600px at 50% 95%, rgba(143,122,80,0.10), transparent 60%)," +
-          "#E8E2D2",
+        background: "#F4F1EA",
         color: "#1F2420",
         fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
       }}
@@ -31,7 +27,7 @@ export default function PaymentFailedPage() {
 
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-[480px] relative overflow-hidden text-center"
-          style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)", borderRadius: "20px" }}>
+          style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)", borderRadius: "6px" }}>
           <span aria-hidden className="absolute top-0 left-0 right-0"
             style={{ height: "4px", background: "linear-gradient(90deg, #913B4F, #4F1A28)" }} />
           <div className="px-10 pt-12 pb-10">
@@ -39,7 +35,7 @@ export default function PaymentFailedPage() {
             <p className="text-[15px] mb-6 leading-relaxed" style={{ color: "#4A4640" }}>
               Deine Zahlung konnte nicht abgewickelt werden. Häufige Ursachen: abgelaufene Karte, unzureichendes Guthaben oder eine Sicherheitsprüfung der Bank.
             </p>
-            <div className="rounded-[10px] px-4 py-3.5 mb-7 text-left"
+            <div className="rounded-md px-4 py-3.5 mb-7 text-left"
               style={{ background: "#fdfbf4", border: "1px solid rgba(31,36,32,0.10)", borderLeft: "3px solid #913B4F" }}>
               <p className="m-0 text-[13.5px] leading-relaxed" style={{ color: "#4A4640" }}>
                 <strong className="font-medium" style={{ color: "#1F2420" }}>Pro-Plan</strong> · 199 € / Monat
@@ -49,7 +45,7 @@ export default function PaymentFailedPage() {
             <div className="flex flex-col items-center gap-2">
               <Link
                 href="/checkout"
-                className="inline-block px-7 py-3 rounded-[11px] text-sm font-medium text-white"
+                className="inline-block px-7 py-3 rounded-md text-sm font-medium text-white"
                 style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}
               >
                 Erneut versuchen

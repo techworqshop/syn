@@ -72,7 +72,7 @@ export default async function AdminUserDetailPage({ params }: P) {
         <Link href="/app/admin/users" className="text-sm text-stone-600 hover:text-stone-900 font-medium">← Alle Users</Link>
       </div>
 
-      <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] p-5 shadow-sm mb-6">
+      <div className="rounded-md border border-stone-300 bg-[#F3EFE2] p-5 shadow-sm mb-6">
         <div className="flex items-baseline gap-3 flex-wrap">
           <h1 className="text-2xl font-semibold tracking-tight text-stone-900">{u.name || u.email}</h1>
           {u.isAdmin && <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full font-bold text-white" style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>Admin</span>}
@@ -92,7 +92,7 @@ export default async function AdminUserDetailPage({ params }: P) {
       </div>
 
       <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Sessions ({userSessions.length})</h2>
-      <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden mb-8 shadow-sm">
+      <div className="rounded-md border border-stone-300 bg-[#F3EFE2] overflow-hidden mb-8 shadow-sm">
         {userSessions.length === 0 ? (
           <div className="p-6 text-sm text-stone-600 text-center">Noch keine Sessions.</div>
         ) : (
@@ -117,7 +117,7 @@ export default async function AdminUserDetailPage({ params }: P) {
       </div>
 
       <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Aktivität (letzte 30)</h2>
-      <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
+      <div className="rounded-md border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
         {timeline.length === 0 ? (
           <div className="p-6 text-sm text-stone-600 text-center">Keine Aktivität.</div>
         ) : (
@@ -144,7 +144,7 @@ export default async function AdminUserDetailPage({ params }: P) {
 
 function Stat({ label, value, sub }: { label: string; value: number; sub?: string }) {
   return (
-    <div className="rounded-xl border border-stone-300 bg-[#F3EFE2] p-3 shadow-sm">
+    <div className="rounded-md border border-stone-300 bg-[#F3EFE2] p-3 shadow-sm">
       <div className="text-[10px] uppercase tracking-wide text-stone-600 font-bold">{label}</div>
       <div className="text-2xl font-semibold text-stone-900 mt-1">{value}</div>
       {sub && <div className="text-xs text-stone-500 mt-0.5">{sub}</div>}

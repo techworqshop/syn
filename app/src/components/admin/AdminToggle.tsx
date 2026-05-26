@@ -39,7 +39,7 @@ export default function AdminToggle({ userId, initialIsAdmin, isSelf, email }: {
     <div className="flex flex-col gap-1">
       <button onClick={toggle} disabled={busy || (isSelf && isAdmin)}
         title={isSelf && isAdmin ? "Du kannst dir nicht selbst den Admin-Status entziehen" : (isAdmin ? "Admin-Status entziehen" : "Zum Admin machen")}
-        className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+        className={`text-xs font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
           isAdmin
             ? "bg-rose-100 text-rose-900 hover:bg-rose-200 border border-rose-700/40"
             : "bg-stone-100 text-stone-800 hover:bg-stone-200 border border-stone-300"

@@ -8,7 +8,7 @@ import { users } from "@/db/schema";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
 import { ratelimit, getClientIp } from "@/lib/ratelimit";
 
-type LoginState = { error: string | null; unverifiedEmail?: string };
+type LoginState = { error: string | null; unverifiedEmail?: string; restoreOffered?: boolean; restoreEmail?: string };
 
 export async function loginAction(_prev: unknown, formData: FormData): Promise<LoginState> {
   const locale = await getLocaleFromCookies();
@@ -29,7 +29,7 @@ export async function loginAction(_prev: unknown, formData: FormData): Promise<L
   // Account in Loesch-Status?
   if (u.deletionRequestedAt) {
     console.warn(`[login] Blocked — account ${email} flagged for deletion`);
-    return { error: t("login.deleted", locale) };
+    return { error: t("login.deleted_with_restore", locale), restoreOffered: true, restoreEmail: email };
   }
 
   // Email noch nicht bestaetigt?

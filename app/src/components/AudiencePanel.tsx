@@ -36,6 +36,17 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
   const initials = (persona?.name ?? "P").split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase();
   const stops = ACCENT[slot] || { top: "#888", bottom: "#444" };
   const bottomRef = useRef<HTMLDivElement>(null);
+  const taRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Auto-grow textarea: 2 rows min, 5 rows max, scroll after. Same logic as main chat.
+  useEffect(() => {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    const lineH = 22.75;
+    const maxH = Math.round(5 * lineH + 16);
+    el.style.height = Math.min(el.scrollHeight, maxH) + "px";
+  }, [input]);
 
   useEffect(() => {
     fetch(`/api/sessions/${sessionId}/personas`).then(r=>r.json()).then(d=>{
@@ -49,7 +60,18 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
       try {
         const p = JSON.parse(ev.data);
         if (p.type === "audience_message") {
-          setMsgs(prev => prev.some(m => m.id === p.message.id) ? prev : [...prev, p.message]);
+          setMsgs(prev => {
+            if (prev.some(m => m.id === p.message.id)) return prev;
+            if (p.message.role === "user") {
+              const idx = prev.findIndex(m => m.role === "user" && typeof m.id === "string" && m.id.startsWith("tmp-") && m.content === p.message.content);
+              if (idx >= 0) {
+                const copy = prev.slice();
+                copy[idx] = p.message;
+                return copy;
+              }
+            }
+            return [...prev, p.message];
+          });
           if (p.message.role !== "user") setWaiting(false);
         }
       } catch {}
@@ -65,19 +87,41 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
     setWaiting(true);
     const text = input;
     setInput("");
+    const tmpId = `tmp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const optimistic: AudienceMessage = {
+      id: tmpId,
+      sessionId,
+      personaSlot: slot,
+      role: "user",
+      content: text,
+      createdAt: new Date().toISOString()
+    };
+    setMsgs(prev => [...prev, optimistic]);
     try {
-      await fetch(`/api/sessions/${sessionId}/audience/${slot}`, {
+      const res = await fetch(`/api/sessions/${sessionId}/audience/${slot}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text })
       });
-    } catch { setWaiting(false); }
+      if (res.ok) {
+        const j = await res.json().catch(() => null) as { messageId?: string } | null;
+        if (j?.messageId) {
+          setMsgs(prev => prev.map(m => m.id === tmpId ? { ...m, id: j.messageId! } : m));
+        }
+      } else {
+        setMsgs(prev => prev.filter(m => m.id !== tmpId));
+        setWaiting(false);
+      }
+    } catch {
+      setMsgs(prev => prev.filter(m => m.id !== tmpId));
+      setWaiting(false);
+    }
     finally { setSending(false); }
   }
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-2xl h-[85vh] bg-[#E8E2D2]/95 border border-stone-300 rounded-2xl flex flex-col shadow-2xl overflow-hidden">
+      <div className="w-full max-w-2xl h-[85vh] bg-[#E8E2D2]/95 border border-stone-300 rounded-md flex flex-col shadow-2xl overflow-hidden">
         {/* Header mit Persona-Akzent links als kleiner Verlauf */}
         <div className="relative flex items-center justify-between border-b border-stone-300 px-5 py-3 bg-[#F3EFE2]">
           <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1" style={gradStyle(stops)} />
@@ -92,7 +136,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
           </div>
           <button onClick={onClose}
             title="Schliessen"
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors shrink-0">
+            className="w-9 h-9 rounded-md flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
@@ -145,8 +189,8 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
           <div ref={bottomRef} />
         </div>
         <div className="border-t border-stone-300 p-4 bg-[#F3EFE2]">
-          <div className="rounded-2xl border border-stone-300 bg-white/75 focus-within:border-emerald-700/50 focus-within:ring-2 focus-within:ring-emerald-700/10 transition-all">
-            <textarea value={input}
+          <div className="rounded-md border border-stone-300 bg-white/75 focus-within:border-emerald-700/50 focus-within:ring-2 focus-within:ring-emerald-700/10 transition-all">
+            <textarea ref={taRef} value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
               rows={2}
@@ -155,7 +199,7 @@ export default function AudiencePanel({ sessionId, slot, onClose }: Props) {
             <div className="flex items-center justify-end px-2 py-2">
               <button disabled={sending || !input.trim()} onClick={send}
                 title="Senden"
-                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${(!input.trim() || sending) ? "text-stone-400 bg-stone-200/50 cursor-not-allowed" : "btn-primary text-white"}`}>
+                className={`w-9 h-9 rounded-md flex items-center justify-center transition-all ${(!input.trim() || sending) ? "text-stone-400 bg-stone-200/50 cursor-not-allowed" : "btn-primary text-white"}`}>
                 {sending ? (
                   <span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
                 ) : (

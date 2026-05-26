@@ -9,7 +9,7 @@ export default function SessionCard({ s, closed = false, locale = "de" }: { s: S
   return (
     <div className="relative group">
       <Link href={`/app/sessions/${s.id}`}
-        className="block p-5 pr-14 pl-7 rounded-2xl relative overflow-hidden transition-all"
+        className="block p-5 pr-14 pl-7 rounded-md relative overflow-hidden transition-all"
         style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)" }}>
         <span aria-hidden className="absolute top-0 left-0 bottom-0 w-1"
           style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }} />
@@ -20,10 +20,18 @@ export default function SessionCard({ s, closed = false, locale = "de" }: { s: S
               style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>
               {t("dashboard.closed", locale)}
             </span>
-          ) : (
+          ) : s.currentRound >= 1 ? (
             <span className="text-stone-600 font-medium">{t("dashboard.round", locale)} {s.currentRound}</span>
+          ) : s.firstMessageAt ? (
+            <span className="font-semibold" style={{ color: "#3A7E58" }}>
+              {locale === "en" ? "In progress" : "Diskussion laeuft"}
+            </span>
+          ) : (
+            <span style={{ color: "#7A7268" }}>Setup</span>
           )}
-          <span className="text-stone-500">{s.personaCount} {t("dashboard.personas", locale)}</span>
+          {s.personaCount > 0 && (
+            <span className="text-stone-500">{s.personaCount} {t("dashboard.personas", locale)}</span>
+          )}
         </div>
         <div className="text-xs text-stone-400 mt-1">
           {new Date(s.updatedAt).toLocaleDateString(dateLocale, { day:"2-digit", month:"short", year:"numeric" })}

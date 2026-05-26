@@ -12,7 +12,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
             "radial-gradient(ellipse 900px 700px at 12% 8%, rgba(101,134,70,0.10), transparent 60%)," +
             "radial-gradient(ellipse 1000px 800px at 88% 32%, rgba(214,165,88,0.09), transparent 60%)," +
             "radial-gradient(ellipse 800px 600px at 50% 95%, rgba(143,122,80,0.10), transparent 60%)," +
-            "#E8E2D2",
+            "#F4F1EA",
           color: "#1F2420",
           fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
           margin: 0,
@@ -47,7 +47,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           <div
             style={{
               background: "#F3EFE2",
-              borderRadius: "20px",
+              borderRadius: "6px",
               maxWidth: "480px",
               width: "100%",
               position: "relative",
@@ -95,7 +95,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
                     color: "#fff",
                     border: "none",
                     padding: "13px 28px",
-                    borderRadius: "11px",
+                    borderRadius: "6px",
                     fontSize: "14px",
                     fontWeight: 500,
                     cursor: "pointer",

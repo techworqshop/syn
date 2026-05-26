@@ -8,11 +8,7 @@ export default function ErrorShell({ children }: { children: ReactNode }) {
     <main
       className="min-h-screen flex flex-col"
       style={{
-        background:
-          "radial-gradient(ellipse 900px 700px at 12% 8%, rgba(101,134,70,0.10), transparent 60%)," +
-          "radial-gradient(ellipse 1000px 800px at 88% 32%, rgba(214,165,88,0.09), transparent 60%)," +
-          "radial-gradient(ellipse 800px 600px at 50% 95%, rgba(143,122,80,0.10), transparent 60%)," +
-          "#E8E2D2",
+        background: "#F4F1EA",
         color: "#1F2420",
         fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
       }}
@@ -42,7 +38,7 @@ export default function ErrorShell({ children }: { children: ReactNode }) {
           style={{
             background: "#F3EFE2",
             border: "1px solid rgba(31,36,32,0.06)",
-            borderRadius: "20px"
+            borderRadius: "6px"
           }}
         >
           <span

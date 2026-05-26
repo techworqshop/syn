@@ -61,7 +61,7 @@ function InvalidTokenState({ locale }: { locale: "de" | "en" }) {
       </p>
       <Link
         href="/forgot-password"
-        className="block w-full text-center text-white border-none rounded-[11px] py-3.5 px-4 text-sm font-medium"
+        className="block w-full text-center text-white border-none rounded-md py-3.5 px-4 text-sm font-medium"
         style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}
       >
         {t("reset.requestAgain", locale)}

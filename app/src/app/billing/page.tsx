@@ -26,11 +26,11 @@ export default function BillingPage() {
         </div>
         <p className="text-xs" style={{ color: "#7A7268" }}>6 von 10 Audiences in diesem Monat genutzt</p>
         <div className="flex gap-2 mt-5 flex-wrap">
-          <Link href="/#pricing" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[9px] text-[13px] font-medium"
+          <Link href="/#pricing" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-[13px] font-medium"
             style={{ background: "#1F2420", color: "#F3EFE2" }}>
             Plan wechseln
           </Link>
-          <Link href="/billing/cancel" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[9px] text-[13px] font-medium"
+          <Link href="/billing/cancel" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-[13px] font-medium"
             style={{ background: "transparent", color: "#913B4F", border: "1px solid #913B4F" }}>
             Abo kündigen
           </Link>
@@ -91,7 +91,7 @@ export default function BillingPage() {
 
 function Section({ title, rightLink, children }: { title: string; rightLink?: { href: string; label: string }; children: React.ReactNode }) {
   return (
-    <div className="relative overflow-hidden mb-5 rounded-[18px]"
+    <div className="relative overflow-hidden mb-5 rounded-md"
       style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)" }}>
       <span aria-hidden className="absolute top-0 left-0 right-0"
         style={{ height: "4px", background: "linear-gradient(90deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }} />

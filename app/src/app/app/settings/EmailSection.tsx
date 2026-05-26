@@ -33,16 +33,16 @@ export default function EmailSection({ locale, currentEmail }: { locale: Locale;
         <form action={action} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold mb-1.5" style={{ color: "#4A4640", letterSpacing: "0.02em" }}>{t("settings.email.new_email", locale)}</label>
-            <input name="newEmail" type="email" required placeholder="neu@firma.com" className="w-full px-3.5 py-3 rounded-[10px] text-sm outline-none focus:border-violet-700" style={{ background: "#fdfbf4", border: "1px solid rgba(31,36,32,0.15)", color: "#1F2420" }} />
+            <input name="newEmail" type="email" required placeholder="neu@firma.com" className="w-full px-3.5 py-3 rounded-md text-sm outline-none focus:border-violet-700" style={{ background: "#fdfbf4", border: "1px solid rgba(31,36,32,0.15)", color: "#1F2420" }} />
           </div>
           <div>
             <label className="block text-xs font-semibold mb-1.5" style={{ color: "#4A4640", letterSpacing: "0.02em" }}>{t("settings.email.current_password", locale)}</label>
-            <input name="password" type="password" required className="w-full px-3.5 py-3 rounded-[10px] text-sm outline-none focus:border-violet-700" style={{ background: "#fdfbf4", border: "1px solid rgba(31,36,32,0.15)", color: "#1F2420" }} />
+            <input name="password" type="password" required className="w-full px-3.5 py-3 rounded-md text-sm outline-none focus:border-violet-700" style={{ background: "#fdfbf4", border: "1px solid rgba(31,36,32,0.15)", color: "#1F2420" }} />
             <p className="text-[11.5px] mt-1.5" style={{ color: "#7A7268" }}>{t("settings.email.pw_hint", locale)}</p>
           </div>
           {state?.error && <p className="text-sm" style={{ color: "#9F1239" }}>{state.error}</p>}
           <div className="flex gap-2.5">
-            <button disabled={pending} className="text-white rounded-[11px] py-2.5 px-5 text-sm font-medium transition-all disabled:opacity-60" style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}>
+            <button disabled={pending} className="text-white rounded-md py-2.5 px-5 text-sm font-medium transition-all disabled:opacity-60" style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}>
               {pending ? "…" : t("settings.email.send_link", locale)}
             </button>
             <button type="button" onClick={() => setOpen(false)} className="text-sm" style={{ color: "#7A7268" }}>{t("settings.cancel", locale)}</button>

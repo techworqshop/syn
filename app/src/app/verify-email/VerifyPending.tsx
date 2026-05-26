@@ -21,7 +21,7 @@ export default function VerifyPending({ locale, email, hasSession }: { locale: L
 
       {/* Helper-Box mit Hinweis */}
       <div
-        className="rounded-[10px] px-4 py-3.5 mb-6"
+        className="rounded-md px-4 py-3.5 mb-6"
         style={{ background: "#fdfbf4", border: "1px solid rgba(31,36,32,0.10)" }}
       >
         <p className="text-[13px] leading-relaxed" style={{ color: "#4A4640" }}>
@@ -34,7 +34,7 @@ export default function VerifyPending({ locale, email, hasSession }: { locale: L
         <button
           type="submit"
           disabled={pending || state?.sent}
-          className="w-full text-[#F3EFE2] border-none rounded-[11px] py-3 px-4 text-sm font-medium transition-colors disabled:opacity-60"
+          className="w-full text-[#F3EFE2] border-none rounded-md py-3 px-4 text-sm font-medium transition-colors disabled:opacity-60"
           style={{ background: state?.sent ? "#3A7E58" : "#1F2420" }}
         >
           {pending ? "…" : state?.sent ? t("verify.resent", locale) : t("verify.resend", locale)}

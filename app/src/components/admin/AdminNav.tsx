@@ -23,7 +23,7 @@ export default function AdminNav() {
         const active = path.startsWith(t.href);
         return (
           <Link key={t.href} href={t.href}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
               active
                 ? "text-white shadow-sm"
                 : "text-stone-700 hover:bg-stone-200/60"

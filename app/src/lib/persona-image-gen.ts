@@ -48,6 +48,11 @@ function buildPrompt(description: string, role: string): string {
   return `Editorial headshot portrait photograph of ${description} The subject works as ${role}. Natural soft lighting, neutral uncluttered background, subject looking slightly off-camera with a thoughtful expression, realistic skin tones, warm editorial color grading, shallow depth of field. Square 1:1 framing, head and upper shoulders visible. No text, no logos, no watermarks.`;
 }
 
+function buildIdentityPrompt(name: string, role: string): string {
+  const roleBit = role && role !== "professional" ? `, ${role}` : "";
+  return `Editorial headshot portrait photograph of ${name}${roleBit}. If this is a recognizable real person or a well-known fictional character, render their authentic likeness and iconic appearance as faithfully as possible. Natural soft lighting, neutral uncluttered background, thoughtful expression, realistic, warm editorial color grading, shallow depth of field. Square 1:1 framing, head and upper shoulders visible. No text, no logos, no watermarks.`;
+}
+
 async function callGemini(prompt: string) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${IMG_MODEL}:generateContent?key=${KEY}`;
   const body = {
@@ -93,8 +98,16 @@ export async function generatePersonaImage(p: PersonaInput): Promise<"ready" | "
     });
   }
   const role = (p.type && p.type.toLowerCase() !== "human") ? p.type : "professional";
-  const description = await deriveVisualDescription(p.name, role);
-  const result = await callGemini(buildPrompt(description, role));
+  // Identity-first: try to depict the actual person/character (matches fictional
+  // figures + many public figures). If the model refuses — common for real
+  // celebrities — fall back to a generic anonymized portrait so the avatar is
+  // never blank.
+  let result = await callGemini(buildIdentityPrompt(p.name, role));
+  if (!result.ok) {
+    console.log(`[persona-image] session=${p.sessionId} slot=${p.slot} identity attempt failed (${result.err}); falling back to generic`);
+    const description = await deriveVisualDescription(p.name, role);
+    result = await callGemini(buildPrompt(description, role));
+  }
   if (!result.ok) {
     await db.update(personaImages).set({
       status: "failed",

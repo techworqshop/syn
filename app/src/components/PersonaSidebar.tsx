@@ -92,7 +92,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect, loca
       <aside className="w-14 glass-card-dark flex flex-col items-center py-2 gap-1.5 overflow-y-auto border-r border-stone-300/60">
         <button onClick={toggleCollapsed}
           title={t("sidebar.expand", locale)}
-          className="w-9 h-9 rounded-lg flex items-center justify-center text-stone-700 hover:text-stone-900 hover:bg-amber-100 transition-colors mb-1">
+          className="w-9 h-9 rounded-md flex items-center justify-center text-stone-700 hover:text-stone-900 hover:bg-amber-100 transition-colors mb-1">
           {/* Collapsed: arrow points right (click to expand to the right) */}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
             <polyline points="9 6 15 12 9 18" />
@@ -105,7 +105,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect, loca
           return (
             <button key={n} onClick={() => onSelect(n)}
               title={`${p.name || `Slot ${n}`} (1:1 Chat)`}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold ring-1 ring-white/40 shadow-md hover:scale-105 transition-transform overflow-hidden"
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold ring-1 ring-white/40 shadow-md hover:scale-105 transition-transform overflow-hidden ${!p.imageReady ? "animate-pulse" : ""}`}
               style={gradStyle(stops)}>
               {p.imageReady
                 ? <img src={`/api/persona-images/${sessionId}/${n}`} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display="none")} />
@@ -151,14 +151,14 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect, loca
         const initials = (p.name ?? "P").split(" ").map(s => s[0]).slice(0,2).join("").toUpperCase();
         return (
           <div key={n}
-            className="relative rounded-2xl bg-[#F3EFE2] border border-stone-300/60 shadow-sm overflow-hidden transition-all hover:shadow-md">
+            className="relative rounded-md bg-[#F3EFE2] border border-stone-300/60 shadow-sm overflow-hidden transition-all hover:shadow-md">
             {/* 4px Edge-Stripe links mit vertikalem Color-Color-Verlauf */}
             <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1"
               style={gradStyle(stops)} />
             <div className="flex items-stretch pl-2">
               <button onClick={() => onSelect(n)}
                 className="flex-1 text-left p-3 hover:bg-white/50 flex items-center gap-2.5 transition-colors">
-                <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-white text-xs font-bold shrink-0 ring-1 ring-white/40"
+                <div className={`w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-white text-xs font-bold shrink-0 ring-1 ring-white/40 ${!p.imageReady ? "animate-pulse" : ""}`}
                   style={gradStyle(stops)}>
                   {p.imageReady
                     ? <img src={`/api/persona-images/${sessionId}/${n}`} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display="none")} />
@@ -235,7 +235,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect, loca
         <div className="mt-4 pt-4 border-t border-stone-300">
           <div className="text-xs uppercase tracking-wide text-stone-700 font-bold mb-2 px-1">{t("sidebar.syntheses", locale)}</div>
           {syntheses.filter(s => s.round_number && s.synthesis_text).sort((a,b) => (a.round_number ?? 0) - (b.round_number ?? 0)).map(s => (
-            <div key={s.round_number} className="relative rounded-2xl bg-[#F3EFE2] border border-stone-300/60 mb-2 overflow-hidden shadow-sm hover:shadow-md transition-all">
+            <div key={s.round_number} className="relative rounded-md bg-[#F3EFE2] border border-stone-300/60 mb-2 overflow-hidden shadow-sm hover:shadow-md transition-all">
               <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1"
                 style={gradStyle(SYNTH_ACCENT)} />
               <button onClick={() => setSynthOpen(synthOpen === s.round_number ? null : s.round_number)}

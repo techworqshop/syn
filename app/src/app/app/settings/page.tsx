@@ -1,4 +1,7 @@
 import { requireUser } from "@/lib/current-user";
+import { db } from "@/lib/db";
+import { subscriptions } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
 import ProfileSection from "./ProfileSection";
 import PasswordSection from "./PasswordSection";
@@ -11,6 +14,9 @@ export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
   const u = await requireUser();
   const locale = await getLocaleFromCookies();
+  const [sub] = await db.select().from(subscriptions).where(eq(subscriptions.userId, u.id)).limit(1);
+  const subActive = sub && (sub.status === "active" || sub.status === "in_trial");
+  const subEndsAt = sub && sub.status === "non_renewing" && sub.currentTermEnd ? sub.currentTermEnd.toISOString() : null;
   return (
     <div className="flex-1 w-full max-w-[760px] mx-auto px-6 py-10">
       <div className="mb-8">
@@ -26,7 +32,7 @@ export default async function SettingsPage() {
       <EmailSection locale={locale} currentEmail={u.email} />
       <PasswordSection locale={locale} />
       <LanguageSection locale={locale} />
-      <DangerZone locale={locale} email={u.email} />
+      <DangerZone locale={locale} email={u.email} subActive={!!subActive} subEndsAt={subEndsAt} />
     </div>
   );
 }

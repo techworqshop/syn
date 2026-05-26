@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { invites, users } from "@/db/schema";
 import { and, eq, isNull, gt } from "drizzle-orm";
+import { issueVerificationToken } from "@/app/verify-email/actions";
 
 type P = { params: Promise<{ token: string }> };
 
@@ -22,13 +23,25 @@ export async function POST(req: Request, { params }: P) {
   if (exists) return NextResponse.json({ error: "user already exists" }, { status: 409 });
   const hash = await bcrypt.hash(password, 12);
   const isWorqshop = inv.email.toLowerCase().endsWith("@worqshop.io");
-  await db.insert(users).values({
+  const [inserted] = await db.insert(users).values({
     email: inv.email,
     passwordHash: hash,
     name: name || inv.email,
     mustChangePassword: "false",
-    isAdmin: isWorqshop
-  });
+    isAdmin: isWorqshop,
+    // Mail-Verify ist Pflicht — Login-Action blockt sonst.
+    emailVerifiedAt: null
+  }).returning({ id: users.id });
   await db.update(invites).set({ usedAt: new Date() }).where(eq(invites.id, inv.id));
-  return NextResponse.json({ ok: true, email: inv.email });
+
+  // Verify-Token + Mail (best-effort). User muss Bestaetigungs-Link klicken,
+  // bevor er sich einloggen kann.
+  try {
+    await issueVerificationToken(inserted.id, inv.email);
+  } catch (e) {
+    console.error("[invite-accept] verification token issuance failed", e);
+    // Trotzdem weiter — User kann auf /verify-email Resend klicken.
+  }
+
+  return NextResponse.json({ ok: true, email: inv.email, verifyRequired: true });
 }

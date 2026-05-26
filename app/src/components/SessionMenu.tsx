@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { t, type Locale } from "@/lib/i18n";
 
-export default function SessionMenu({ sessionId, afterDelete, locale = "de" }: { sessionId: string; afterDelete?: () => void; locale?: Locale }) {
+export default function SessionMenu({ sessionId, afterDelete, locale = "de", showFinalReport = false }: { sessionId: string; afterDelete?: () => void; locale?: Locale; showFinalReport?: boolean }) {
   const router = useRouter();
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -59,14 +59,16 @@ export default function SessionMenu({ sessionId, afterDelete, locale = "de" }: {
   return (
     <div className="relative">
       <button onClick={() => setMenu(m => !m)}
-        className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-700 hover:text-stone-900 font-medium hover:bg-amber-100 transition-colors"
+        className="w-8 h-8 rounded-md flex items-center justify-center text-stone-700 hover:text-stone-900 font-medium hover:bg-amber-100 transition-colors"
         aria-label="Menu">
         <span className="text-lg leading-none">&#8942;</span>
       </button>
       {menu && (
-        <div ref={menuRef} className="absolute top-9 right-0 z-50 rounded-xl border border-stone-400/60 bg-stone-50 shadow-2xl min-w-[210px] overflow-hidden text-sm">
-          <button onClick={finalReport} className="w-full text-left px-3 py-2 hover:bg-rose-700/10 text-rose-800 font-medium">{t("menu.report", locale)}</button>
-          <div className="h-px bg-stone-200"></div>
+        <div ref={menuRef} className="absolute top-9 right-0 z-50 rounded-md border border-stone-400/60 bg-stone-50 shadow-2xl min-w-[210px] overflow-hidden text-sm">
+          {showFinalReport && (<>
+            <button onClick={finalReport} className="w-full text-left px-3 py-2 hover:bg-rose-700/10 text-rose-800 font-medium">{t("menu.report", locale)}</button>
+            <div className="h-px bg-stone-200"></div>
+          </>)}
           <button onClick={exportPdf} className="w-full text-left px-3 py-2 hover:bg-amber-100">{t("menu.chatPdf", locale)}</button>
           <button onClick={share} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-amber-100 disabled:opacity-50">{t("menu.share", locale)}</button>
           <div className="h-px bg-stone-200"></div>
@@ -74,7 +76,7 @@ export default function SessionMenu({ sessionId, afterDelete, locale = "de" }: {
         </div>
       )}
       {shareUrl && (
-        <div ref={shareRef} className="absolute top-9 right-0 z-50 rounded-xl border border-rose-700/40 bg-rose-50 shadow-2xl p-3 text-xs min-w-[300px]">
+        <div ref={shareRef} className="absolute top-9 right-0 z-50 rounded-md border border-rose-700/40 bg-rose-50 shadow-2xl p-3 text-xs min-w-[300px]">
           <div className="text-rose-800 font-semibold mb-1">{t("menu.share.copied", locale)}</div>
           <div className="text-stone-800 break-all font-medium">{shareUrl}</div>
           <div className="flex gap-2 mt-2">

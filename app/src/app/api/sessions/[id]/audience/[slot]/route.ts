@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/current-user";
 import { forwardToGateway } from "@/lib/n8n";
 import { publish } from "@/lib/redis";
 import { and, eq, asc } from "drizzle-orm";
+import { loadQuotaState } from "@/lib/quota";
 
 type P = { params: Promise<{ id: string; slot: string }> };
 
@@ -33,6 +34,11 @@ export async function POST(req: Request, { params }: P) {
   const [sess] = await db.select().from(sessions)
     .where(and(eq(sessions.id, id), eq(sessions.userId, u.id))).limit(1);
   if (!sess) return NextResponse.json({ error: "not found" }, { status: 404 });
+  const qsGate = await loadQuotaState(u.id);
+  const termExpired = qsGate.periodEnd ? qsGate.periodEnd.getTime() < Date.now() : false;
+  if (!qsGate.bypass && (!qsGate.hasActiveSub || termExpired)) {
+    return NextResponse.json({ error: "subscription_inactive" }, { status: 402 });
+  }
   const [userMsg] = await db.insert(audienceMessages).values({
     sessionId: id, personaSlot: slotNum, role: "user", content: text
   }).returning();
@@ -41,7 +47,8 @@ export async function POST(req: Request, { params }: P) {
   try {
     await forwardToGateway({
       sessionId: id, userId: u.id,
-      cleanMessage: text, targetPersona: slotNum
+      cleanMessage: text, targetPersona: slotNum,
+      locale: (sess as { locale?: string }).locale || "de"
     });
   } catch (e) {
     const err = e instanceof Error ? e.message : "unknown";

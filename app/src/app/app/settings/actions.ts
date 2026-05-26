@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { users, emailChangeTokens } from "@/db/schema";
+import { subscriptions, users, emailChangeTokens } from "@/db/schema";
 import { requireUser } from "@/lib/current-user";
 import { signOut } from "@/lib/auth";
 import { sendEmailChangeEmail } from "@/lib/n8n";
@@ -116,6 +116,12 @@ export async function requestAccountDeletionAction(_prev: unknown, formData: For
   const [row] = await db.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, u.id)).limit(1);
   if (!row || !(await bcrypt.compare(password, row.passwordHash))) {
     return { ok: false, error: t("settings.email.wrong_password", locale) };
+  }
+
+  // Block if a paid subscription is still active
+  const [sub] = await db.select().from(subscriptions).where(eq(subscriptions.userId, u.id)).limit(1);
+  if (sub && (sub.status === "active" || sub.status === "in_trial")) {
+    return { ok: false, error: t("settings.danger.block_active_sub", locale) };
   }
 
   try {

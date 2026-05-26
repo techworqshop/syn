@@ -3,7 +3,7 @@ export default function AdminError({ where, error }: { where: string; error: unk
   const stack = error instanceof Error ? error.stack : undefined;
   return (
     <div className="max-w-3xl mx-auto w-full p-6">
-      <div className="relative rounded-2xl bg-[#F3EFE2] border border-red-700/40 overflow-hidden shadow-sm pl-4 p-5">
+      <div className="relative rounded-md bg-[#F3EFE2] border border-red-700/40 overflow-hidden shadow-sm pl-4 p-5">
         <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1"
           style={{ background: "linear-gradient(180deg, #BE123C, #7F1D1D)" }} />
         <div className="text-xs uppercase tracking-wide text-red-800 font-bold mb-1">Fehler beim Laden — {where}</div>
@@ -11,7 +11,7 @@ export default function AdminError({ where, error }: { where: string; error: unk
         {stack && (
           <details className="text-xs">
             <summary className="cursor-pointer text-stone-700 hover:text-stone-900">Stack-Trace</summary>
-            <pre className="mt-2 p-3 rounded-lg bg-stone-900 text-stone-100 overflow-auto whitespace-pre-wrap text-[11px]">{stack}</pre>
+            <pre className="mt-2 p-3 rounded-md bg-stone-900 text-stone-100 overflow-auto whitespace-pre-wrap text-[11px]">{stack}</pre>
           </details>
         )}
         <div className="text-xs text-stone-600 mt-3">

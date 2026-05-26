@@ -123,7 +123,7 @@ export default async function AdminErrorsPage({
       <section className="mb-8">
         <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Stuck Sessions ({stuckFiltered.length})</h2>
         <p className="text-xs text-stone-600 mb-3">Offene Sessions wo der User auf Antwort wartet (letzte Message vom User, &gt;15 Min inaktiv).</p>
-        <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
+        <div className="rounded-md border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
           {stuckFiltered.length === 0 ? (
             <div className="p-6 text-sm text-stone-600 text-center">Keine hängenden Sessions. 👍</div>
           ) : (
@@ -150,7 +150,7 @@ export default async function AdminErrorsPage({
       <section className="mb-8">
         <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Verlassene Sessions ({abandonedFiltered.length})</h2>
         <p className="text-xs text-stone-600 mb-3">Sessions die erstellt aber nie geschrieben wurden (keine einzige Message, &gt;1 Std alt).</p>
-        <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
+        <div className="rounded-md border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
           {abandonedFiltered.length === 0 ? (
             <div className="p-6 text-sm text-stone-600 text-center">Keine verlassenen Sessions.</div>
           ) : (
@@ -178,7 +178,7 @@ export default async function AdminErrorsPage({
 
       <section>
         <h2 className="text-sm uppercase tracking-wide font-bold text-stone-700 mb-3">Letzte 50 Errors</h2>
-        <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
+        <div className="rounded-md border border-stone-300 bg-[#F3EFE2] overflow-hidden shadow-sm">
           {errsFiltered.length === 0 ? (
             <div className="p-6 text-sm text-stone-600 text-center">Keine Errors. 🎉</div>
           ) : (

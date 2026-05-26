@@ -113,7 +113,7 @@ export default async function HelpPage() {
           </Faq>
         </Section>
 
-        <div className="mt-8 rounded-2xl bg-amber-100 border border-amber-700/40 p-4 text-sm">
+        <div className="mt-8 rounded-md bg-amber-100 border border-amber-700/40 p-4 text-sm">
           <strong className="text-amber-900">Noch Fragen?</strong> Schreib Lukasz oder Tech-Worqshop.
         </div>
       </div>
@@ -123,7 +123,7 @@ export default async function HelpPage() {
 
 function Section({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl p-6 brand-card overflow-hidden">
+    <section className="rounded-md p-6 brand-card overflow-hidden">
       <div className="flex items-baseline gap-3 mb-3 mt-1">
         {number && (
           <span className="inline-flex items-center justify-center w-7 h-7 rounded-full text-white text-sm font-bold shrink-0" style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>{number}</span>
@@ -145,7 +145,7 @@ function Pill({ tone, children }: { tone: "briefing" | "persona" | "panel"; chil
 
 function Faq({ q, children }: { q: string; children: React.ReactNode }) {
   return (
-    <details className="group rounded-xl border border-stone-300 bg-white px-4 py-2.5 mb-2 transition-colors hover:border-amber-700/50">
+    <details className="group rounded-md border border-stone-300 bg-white px-4 py-2.5 mb-2 transition-colors hover:border-amber-700/50">
       <summary className="cursor-pointer font-semibold text-stone-900 list-none flex items-center justify-between">
         <span>{q}</span>
         <span className="text-stone-500 group-open:rotate-180 transition-transform">▾</span>

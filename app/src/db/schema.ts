@@ -25,7 +25,10 @@ export const sessions = pgTable("sessions", {
   personaCount: integer("persona_count").notNull().default(0),
   currentRound: integer("current_round").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  locale: text("locale").notNull().default("de"),
+  firstMessageAt: timestamp("first_message_at", { withTimezone: true }),
+  archivedAt: timestamp("archived_at", { withTimezone: true })
 }, (t) => [index("sessions_user_idx").on(t.userId)]);
 
 export const personas = pgTable("personas", {
@@ -81,6 +84,7 @@ export const files = pgTable("files", {
   summary: text("summary"),
   sizeBytes: integer("size_bytes").notNull(),
   category: text("category").notNull().default("panel"),
+  locked: boolean("locked").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
 }, (t) => [index("files_session_idx").on(t.sessionId)]);
 
@@ -146,3 +150,54 @@ export const adminAuditLog = pgTable("admin_audit_log", {
   ip: text("ip"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
 }, (t) => [index("admin_audit_log_actor_idx").on(t.actorId), index("admin_audit_log_created_idx").on(t.createdAt), index("admin_audit_log_action_idx").on(t.action)]);
+
+export const subscriptions = pgTable("subscriptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  chargebeeCustomerId: text("chargebee_customer_id").notNull(),
+  chargebeeSubscriptionId: text("chargebee_subscription_id"),
+  status: text("status").notNull().default("inactive"),
+  planItemPriceId: text("plan_item_price_id"),
+  currentTermStart: timestamp("current_term_start", { withTimezone: true }),
+  currentTermEnd: timestamp("current_term_end", { withTimezone: true }),
+  trialEnd: timestamp("trial_end", { withTimezone: true }),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  scheduledPlanItemPriceId: text("scheduled_plan_item_price_id"),
+  scheduledChangeAt: timestamp("scheduled_change_at", { withTimezone: true }),
+  pauseDate: timestamp("pause_date", { withTimezone: true }),
+  resumeDate: timestamp("resume_date", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
+}, (t) => [index("subscriptions_user_idx").on(t.userId)]);
+
+export const billingEvents = pgTable("billing_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  eventId: text("event_id").notNull().unique(),
+  eventType: text("event_type").notNull(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  payload: jsonb("payload").notNull(),
+  receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow()
+}, (t) => [index("billing_events_type_idx").on(t.eventType), index("billing_events_received_idx").on(t.receivedAt)]);
+
+export const sessionConsumptions = pgTable("session_consumptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sessionId: uuid("session_id").notNull(),
+  periodStart: timestamp("period_start", { withTimezone: true }).notNull(),
+  consumedAt: timestamp("consumed_at", { withTimezone: true }).notNull().defaultNow(),
+  creditId: uuid("credit_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+}, (t) => [index("session_consumptions_user_period_idx").on(t.userId, t.periodStart)]);
+
+export const purchasedExtras = pgTable("purchased_extras", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  periodStart: timestamp("period_start", { withTimezone: true }).notNull(),
+  quantity: integer("quantity").notNull(),
+  quantityUsed: integer("quantity_used").notNull().default(0),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  chargebeeInvoiceId: text("chargebee_invoice_id"),
+  chargebeeChargeId: text("chargebee_charge_id"),
+  unitPriceEur: integer("unit_price_eur").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+}, (t) => [index("purchased_extras_user_period_idx").on(t.userId, t.periodStart)]);

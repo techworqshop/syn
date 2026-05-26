@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const DIR = "/app/uploads/_admin/landing";
-const ALLOWED = new Set(["products", "websites", "designs"]);
+const ALLOWED = new Set(["products", "websites", "designs", "persona-maya", "persona-jonas", "persona-noor", "persona-adrian", "persona-lia"]);
 
 type P = { params: Promise<{ name: string }> };
 
@@ -17,7 +17,7 @@ export async function GET(_: Request, { params }: P) {
       return new Response(buf, {
         headers: {
           "Content-Type": `image/${ext === "jpg" ? "jpeg" : ext}`,
-          "Cache-Control": "public, max-age=86400"
+          "Cache-Control": "no-store, must-revalidate"
         }
       });
     }

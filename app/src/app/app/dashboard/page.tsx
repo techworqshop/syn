@@ -1,16 +1,21 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { sessions, messages } from "@/db/schema";
+import { sessions, messages, subscriptions } from "@/db/schema";
 import { requireUser } from "@/lib/current-user";
-import { eq, desc, inArray, and, sql } from "drizzle-orm";
+import { eq, desc, inArray, and, sql, isNull } from "drizzle-orm";
 import SessionCard from "@/components/SessionCard";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
+import { canCreateSession, loadQuotaState } from "@/lib/quota";
 
 export const dynamic = "force-dynamic";
 
 async function createSession() {
   "use server";
   const u = await requireUser();
+  const gate = await canCreateSession(u.id);
+  if (!gate.ok) {
+    redirect("/app/billing?reason=" + (gate.reason ?? "blocked"));
+  }
   const [row] = await db.insert(sessions).values({ userId: u.id }).returning();
   redirect(`/app/sessions/${row.id}`);
 }
@@ -19,7 +24,7 @@ export default async function Dashboard() {
   const u = await requireUser();
   const locale = await getLocaleFromCookies();
   const rows = await db.select().from(sessions)
-    .where(eq(sessions.userId, u.id))
+    .where(and(eq(sessions.userId, u.id), isNull(sessions.archivedAt)))
     .orderBy(desc(sessions.updatedAt));
   const ids = rows.map(r => r.id);
   const reportRows = ids.length
@@ -30,8 +35,43 @@ export default async function Dashboard() {
         ))
     : [];
   const closedIds = new Set(reportRows.map(r => r.sessionId));
+  const quota = await loadQuotaState(u.id);
+  const showNoSubBanner = !quota.bypass && !quota.hasActiveSub;
+  const showQuotaWarning = !quota.bypass && quota.hasActiveSub && quota.remaining <= 1;
+  const [subRow] = await db.select({ status: subscriptions.status }).from(subscriptions).where(eq(subscriptions.userId, u.id)).limit(1);
+  const showPaymentFailed = !quota.bypass && (subRow?.status === "paused" || subRow?.status === "cancelled");
   return (
     <div className="max-w-5xl mx-auto w-full p-6">
+      {showPaymentFailed && (
+        <div className="rounded-md border border-rose-300 bg-rose-50 px-5 py-4 mb-6 flex items-center justify-between gap-4">
+          <div className="text-sm" style={{ color: "#9F1239" }}>
+            {locale === "en" ? "Subscription paused — please update your payment method." : "Abo pausiert — bitte Zahlungsmethode aktualisieren."}
+          </div>
+          <a href="/app/billing" className="px-4 py-2 rounded-md text-sm font-semibold btn-primary text-white whitespace-nowrap">
+            {locale === "en" ? "Update payment" : "Zahlung aktualisieren"}
+          </a>
+        </div>
+      )}
+      {showNoSubBanner && (
+        <div className="rounded-md border border-amber-700/40 bg-amber-50 px-5 py-4 mb-6 flex items-center justify-between gap-4">
+          <div className="text-sm" style={{ color: "#7A4E13" }}>
+            {locale === "en" ? "You need an active subscription to create focus group sessions." : "Du brauchst ein aktives Abo, um Fokusgruppen-Sessions zu starten."}
+          </div>
+          <a href="/app/billing" className="px-4 py-2 rounded-md text-sm font-semibold btn-primary text-white whitespace-nowrap">
+            {locale === "en" ? "View plans" : "Plaene ansehen"}
+          </a>
+        </div>
+      )}
+      {showQuotaWarning && (
+        <div className="rounded-md border border-amber-700/40 bg-amber-50 px-5 py-4 mb-6 flex items-center justify-between gap-4">
+          <div className="text-sm" style={{ color: "#7A4E13" }}>
+            {locale === "en" ? `Only ${quota.remaining} session${quota.remaining === 1 ? "" : "s"} left this month.` : `Nur noch ${quota.remaining} Session${quota.remaining === 1 ? "" : "s"} dieser Monat.`}
+          </div>
+          <a href="/app/billing" className="px-4 py-2 rounded-md text-sm font-semibold border border-stone-400 bg-white text-stone-900 hover:bg-stone-50 whitespace-nowrap">
+            {locale === "en" ? "Buy more" : "Nachkaufen"}
+          </a>
+        </div>
+      )}
       <div className="flex items-end justify-between mb-8">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">{t("dashboard.title", locale)}</h1>
@@ -39,14 +79,19 @@ export default async function Dashboard() {
             {t("dashboard.subtitle", locale)}
           </p>
         </div>
-        <form action={createSession}>
-          <button className="btn-primary px-5 py-2.5 rounded-xl font-medium text-sm">
-            {t("dashboard.new", locale)}
-          </button>
-        </form>
+        <div className="flex items-center gap-3">
+          <a href="/app/archive" className="text-sm text-stone-600 hover:text-rose-700 transition-colors">
+            {locale === "en" ? "Archive" : "Archiv"}
+          </a>
+          <form action={createSession}>
+            <button className="btn-primary px-5 py-2.5 rounded-md font-medium text-sm">
+              {t("dashboard.new", locale)}
+            </button>
+          </form>
+        </div>
       </div>
       {rows.length === 0 ? (
-        <div className="relative overflow-hidden rounded-2xl p-12 text-center"
+        <div className="relative overflow-hidden rounded-md p-12 text-center"
           style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)" }}>
           <span aria-hidden className="absolute top-0 left-0 right-0 h-1"
             style={{ background: "linear-gradient(90deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }} />

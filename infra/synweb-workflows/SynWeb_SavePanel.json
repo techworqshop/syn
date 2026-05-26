@@ -1,0 +1,293 @@
+[
+  {
+    "updatedAt": "2026-05-20T19:18:04.603Z",
+    "createdAt": "2026-05-20T12:32:23.574Z",
+    "id": "mAnhua1D7huLHtVt",
+    "name": "SynWeb_SavePanel",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "trig",
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "session_id"
+              },
+              {
+                "name": "personas_json"
+              },
+              {
+                "name": "problem_brief"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "split",
+        "name": "Parse Personas",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          220,
+          0
+        ],
+        "parameters": {
+          "jsCode": "const trig=$('Execute Workflow Trigger').first().json;\nlet arr;\ntry{arr=typeof trig.personas_json==='string'?JSON.parse(trig.personas_json):(trig.personas_json||[]);}catch(e){throw new Error('Invalid personas_json: '+e.message);}\nif(!Array.isArray(arr))throw new Error('personas_json must be array');\nreturn arr.map(p=>({json:{session_id:trig.session_id,persona_id:String(p.persona_id||''),name:String(p.name||''),type:String(p.type||''),core_perspective:String(p.core_perspective||''),profile:String(p.profile||''),slack_slot:Number(p.slack_slot||0),rigidity:Number(p.rigidity!=null?p.rigidity:5)}}));"
+        }
+      },
+      {
+        "id": "upsert",
+        "name": "Upsert Persona",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          440,
+          0
+        ],
+        "parameters": {
+          "operation": "upsert",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "oAfVlk69fSh57ABR"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $json.session_id }}"
+              },
+              {
+                "keyName": "persona_id",
+                "keyValue": "={{ $json.persona_id }}"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "session_id": "={{ $json.session_id }}",
+              "persona_id": "={{ $json.persona_id }}",
+              "name": "={{ $json.name }}",
+              "type": "={{ $json.type }}",
+              "core_perspective": "={{ $json.core_perspective }}",
+              "profile": "={{ $json.profile }}",
+              "slack_slot": "={{ $json.slack_slot }}",
+              "rigidity": "={{ $json.rigidity }}"
+            }
+          }
+        }
+      },
+      {
+        "id": "cb",
+        "name": "Notify Saved",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          660,
+          0
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://syn.worqshop.io/api/n8n/callback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({sessionId: $json.session_id, kind: 'persona_saved', personaSlot: $json.slack_slot, personaName: $json.name}) }}",
+          "options": {
+            "timeout": 5000
+          }
+        }
+      },
+      {
+        "id": "1422424f-f39b-488c-a2c2-d6997652a667",
+        "name": "Save Brief",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          220,
+          -180
+        ],
+        "parameters": {
+          "operation": "upsert",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_sessions"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.session_id }}"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "session_id": "={{ $('Execute Workflow Trigger').item.json.session_id }}",
+              "status": "ready",
+              "problem_brief": "={{ $('Execute Workflow Trigger').item.json.problem_brief }}",
+              "persona_count": "={{ JSON.parse($('Execute Workflow Trigger').item.json.personas_json).length }}",
+              "current_round": 0
+            }
+          }
+        }
+      },
+      {
+        "id": "0b0aef1f-e526-422b-b41a-b7892175ae95",
+        "name": "Notify Saving",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          120,
+          -160
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://syn.worqshop.io/api/n8n/callback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({sessionId: $json.session_id, kind: 'status', text: 'Syn speichert Panel ...'}) }}",
+          "options": {
+            "timeout": 5000
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Parse Personas": {
+        "main": [
+          [
+            {
+              "node": "Upsert Persona",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert Persona": {
+        "main": [
+          [
+            {
+              "node": "Notify Saved",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save Brief": {
+        "main": [
+          [
+            {
+              "node": "Parse Personas",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Notify Saving",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Notify Saving": {
+        "main": [
+          [
+            {
+              "node": "Save Brief",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "3df3f8c6-8ac8-4dcb-81d4-94e7d00fb07d",
+    "activeVersionId": "3df3f8c6-8ac8-4dcb-81d4-94e7d00fb07d",
+    "versionCounter": 23,
+    "triggerCount": 0,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-20T12:32:23.574Z",
+        "createdAt": "2026-05-20T12:32:23.574Z",
+        "role": "workflow:owner",
+        "workflowId": "mAnhua1D7huLHtVt",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

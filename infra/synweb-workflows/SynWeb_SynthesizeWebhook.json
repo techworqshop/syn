@@ -1,41 +1,40 @@
 [
   {
-    "updatedAt": "2026-05-10T17:56:05.597Z",
-    "createdAt": "2026-05-10T17:54:51.399Z",
-    "id": "d5nxLCvpi0ZVkrAV",
+    "updatedAt": "2026-05-19T20:15:31.652Z",
+    "createdAt": "2026-05-19T19:26:09.525Z",
+    "id": "eP8wTkqJIN78m2AM",
     "name": "SynWeb_SynthesizeWebhook",
     "description": null,
     "active": true,
     "isArchived": false,
     "nodes": [
       {
-        "id": "hook",
+        "id": "8CNhPIqFy5UjRrbk-w",
         "name": "Webhook",
         "type": "n8n-nodes-base.webhook",
         "typeVersion": 2,
         "position": [
-          0,
-          0
+          200,
+          300
         ],
+        "webhookId": "LkvI3OyHRmuzvW3I",
         "parameters": {
           "path": "synweb/synthesize",
           "httpMethod": "POST",
           "responseMode": "lastNode",
           "options": {}
-        },
-        "webhookId": "2f07902c-1b50-4ae2-a03f-f746f8a15724"
+        }
       },
       {
-        "id": "exec",
-        "name": "Synthesize Sub",
+        "id": "8CNhPIqFy5UjRrbk-e",
+        "name": "Execute Sub",
         "type": "n8n-nodes-base.executeWorkflow",
         "typeVersion": 1.2,
         "position": [
-          240,
-          0
+          450,
+          300
         ],
         "parameters": {
-          "source": "database",
           "workflowId": {
             "__rl": true,
             "mode": "id",
@@ -47,42 +46,7 @@
               "session_id": "={{ $json.body.session_id }}",
               "round_number": "={{ $json.body.round_number }}",
               "problem_brief": "={{ $json.body.problem_brief }}"
-            },
-            "schema": [
-              {
-                "id": "session_id",
-                "displayName": "session_id",
-                "type": "string",
-                "required": true,
-                "display": true,
-                "removed": false,
-                "readOnly": false,
-                "defaultMatch": false
-              },
-              {
-                "id": "round_number",
-                "displayName": "round_number",
-                "type": "number",
-                "required": true,
-                "display": true,
-                "removed": false,
-                "readOnly": false,
-                "defaultMatch": false
-              },
-              {
-                "id": "problem_brief",
-                "displayName": "problem_brief",
-                "type": "string",
-                "required": true,
-                "display": true,
-                "removed": false,
-                "readOnly": false,
-                "defaultMatch": false
-              }
-            ]
-          },
-          "options": {
-            "waitForSubWorkflow": true
+            }
           }
         }
       }
@@ -92,7 +56,7 @@
         "main": [
           [
             {
-              "node": "Synthesize Sub",
+              "node": "Execute Sub",
               "type": "main",
               "index": 0
             }
@@ -102,25 +66,24 @@
     },
     "settings": {
       "executionOrder": "v1",
-      "saveDataErrorExecution": "all",
       "saveDataSuccessExecution": "all",
-      "saveManualExecutions": true,
-      "saveExecutionProgress": true
+      "saveDataErrorExecution": "all",
+      "saveManualExecutions": true
     },
     "staticData": null,
     "meta": null,
     "pinData": null,
-    "versionId": "d9f123e6-9a05-4858-96b7-a810f04434fb",
-    "activeVersionId": "d9f123e6-9a05-4858-96b7-a810f04434fb",
-    "versionCounter": 4,
+    "versionId": "4740e64d-9719-4adc-809d-00f278c20b9b",
+    "activeVersionId": "4740e64d-9719-4adc-809d-00f278c20b9b",
+    "versionCounter": 15,
     "triggerCount": 1,
     "tags": [],
     "shared": [
       {
-        "updatedAt": "2026-05-10T17:54:51.399Z",
-        "createdAt": "2026-05-10T17:54:51.399Z",
+        "updatedAt": "2026-05-19T19:26:09.525Z",
+        "createdAt": "2026-05-19T19:26:09.525Z",
         "role": "workflow:owner",
-        "workflowId": "d5nxLCvpi0ZVkrAV",
+        "workflowId": "eP8wTkqJIN78m2AM",
         "projectId": "ckYCj2WnRYeX9dyH",
         "project": {
           "updatedAt": "2025-09-17T22:00:48.229Z",

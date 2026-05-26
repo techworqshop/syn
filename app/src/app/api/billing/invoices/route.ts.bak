@@ -1,0 +1,45 @@
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { subscriptions } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { requireUser } from "@/lib/current-user";
+import { chargebee, isBillingConfigured } from "@/lib/chargebee";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+export async function GET() {
+  if (!isBillingConfigured() || !chargebee) {
+    return NextResponse.json({ invoices: [] });
+  }
+  let user;
+  try { user = await requireUser(); }
+  catch { return NextResponse.json({ error: "unauthorized" }, { status: 401 }); }
+
+  const [sub] = await db.select().from(subscriptions)
+    .where(eq(subscriptions.userId, user.id)).limit(1);
+  if (!sub?.chargebeeCustomerId) {
+    return NextResponse.json({ invoices: [] });
+  }
+
+  try {
+    const result = await chargebee.invoice.list({
+      limit: 50,
+      "customer_id[is]": sub.chargebeeCustomerId,
+      "sort_by[desc]": "date"
+    } as unknown as Record<string, unknown>);
+    const list = (result as { list?: Array<{ invoice: { id: string; date: number; total: number; amount_paid: number; status: string; currency_code: string } }> }).list ?? [];
+    const invoices = list.map(item => ({
+      id: item.invoice.id,
+      date: item.invoice.date,
+      total: item.invoice.total,
+      amountPaid: item.invoice.amount_paid,
+      status: item.invoice.status,
+      currency: item.invoice.currency_code
+    }));
+    return NextResponse.json({ invoices });
+  } catch (e) {
+    console.error("[billing/invoices] failed:", e);
+    return NextResponse.json({ invoices: [], error: "failed" }, { status: 502 });
+  }
+}

@@ -19,6 +19,7 @@ export type SessionRow = {
   rigidityScore: number;
   personaCount: number;
   currentRound: number;
+  firstMessageAt?: string | Date | null;
   createdAt: string | Date;
   updatedAt: string | Date;
 };
@@ -65,5 +66,6 @@ export type FileRow = {
   storagePath: string;
   summary: string | null;
   sizeBytes: number;
+  locked?: boolean;
   createdAt: string | Date;
 };

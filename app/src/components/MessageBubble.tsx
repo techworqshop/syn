@@ -155,7 +155,7 @@ function fmtTime(d: string | Date, locale: Locale = "de") {
 
 type ReportMeta = { kind?: string; reportId?: string; filename?: string; generatedAt?: string };
 
-export default function MessageBubble({ m, locale = "de" }: { m: Message; locale?: Locale }) {
+export default function MessageBubble({ m, locale = "de", personaRole }: { m: Message; locale?: Locale; personaRole?: string | null }) {
   const COLLAPSE_AT = 600;
   const isLong = m.role === "persona" && m.content.length > COLLAPSE_AT;
   const [expanded, setExpanded] = useState(false);
@@ -181,12 +181,13 @@ export default function MessageBubble({ m, locale = "de" }: { m: Message; locale
       <div className={`flex-1 min-w-0 flex flex-col ${isUser ? "items-end" : "items-start"}`}>
         <div className={`flex items-baseline gap-2 mb-1 ${isUser ? "flex-row-reverse" : ""}`}>
           <span className="font-semibold text-[14px] leading-tight" style={{ color: labelColor }}>{label}</span>
+          {personaRole && m.role === "persona" && (<span className="font-mono text-[10px] uppercase tracking-[0.05em] text-stone-500">{personaRole}</span>)}
           <span className="text-xs text-stone-500">{fmtTime(m.createdAt, locale)}</span>
         </div>
         {isReport ? (
           <a href={`/api/reports/${m.sessionId}/${meta.reportId}`}
-            className="group/card inline-flex items-center gap-3 rounded-2xl px-4 py-3 bg-amber-100 border border-amber-700/40 hover:bg-amber-200 hover:border-amber-700/70 transition-all max-w-[80%] shadow-sm">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm"
+            className="group/card inline-flex items-center gap-3 rounded-md px-4 py-3 bg-amber-100 border border-amber-700/40 hover:bg-amber-200 hover:border-amber-700/70 transition-all max-w-[80%] shadow-sm">
+            <div className="w-10 h-10 rounded-md flex items-center justify-center text-white shrink-0 shadow-sm"
               style={{ background: `linear-gradient(180deg, ${ROLE_ACCENT.synthesis.top}, ${ROLE_ACCENT.synthesis.bottom})` }}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />

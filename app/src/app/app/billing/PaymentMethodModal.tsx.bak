@@ -1,0 +1,202 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
+import type { Locale } from "@/lib/i18n";
+
+declare global {
+  interface Window {
+    Chargebee?: {
+      init: (opts: { site: string; publishableKey: string }) => CBInstance;
+      getInstance: () => CBInstance | undefined;
+    };
+  }
+}
+
+type CBComponent = {
+  createField: (type: "number" | "expiry" | "cvv") => { at: (sel: string) => unknown };
+  mount: () => Promise<void>;
+  tokenize: () => Promise<{ token: string }>;
+};
+
+type CBInstance = {
+  createComponent: (kind: "card", opts?: Record<string, unknown>) => CBComponent;
+};
+
+type Props = {
+  locale: Locale;
+  onClose: () => void;
+  onSuccess: () => void;
+};
+
+const SCRIPT_SRC = "https://js.chargebee.com/v2/chargebee.js";
+
+export default function PaymentMethodModal({ locale, onClose, onSuccess }: Props) {
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const isTestSite = (process.env.NEXT_PUBLIC_CHARGEBEE_SITE ?? "").includes("test");
+  const cardRef = useRef<CBComponent | null>(null);
+
+  // Load Chargebee.js once
+  useEffect(() => {
+    if (window.Chargebee) { setScriptLoaded(true); return; }
+    const existing = document.querySelector(`script[src="${SCRIPT_SRC}"]`);
+    if (existing) {
+      existing.addEventListener("load", () => setScriptLoaded(true));
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = SCRIPT_SRC;
+    s.async = true;
+    s.onload = () => setScriptLoaded(true);
+    s.onerror = () => setError("Failed to load Chargebee.js");
+    document.body.appendChild(s);
+  }, []);
+
+  // Initialize Chargebee + mount card component once script is loaded
+  useEffect(() => {
+    if (!scriptLoaded || cardRef.current) return;
+    const site = process.env.NEXT_PUBLIC_CHARGEBEE_SITE;
+    const pk = process.env.NEXT_PUBLIC_CHARGEBEE_PUBLISHABLE_KEY;
+    if (!site || !pk || !window.Chargebee) {
+      setError("Chargebee not configured");
+      return;
+    }
+    try {
+    let instance: CBInstance;
+    try {
+      instance = window.Chargebee.getInstance() || window.Chargebee.init({ site, publishableKey: pk });
+    } catch { instance = window.Chargebee.init({ site, publishableKey: pk }); }
+
+    const card = instance.createComponent("card", {
+      fonts: ["system-ui"],
+      style: {
+        base: {
+          color: "#1F2420",
+          fontFamily: "system-ui, -apple-system, sans-serif",
+          fontSize: "16px",
+          "::placeholder": { color: "#A8A29E" }
+        },
+        invalid: { color: "#9F1239" }
+      }
+    });
+    card.createField("number").at("#cb-card-number");
+    card.createField("expiry").at("#cb-card-expiry");
+    card.createField("cvv").at("#cb-card-cvv");
+    card.mount().catch((e: unknown) => {
+      console.error("[cb-mount]", e);
+      setError("Could not load card form");
+    });
+    cardRef.current = card;
+    } catch (err) {
+      console.error("[cb-init]", err);
+      setError(err instanceof Error ? err.message : "Card form init failed");
+    }
+  }, [scriptLoaded]);
+
+  async function submit() {
+    if (!cardRef.current) return;
+    setError(null); setSubmitting(true);
+    try {
+      const { token } = await cardRef.current.tokenize();
+      if (!token) throw new Error("No token returned");
+      const r = await fetch("/api/billing/payment-source", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, firstName: firstName.trim(), lastName: lastName.trim() })
+      });
+      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      onSuccess();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "unknown";
+      setError(msg);
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl bg-[#F3EFE2] border border-stone-300 shadow-2xl overflow-hidden">
+        <div className="px-6 py-5 border-b border-stone-300/70 flex items-center justify-between">
+          <div className="text-lg font-semibold" style={{ color: "#1F2420" }}>
+            {locale === "en" ? "Update payment method" : "Zahlungsmethode aendern"}
+          </div>
+          <button onClick={onClose} disabled={submitting} className="text-stone-500 hover:text-stone-900 disabled:opacity-50">×</button>
+        </div>
+
+        <div className="px-6 py-5 space-y-3">
+          {isTestSite && (
+            <div className="rounded-xl border border-amber-700/40 bg-amber-50 px-3 py-2 text-xs" style={{ color: "#7A4E13" }}>
+              <div className="font-semibold mb-0.5">{locale === "en" ? "Test environment" : "Testumgebung"}</div>
+              <div>{locale === "en" ? "Use Chargebee test cards:" : "Chargebee Test-Karten:"}</div>
+              <ul className="mt-1 space-y-0.5 font-mono text-[11px]">
+                <li>4111 1111 1111 1111 — {locale === "en" ? "success" : "akzeptiert"}</li>
+                <li>4000 0000 0000 0341 — {locale === "en" ? "card declined" : "abgelehnt"}</li>
+                <li>4000 0000 0000 0259 — {locale === "en" ? "3DS required" : "3DS erforderlich"}</li>
+              </ul>
+              <div className="mt-1">{locale === "en" ? "Expiry: any future date · CVC: 123" : "Ablauf: beliebiges Zukunftsdatum · CVC: 123"}</div>
+            </div>
+          )}
+          {!scriptLoaded && (
+            <div className="text-sm text-stone-500">{locale === "en" ? "Loading secure card form..." : "Sicheres Card-Formular laedt..."}</div>
+          )}
+          {error && (
+            <div className="rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-sm" style={{ color: "#9F1239" }}>{error}</div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "#7A7268" }}>
+                {locale === "en" ? "First name" : "Vorname"}
+              </label>
+              <input value={firstName} onChange={e => setFirstName(e.target.value)} disabled={submitting}
+                className="w-full h-11 px-3 py-2 bg-white rounded-lg border border-stone-300 outline-none text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "#7A7268" }}>
+                {locale === "en" ? "Last name" : "Nachname"}
+              </label>
+              <input value={lastName} onChange={e => setLastName(e.target.value)} disabled={submitting}
+                className="w-full h-11 px-3 py-2 bg-white rounded-lg border border-stone-300 outline-none text-sm" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "#7A7268" }}>
+              {locale === "en" ? "Card number" : "Kartennummer"}
+            </label>
+            <div id="cb-card-number" className="h-11 px-3 py-2 bg-white rounded-lg border border-stone-300 focus-within:border-rose-700/50 focus-within:ring-2 focus-within:ring-rose-700/10" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "#7A7268" }}>
+                {locale === "en" ? "Expiry" : "Ablauf"}
+              </label>
+              <div id="cb-card-expiry" className="h-11 px-3 py-2 bg-white rounded-lg border border-stone-300 focus-within:border-rose-700/50 focus-within:ring-2 focus-within:ring-rose-700/10" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "#7A7268" }}>CVC</label>
+              <div id="cb-card-cvv" className="h-11 px-3 py-2 bg-white rounded-lg border border-stone-300 focus-within:border-rose-700/50 focus-within:ring-2 focus-within:ring-rose-700/10" />
+            </div>
+          </div>
+        </div>
+
+        <div className="px-6 pb-3 text-xs" style={{ color: "#7A7268" }}>
+          {locale === "en"
+            ? "Card data is securely tokenized by Chargebee and never touches our servers."
+            : "Kartendaten werden sicher durch Chargebee tokenisiert und beruehren unsere Server nicht."}
+        </div>
+        <div className="px-6 py-4 flex gap-3 justify-end">
+          <button onClick={onClose} disabled={submitting}
+            className="px-4 py-2 rounded-xl text-sm font-semibold border border-stone-400 bg-white text-stone-900 hover:bg-stone-50 disabled:opacity-60">
+            {locale === "en" ? "Cancel" : "Abbrechen"}
+          </button>
+          <button onClick={submit} disabled={submitting || !scriptLoaded}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold text-white ${(submitting || !scriptLoaded) ? "bg-stone-400 cursor-not-allowed" : "btn-primary"}`}>
+            {submitting ? (locale === "en" ? "Saving..." : "Speichere...") : (locale === "en" ? "Save card" : "Karte speichern")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

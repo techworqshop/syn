@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { sessions } from "@/db/schema";
 import { requireUser } from "@/lib/current-user";
 import { and, eq } from "drizzle-orm";
+import { audit } from "@/lib/log";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const u = await requireUser();
@@ -36,12 +37,21 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
   const [sess] = await db.select().from(sessions)
     .where(and(eq(sessions.id, id), eq(sessions.userId, u.id))).limit(1);
   if (!sess) return NextResponse.json({ error: "not found" }, { status: 404 });
+  // Soft-delete: mark archived_at; cron will purge after 30 days. Files + n8n state stay until purge.
+  await db.update(sessions).set({ archivedAt: new Date() }).where(eq(sessions.id, id));
   const sessionFiles = await db.select().from(files).where(eq(files.sessionId, id));
-  for (const f of sessionFiles) {
-    try { if (fs.existsSync(f.storagePath)) fs.unlinkSync(f.storagePath); } catch {}
-    try { await deleteFileFromPanel(f.id); } catch {}
-  }
-  await db.delete(sessions).where(eq(sessions.id, id));
+  await audit({
+    actorId: u.id, actorEmail: u.email,
+    action: "session.delete_own",
+    targetType: "session", targetId: id,
+    metadata: {
+      title: sess.title,
+      currentRound: sess.currentRound,
+      personaCount: sess.personaCount,
+      filesDeleted: sessionFiles.length,
+      createdAt: sess.createdAt.toISOString()
+    }
+  });
   // Remove on-disk artifacts for this session
   for (const dir of [`/app/uploads/${id}`, `/app/uploads/personas/${id}`, `/app/uploads/reports/${id}`]) {
     try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}

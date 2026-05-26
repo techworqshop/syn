@@ -128,6 +128,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const loggedIn = !!auth?.user;
       const isAdmin = (auth?.user as unknown as { isAdmin?: boolean } | undefined)?.isAdmin === true;
 
+      // Public Invite-Lookup + Accept-Endpoint: muss ohne Login erreichbar
+      // sein, damit der Empfaenger den Invite einloesen kann. Matcher zieht
+      // /api/invites/:path* mit rein, also hier explizit ausnehmen.
+      if (path.startsWith("/api/invites/by-token/")) {
+        return true;
+      }
+
       if (isAdminPath(path)) {
         return loggedIn && isAdmin;
       }

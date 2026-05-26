@@ -11,11 +11,7 @@ export default function CheckoutPage() {
     <main
       className="min-h-screen flex flex-col"
       style={{
-        background:
-          "radial-gradient(ellipse 900px 700px at 12% 8%, rgba(101,134,70,0.10), transparent 60%)," +
-          "radial-gradient(ellipse 1000px 800px at 88% 32%, rgba(214,165,88,0.09), transparent 60%)," +
-          "radial-gradient(ellipse 800px 600px at 50% 95%, rgba(143,122,80,0.10), transparent 60%)," +
-          "#E8E2D2",
+        background: "#F4F1EA",
         color: "#1F2420",
         fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
       }}
@@ -33,7 +29,7 @@ export default function CheckoutPage() {
 
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-[520px] relative overflow-hidden"
-          style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)", borderRadius: "20px" }}>
+          style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)", borderRadius: "6px" }}>
           <span aria-hidden className="absolute top-0 left-0 right-0"
             style={{ height: "4px", background: "linear-gradient(90deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }} />
           <div className="px-8 pt-10 pb-8">
@@ -41,7 +37,7 @@ export default function CheckoutPage() {
             <p className="text-sm mb-7" style={{ color: "#7A7268" }}>Im nächsten Schritt öffnet sich Chargebee für die Zahlung.</p>
 
             {/* Plan-Karte */}
-            <div className="relative overflow-hidden rounded-2xl mb-5 px-6 py-5"
+            <div className="relative overflow-hidden rounded-md mb-5 px-6 py-5"
               style={{ background: "#fdfbf4", border: "1px solid rgba(31,36,32,0.10)" }}>
               <span aria-hidden className="absolute top-0 left-0 bottom-0"
                 style={{ width: "4px", background: "linear-gradient(180deg, #4C1D95, #9F1239, #BE123C)" }} />
@@ -86,7 +82,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Trust-Note */}
-            <div className="rounded-[10px] px-4 py-3.5 mb-5 flex items-start gap-2.5"
+            <div className="rounded-md px-4 py-3.5 mb-5 flex items-start gap-2.5"
               style={{ background: "#fdfbf4", border: "1px solid rgba(31,36,32,0.08)" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="#7A7268" strokeWidth="2" className="w-4 h-4 mt-0.5 shrink-0">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -98,7 +94,7 @@ export default function CheckoutPage() {
 
             {/* CTA — noch ohne Chargebee-Verdrahtung; Placeholder */}
             <button
-              className="w-full text-white border-none rounded-[11px] py-3.5 px-4 text-sm font-medium flex items-center justify-center gap-2"
+              className="w-full text-white border-none rounded-md py-3.5 px-4 text-sm font-medium flex items-center justify-center gap-2"
               style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}
               disabled
               title="Chargebee-Integration folgt"

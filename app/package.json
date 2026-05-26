@@ -11,7 +11,9 @@
     "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
+    "@chargebee/chargebee-js-react-wrapper": "^0.6.9",
     "bcryptjs": "2.4.3",
+    "chargebee": "^3.24.0",
     "drizzle-orm": "^0.45.2",
     "ioredis": "5.4.2",
     "next": "^15.5.18",

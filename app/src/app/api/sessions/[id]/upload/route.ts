@@ -17,9 +17,34 @@ export async function POST(req: Request, { params }: P) {
   const [sess] = await db.select().from(sessions)
     .where(and(eq(sessions.id, id), eq(sessions.userId, u.id))).limit(1);
   if (!sess) return NextResponse.json({ error: "not found" }, { status: 404 });
+
+  // Upload-Disable ab Runde 1: sobald die Diskussion laeuft, kein neues
+  // Material mehr (Anti-Cheat + Kontext-Konsistenz).
+  if ((sess.currentRound ?? 0) >= 1) {
+    return NextResponse.json({
+      error: "Uploads sind ab Runde 1 deaktiviert. Das Panel arbeitet mit dem Material, das vor Diskussionsstart hochgeladen wurde.",
+      code: "uploads_locked"
+    }, { status: 423 });
+  }
+
   const form = await req.formData();
   const file = form.get("file") as File | null;
   if (!file) return NextResponse.json({ error: "no file" }, { status: 400 });
+
+  // Hard limit: max 5 files per session. Token-Budget-Schutz — jedes File geht
+  // durch jeden Persona-Lauf via Ask Vision. 11 Files x 5 Personas x 3 Runden
+  // = 165 Vision-Calls. 5 Files reichen fuer fast jeden Use-Case.
+  const MAX_FILES_PER_SESSION = 5;
+  const existingFiles = await db.select({ id: files.id }).from(files).where(eq(files.sessionId, id));
+  if (existingFiles.length >= MAX_FILES_PER_SESSION) {
+    return NextResponse.json({
+      error: `Maximal ${MAX_FILES_PER_SESSION} Dateien pro Session erlaubt. Loesche eine bestehende Datei, um eine neue hochzuladen.`,
+      code: "file_limit_reached",
+      limit: MAX_FILES_PER_SESSION,
+      current: existingFiles.length
+    }, { status: 400 });
+  }
+
   const buf = Buffer.from(await file.arrayBuffer());
   const safeName = (file.name || "upload").replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 200);
   const id2 = randomUUID();

@@ -15,7 +15,7 @@ export default function CancelledPage() {
           Wir hoffen, wir sehen uns wieder. Falls etwas gefehlt hat — sag's gerne, das hilft uns beim Bauen.
         </p>
 
-        <div className="rounded-[12px] px-5 py-4 mb-7 text-left"
+        <div className="rounded-md px-5 py-4 mb-7 text-left"
           style={{ background: "#fdfbf4", border: "1px solid rgba(31,36,32,0.10)" }}>
           <p className="text-[13.5px] leading-relaxed m-0" style={{ color: "#4A4640" }}>
             Dein <strong className="font-medium" style={{ color: "#1F2420" }}>Pro-Plan</strong> läuft noch bis zum{" "}
@@ -24,7 +24,7 @@ export default function CancelledPage() {
         </div>
 
         <div className="flex flex-col items-center gap-2">
-          <Link href="/app/dashboard" className="inline-block px-7 py-3 rounded-[11px] text-sm font-medium text-white"
+          <Link href="/app/dashboard" className="inline-block px-7 py-3 rounded-md text-sm font-medium text-white"
             style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}>
             Zum Dashboard
           </Link>

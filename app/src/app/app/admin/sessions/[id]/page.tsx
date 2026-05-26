@@ -50,7 +50,7 @@ export default async function AdminSessionDetailPage({ params }: P) {
           </span>
         </div>
 
-        <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] p-5 shadow-sm mb-6">
+        <div className="rounded-md border border-stone-300 bg-[#F3EFE2] p-5 shadow-sm mb-6">
           <div className="flex items-baseline gap-3 flex-wrap">
             <h1 className="text-2xl font-semibold tracking-tight text-stone-900">{sess.title}</h1>
             {closed && (
@@ -66,7 +66,7 @@ export default async function AdminSessionDetailPage({ params }: P) {
           {sess.problemBrief && (
             <details className="mt-3">
               <summary className="text-xs uppercase tracking-wide text-stone-600 font-bold cursor-pointer hover:text-stone-900">Problem Brief</summary>
-              <div className="mt-2 text-sm text-stone-800 whitespace-pre-wrap bg-white/50 rounded-lg p-3 border border-stone-200">{sess.problemBrief}</div>
+              <div className="mt-2 text-sm text-stone-800 whitespace-pre-wrap bg-white/50 rounded-md p-3 border border-stone-200">{sess.problemBrief}</div>
             </details>
           )}
         </div>
@@ -93,7 +93,7 @@ export default async function AdminSessionDetailPage({ params }: P) {
           </div>
         )}
 
-        <div className="rounded-2xl bg-[#F3EFE2] border border-stone-300 shadow-sm p-5">
+        <div className="rounded-md bg-[#F3EFE2] border border-stone-300 shadow-sm p-5">
           <div className="text-xs uppercase tracking-wide text-stone-700 font-bold mb-4">Chat-Verlauf ({msgs.length})</div>
           {msgs.length === 0 ? (
             <div className="text-sm text-stone-600 text-center py-12">Noch keine Nachrichten.</div>

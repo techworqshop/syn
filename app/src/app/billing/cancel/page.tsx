@@ -15,7 +15,7 @@ export default function CancelConfirmPage() {
         Schade. Bevor du gehst — das passiert nach der Kündigung:
       </p>
 
-      <div className="rounded-[12px] px-6 py-5 mb-7"
+      <div className="rounded-md px-6 py-5 mb-7"
         style={{ background: "#fdfbf4", border: "1px solid rgba(31,36,32,0.10)" }}>
         <h3 className="text-[13px] font-semibold uppercase mb-3" style={{ color: "#7A7268", letterSpacing: "0.05em" }}>Was passiert</h3>
         <ul className="space-y-2 m-0 p-0 list-none">
@@ -35,11 +35,11 @@ export default function CancelConfirmPage() {
       </div>
 
       <div className="flex flex-col gap-2.5">
-        <Link href="/billing" className="block text-center text-white border-none rounded-[11px] py-3 px-5 text-sm font-medium"
+        <Link href="/billing" className="block text-center text-white border-none rounded-md py-3 px-5 text-sm font-medium"
           style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}>
           Doch behalten
         </Link>
-        <Link href="/billing/cancelled" className="block text-center rounded-[11px] py-3 px-5 text-sm font-medium transition-colors hover:bg-[#913B4F] hover:text-[#F3EFE2]"
+        <Link href="/billing/cancelled" className="block text-center rounded-md py-3 px-5 text-sm font-medium transition-colors hover:bg-[#913B4F] hover:text-[#F3EFE2]"
           style={{ background: "transparent", color: "#913B4F", border: "1px solid #913B4F" }}>
           Trotzdem kündigen
         </Link>

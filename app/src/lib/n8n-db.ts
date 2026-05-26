@@ -2,6 +2,7 @@
 // Workflow-Telemetrie für Analytics ziehen koennen. Wird lazy gebootet.
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { getPub } from "./redis";
 
 let _client: ReturnType<typeof postgres> | null = null;
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -117,7 +118,7 @@ function priceFor(model: string): { family: string; in: number; out: number } {
  * Totals across all sessions in range — total + per-model breakdown
  * mit Kostenschaetzung in USD.
  */
-export async function fetchTokenTotals(sinceISO: string | null): Promise<{
+async function fetchTokenTotalsUncached(sinceISO: string | null): Promise<{
   input: number;
   output: number;
   total: number;
@@ -213,4 +214,24 @@ export async function fetchTokenTotals(sinceISO: string | null): Promise<{
     }));
 
   return { input, output, total: input + output, calls, executions: rows.length, costUsd, byModel };
+}
+
+// Token totals require a 20s seq-scan on n8n.execution_data — cache aggressively.
+// Cache key contains the range so 7d/30d/90d/all are cached separately.
+export async function fetchTokenTotals(sinceISO: string | null) {
+  const key = `analytics:tokens:${sinceISO ?? "all"}`;
+  const redis = getPub();
+  try {
+    const cached = await redis.get(key);
+    if (cached) return JSON.parse(cached) as Awaited<ReturnType<typeof fetchTokenTotalsUncached>>;
+  } catch (e) {
+    console.warn("[n8n-db] redis get failed (continuing):", e);
+  }
+  const fresh = await fetchTokenTotalsUncached(sinceISO);
+  try {
+    await redis.set(key, JSON.stringify(fresh), "EX", 600);
+  } catch (e) {
+    console.warn("[n8n-db] redis set failed (continuing):", e);
+  }
+  return fresh;
 }

@@ -6,6 +6,7 @@ export async function forwardToGateway(payload: {
   cleanMessage: string;
   targetPersona?: number | null;
   hasFiles?: boolean;
+  locale?: string;
 }) {
   const callbackBase = process.env.APP_PUBLIC_BASE || process.env.PUBLIC_BASE_URL || "https://syn.worqshop.io";
   const body = {
@@ -14,6 +15,7 @@ export async function forwardToGateway(payload: {
     cleanMessage: payload.cleanMessage,
     targetPersona: payload.targetPersona != null ? String(payload.targetPersona) : "",
     hasFiles: !!payload.hasFiles,
+    locale: payload.locale || "de",
     // Stack-aware Callback-URL — Gateway forwarded das zu allen Sub-Workflows.
     callbackUrl: `${callbackBase}/api/n8n/callback`
   };
@@ -83,6 +85,7 @@ export type PanelPersona = {
   round_2_response?: string;
   round_3_response?: string;
   slack_slot?: number;
+  status?: string;
 };
 
 export type PanelSynthesis = {

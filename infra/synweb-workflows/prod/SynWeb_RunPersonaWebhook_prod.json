@@ -1,0 +1,113 @@
+[
+  {
+    "updatedAt": "2026-05-19T23:39:58.683Z",
+    "createdAt": "2026-05-19T19:26:13.235Z",
+    "id": "DtgkcqHcaJoM2Swg",
+    "name": "SynWeb_RunPersonaWebhook_prod",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "5UftNIPpSwJnSY5B-w",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          200,
+          300
+        ],
+        "webhookId": "jhi06Xu6tyrLfjho",
+        "parameters": {
+          "path": "synweb/run-persona-prod",
+          "httpMethod": "POST",
+          "responseMode": "lastNode",
+          "options": {}
+        }
+      },
+      {
+        "id": "5UftNIPpSwJnSY5B-e",
+        "name": "Execute Sub",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          450,
+          300
+        ],
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "cM4K3qGsjfBvEfqV"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "session_id": "={{ $json.body.session_id }}",
+              "persona_id": "={{ $json.body.persona_id }}",
+              "persona_profile": "={{ $json.body.persona_profile }}",
+              "problem_brief": "={{ $json.body.problem_brief }}",
+              "round_number": "={{ $json.body.round_number }}",
+              "file_context": "={{ $json.body.file_context }}",
+              "own_history": "={{ $json.body.own_history }}",
+              "synthesis_history": "={{ $json.body.synthesis_history }}",
+              "rigidity": "={{ $json.body.rigidity }}",
+              "unresolved_tension": "={{ $json.body.unresolved_tension }}",
+              "file_url": "={{ $json.body.file_url }}"
+            }
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Execute Sub",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataSuccessExecution": "all",
+      "saveDataErrorExecution": "all",
+      "saveManualExecutions": true
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "25311c6d-7646-43da-9e0a-7381b825e2bb",
+    "activeVersionId": "25311c6d-7646-43da-9e0a-7381b825e2bb",
+    "versionCounter": 31,
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-19T19:26:13.235Z",
+        "createdAt": "2026-05-19T19:26:13.235Z",
+        "role": "workflow:owner",
+        "workflowId": "DtgkcqHcaJoM2Swg",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

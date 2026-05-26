@@ -21,11 +21,7 @@ export default async function AuthShell({ children, navRight, locale: providedLo
     <main
       className="min-h-screen flex flex-col"
       style={{
-        background:
-          "radial-gradient(ellipse 900px 700px at 12% 8%, rgba(101,134,70,0.10), transparent 60%)," +
-          "radial-gradient(ellipse 1000px 800px at 88% 32%, rgba(214,165,88,0.09), transparent 60%)," +
-          "radial-gradient(ellipse 800px 600px at 50% 95%, rgba(143,122,80,0.10), transparent 60%)," +
-          "#E8E2D2",
+        background: "#F4F1EA",
         color: "#1F2420",
         fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
       }}
@@ -46,7 +42,7 @@ export default async function AuthShell({ children, navRight, locale: providedLo
             alt="Syn"
             className="w-7 h-7 rounded-full ring-1 ring-white/40 object-cover group-hover:ring-white/60 transition"
           />
-          <span className="font-semibold text-lg tracking-tight" style={{ color: "#BE123C" }}>Syn</span>
+          <span className="font-serif text-xl font-medium tracking-tight" style={{ color: "#1F2420" }}>Syn</span>
         </Link>
         <div className="flex items-center gap-4">
           <LanguageSwitch locale={locale} />
@@ -62,7 +58,7 @@ export default async function AuthShell({ children, navRight, locale: providedLo
             maxWidth: cardMaxWidth,
             background: "#F3EFE2",
             border: "1px solid rgba(31,36,32,0.06)",
-            borderRadius: "20px"
+            borderRadius: "6px"
           }}
         >
           {/* Brand-Stripe oben */}
@@ -98,14 +94,14 @@ export const authStyles = {
   label: "block text-xs font-semibold mb-1.5 tracking-wide",
   labelColor: { color: "#4A4640" },
   input:
-    "w-full px-3.5 py-3 rounded-[10px] text-sm outline-none transition-colors",
+    "w-full px-3.5 py-3 rounded-md text-sm outline-none transition-colors",
   inputStyle: {
     background: "#fdfbf4",
     border: "1px solid rgba(31,36,32,0.15)",
     color: "#1F2420"
   },
   cta:
-    "w-full text-white border-none rounded-[11px] py-3.5 px-4 text-sm font-medium transition-all",
+    "w-full text-white border-none rounded-md py-3.5 px-4 text-sm font-medium transition-all",
   ctaStyle: {
     background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)"
   },

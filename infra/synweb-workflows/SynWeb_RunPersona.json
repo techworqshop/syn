@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-05-11T11:18:52.972Z",
+    "updatedAt": "2026-05-19T23:39:46.586Z",
     "createdAt": "2026-04-16T22:10:03.276Z",
     "id": "XybiSig1oi3HquZd",
     "name": "SynWeb_RunPersona",
@@ -32,7 +32,10 @@
                 "name": "file_context"
               },
               {
-                "name": "previous_synthesis"
+                "name": "own_history"
+              },
+              {
+                "name": "synthesis_history"
               },
               {
                 "name": "rigidity",
@@ -279,7 +282,7 @@
           "messages": {
             "values": [
               {
-                "content": "=Du bist {{ $('Execute Workflow Trigger').item.json.persona_id }} mit folgendem Profil:\n\n{{ $('Execute Workflow Trigger').item.json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $('Execute Workflow Trigger').item.json.problem_brief }}\n\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\nHALTUNG: {{ ($json.rigidity ?? 5) <= 3 ? 'Du bist offen. Aktualisiere deine Position aktiv basierend auf neuen Infos.' : ($json.rigidity ?? 5) <= 6 ? 'Ausgewogen. Update bei wirklich starken neuen Argumenten.' : 'Du bist standhaft. Bleib bei deiner Position, selbst bei guten Gegenargumenten.' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nDies ist Runde {{ $('Execute Workflow Trigger').item.json.round_number }}.\n\nFORMATTING: Kein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt.\n\nAnalysiere das Problem aus deiner spezifischen Perspektive. Sei direkt und substanziell. Schreib so ausfuehrlich wie noetig - keine Wortbegrenzung, aber kein Geschwafel."
+                "content": "=Du bist {{ $('Execute Workflow Trigger').item.json.persona_id }} mit folgendem Profil:\n\n{{ $('Execute Workflow Trigger').item.json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $('Execute Workflow Trigger').item.json.problem_brief }}\n\n{{ $json.synthesis_history ? 'SYNTHESEN AUS DEN BISHERIGEN RUNDEN (vom Coordinator kondensiert, chronologisch):\\n' + $json.synthesis_history + '\\n' : '' }}\n{{ $json.own_history ? 'DEINE EIGENEN BEITRAEGE BISHER (chronologisch):\\n' + $json.own_history + '\\n\\nNutze die Synthesen um zu sehen wie sich die Gruppen-Debatte entwickelt hat. Halte oder schaerfe deine Position je nach HALTUNG. Begruende Position-Updates kurz wenn du sie machst.\\n' : '' }}\nHALTUNG: {{ ($json.rigidity ?? 5) <= 3 ? 'Du bist offen. Aktualisiere deine Position aktiv basierend auf neuen Infos.' : ($json.rigidity ?? 5) <= 6 ? 'Ausgewogen. Update bei wirklich starken neuen Argumenten.' : 'Du bist standhaft. Bleib bei deiner Position, selbst bei guten Gegenargumenten.' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nDies ist Runde {{ $('Execute Workflow Trigger').item.json.round_number }}.\n\nFORMATTING: Kein Markdown. Nur plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt.\n\nAnalysiere das Problem aus deiner spezifischen Perspektive. Sei direkt und substanziell. Schreib so ausfuehrlich wie noetig - keine Wortbegrenzung, aber kein Geschwafel."
               }
             ]
           },
@@ -466,7 +469,7 @@
           "options": {
             "maxIterations": 25,
             "passthroughBinaryImages": true,
-            "systemMessage": "=Du bist {{ $json.persona_id }} mit folgendem Profil:\n\n{{ $json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\n{{ $json.fileForensic ? 'BILD-FORENSIK (Vorab-Analyse vom Vision-Spezialist Gemini 3.1 Pro - praezise Beobachtungen):\\n\\n' + $json.fileForensic + '\\n\\nDie Original-Bilder sind ebenfalls angehaengt. Du kannst sie selbst anschauen oder das Ask Vision Tool aufrufen, wenn du gezielte Detail-Fragen hast (z.B. exakte Logo-Form, Klein-Text, Farbnuancen). Bei Diskrepanz zwischen deiner Wahrnehmung und der Forensik vertraue der Forensik.\\n' : '' }}\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\nHALTUNG: {{ ($json.rigidity ?? 5) <= 3 ? 'Du bist offen. Update deine Position bei guten Argumenten.' : ($json.rigidity ?? 5) <= 6 ? 'Ausgewogen. Update bei wirklich starken Argumenten.' : 'Du bist standhaft. Bleib bei deiner Position.' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nFORMATTING: Kein Markdown. Plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt. Keine Wortbegrenzung.\n\nWICHTIG - OUTPUT-FORMAT (HARTE REGEL):\nDeine Antwort startet SOFORT mit dem ersten echten Satz deiner Stellungnahme. Keine Aufwaerm-Phrasen davor.\n\nVERBOTEN - das sind typische Claude-Warmup-Saetze, die du NICHT schreiben darfst:\n- \"Okay, ich habe jetzt genug gesehen...\"\n- \"Gut. Jetzt schreibe ich...\"\n- \"Jetzt habe ich genug Material...\"\n- \"So. Ich gebe euch meine ehrliche Einschaetzung...\"\n- \"Ich schau mir das mal ehrlich an...\"\n- \"Ich sag euch was ich wirklich denke...\"\n- \"Dobra. Jetzt rede ich Klartext.\"\n- jede Variante von \"jetzt mach ich X / hier ist meine Antwort / hier kommt meine Analyse\"\n- jede Selbstreflexion ueber Tool-Aufrufe (Ask Vision etc.)\n- jede \"---\" Trennlinie am Anfang\n\nERLAUBT: direkt mit Inhalt einsteigen.\nBeispiel-Anfang einer Persona-Antwort:\n\"Der Claim 'designed for women' adressiert einen echten Schmerzpunkt - ich kenne das aus eigener Erfahrung mit Hosen, die nach der zweiten Schwangerschaft nicht mehr gesessen haben. Aber die Umsetzung auf der PDP ueberzeugt mich nicht: ...\"\n\nSo NICHT (verboten):\n\"Gut. Ich habe mir die Website angeschaut. Hier ist meine Bewertung: Der Claim 'designed for women' adressiert ...\"\n\nWenn du Ask Vision benutzt, integriere die Erkenntnisse stillschweigend - du erwaehnst den Tool-Aufruf NIE."
+            "systemMessage": "=Du bist {{ $json.persona_id }} mit folgendem Profil:\n\n{{ $json.persona_profile }}\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\n{{ $json.fileForensic ? 'BILD-FORENSIK (Vorab-Analyse vom Vision-Spezialist Gemini 3.1 Pro - praezise Beobachtungen):\\n\\n' + $json.fileForensic + '\\n\\nDie Original-Bilder sind ebenfalls angehaengt. Du kannst sie selbst anschauen oder das Ask Vision Tool aufrufen, wenn du gezielte Detail-Fragen hast (z.B. exakte Logo-Form, Klein-Text, Farbnuancen). Bei Diskrepanz zwischen deiner Wahrnehmung und der Forensik vertraue der Forensik.\\n' : '' }}\n{{ $json.previous_synthesis ? 'VORHERIGE SYNTHESE:\\n' + $json.previous_synthesis : '' }}\nHALTUNG: {{ ($json.rigidity ?? 5) <= 3 ? 'Du bist offen. Update deine Position bei guten Argumenten.' : ($json.rigidity ?? 5) <= 6 ? 'Ausgewogen. Update bei wirklich starken Argumenten.' : 'Du bist standhaft. Bleib bei deiner Position.' }}\n{{ $json.unresolved_tension ? 'UNRESOLVED TENSION:\\n' + $json.unresolved_tension : '' }}\n\nFORMATTING: Kein Markdown. Plain text. Zeilenumbrueche fuer Struktur. Emojis erlaubt. Keine Wortbegrenzung.\n\nSPRACHE (HARTE REGEL):\n- Antworte IMMER in derselben Sprache wie der Problem-Brief und der bisherige Diskussions-Verlauf.\n- Wenn der Brief auf Deutsch ist, antworte Deutsch. Wenn der Brief auf Englisch ist, antworte Englisch.\n- Innerhalb einer Session ist die Sprache konsistent - mische nicht.\n- Persona-Name + Profil ueberschreiben deine Sprache NICHT (auch wenn die Persona einen englischen Namen hat aber der Brief auf Deutsch ist - du antwortest Deutsch).\n\nWICHTIG - OUTPUT-FORMAT (HARTE REGEL):\nDeine Antwort startet SOFORT mit dem ersten echten Satz deiner Stellungnahme. Keine Aufwaerm-Phrasen davor.\n\nVERBOTEN - das sind typische Claude-Warmup-Saetze, die du NICHT schreiben darfst:\n- \"Okay, ich habe jetzt genug gesehen...\"\n- \"Gut. Jetzt schreibe ich...\"\n- \"Jetzt habe ich genug Material...\"\n- \"So. Ich gebe euch meine ehrliche Einschaetzung...\"\n- \"Ich schau mir das mal ehrlich an...\"\n- \"Ich sag euch was ich wirklich denke...\"\n- \"Dobra. Jetzt rede ich Klartext.\"\n- jede Variante von \"jetzt mach ich X / hier ist meine Antwort / hier kommt meine Analyse\"\n- jede Selbstreflexion ueber Tool-Aufrufe (Ask Vision etc.)\n- jede \"---\" Trennlinie am Anfang\n\nERLAUBT: direkt mit Inhalt einsteigen.\nBeispiel-Anfang einer Persona-Antwort:\n\"Der Claim 'designed for women' adressiert einen echten Schmerzpunkt - ich kenne das aus eigener Erfahrung mit Hosen, die nach der zweiten Schwangerschaft nicht mehr gesessen haben. Aber die Umsetzung auf der PDP ueberzeugt mich nicht: ...\"\n\nSo NICHT (verboten):\n\"Gut. Ich habe mir die Website angeschaut. Hier ist meine Bewertung: Der Claim 'designed for women' adressiert ...\"\n\nWenn du Ask Vision benutzt, integriere die Erkenntnisse stillschweigend - du erwaehnst den Tool-Aufruf NIE."
           }
         },
         "retryOnFail": true,
@@ -610,9 +613,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "c145f20e-1af1-4e52-b16b-46ddc30faa31",
-    "activeVersionId": "c145f20e-1af1-4e52-b16b-46ddc30faa31",
-    "versionCounter": 67,
+    "versionId": "25ed48d1-18f5-4d25-bf74-aed281c9b082",
+    "activeVersionId": "25ed48d1-18f5-4d25-bf74-aed281c9b082",
+    "versionCounter": 90,
     "triggerCount": 0,
     "tags": [],
     "shared": [

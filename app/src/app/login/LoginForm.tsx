@@ -6,8 +6,30 @@ import { t, type Locale } from "@/lib/i18n";
 import { authStyles as s } from "@/components/auth/AuthShell";
 
 export default function LoginForm({ locale, justVerified = false }: { locale: Locale; justVerified?: boolean }) {
-  const [state, action, pending] = useActionState(loginAction, { error: null as string | null, unverifiedEmail: undefined as string | undefined });
+  const [state, action, pending] = useActionState(loginAction, { error: null as string | null, unverifiedEmail: undefined as string | undefined, restoreOffered: false, restoreEmail: undefined as string | undefined });
+  const [restorePwd, setRestorePwd] = useState("");
+  const [restoreBusy, setRestoreBusy] = useState(false);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const [restoreDone, setRestoreDone] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+
+  async function doRestore() {
+    if (!state.restoreEmail) return;
+    setRestoreBusy(true); setRestoreError(null);
+    try {
+      const r = await fetch("/api/auth-restore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: state.restoreEmail, password: restorePwd })
+      });
+      if (!r.ok) throw new Error((await r.text()) || `HTTP ${r.status}`);
+      setRestoreDone(true);
+    } catch (e) {
+      setRestoreError(e instanceof Error ? e.message : "restore failed");
+    } finally {
+      setRestoreBusy(false);
+    }
+  }
 
   return (
     <>
@@ -16,7 +38,7 @@ export default function LoginForm({ locale, justVerified = false }: { locale: Lo
 
       {justVerified && (
         <div
-          className="rounded-[10px] px-4 py-3 mb-5 text-sm leading-relaxed"
+          className="rounded-md px-4 py-3 mb-5 text-sm leading-relaxed"
           style={{ background: "rgba(58,126,88,0.10)", border: "1px solid rgba(58,126,88,0.30)", color: "#1F2420" }}
         >
           {t("login.verifiedBanner", locale)}
@@ -86,6 +108,21 @@ export default function LoginForm({ locale, justVerified = false }: { locale: Lo
                 style={{ color: "#BE123C" }}>
                 {t("login.resendVerify", locale)}
               </a>
+            )}
+            {state.restoreOffered && state.restoreEmail && !restoreDone && (
+              <div className="mt-3 p-3 rounded-md" style={{ background: "#FFF6E5", border: "1px solid #C28F1F" }}>
+                <input type="password" value={restorePwd} onChange={e => setRestorePwd(e.target.value)}
+                  placeholder={t("login.password", locale)}
+                  className="w-full px-3 py-2 rounded-md text-sm mb-2" style={{ background: "#fdfbf4", border: "1px solid rgba(31,36,32,0.15)", color: "#1F2420" }} />
+                {restoreError && <p className="text-xs mb-1.5" style={{ color: "#9F1239" }}>{restoreError}</p>}
+                <button type="button" disabled={restoreBusy || !restorePwd} onClick={doRestore}
+                  className="rounded-md py-1.5 px-3 text-xs font-semibold text-white disabled:opacity-60" style={{ background: "#9F1239" }}>
+                  {restoreBusy ? "..." : t("login.restore_cta", locale)}
+                </button>
+              </div>
+            )}
+            {restoreDone && (
+              <p className="text-sm mt-2" style={{ color: "#1F5F3C" }}>{t("login.restore_done", locale)}</p>
             )}
           </div>
         )}

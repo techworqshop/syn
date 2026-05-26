@@ -55,20 +55,20 @@ export default function InvitesClient(props: Props) {
   }
 
   return (
-    <div className="rounded-2xl border border-stone-300 bg-[#F3EFE2] p-4 shadow-sm">
+    <div className="rounded-md border border-stone-300 bg-[#F3EFE2] p-4 shadow-sm">
       <label className="text-xs uppercase tracking-wide text-stone-600 font-bold">Email einladen</label>
       <div className="flex gap-2 mt-2">
         <input value={email} onChange={e => setEmail(e.target.value)}
           placeholder="kollege@firma.com" type="email"
           onKeyDown={e => { if (e.key === "Enter") create(); }}
-          className="flex-1 px-4 py-2 rounded-xl bg-white border border-stone-300 focus:outline-none focus:border-rose-700/50 text-sm" />
+          className="flex-1 px-4 py-2 rounded-md bg-white border border-stone-300 focus:outline-none focus:border-rose-700/50 text-sm" />
         <button onClick={create} disabled={busy || !email.trim()}
-          className="btn-primary px-5 py-2 rounded-xl text-sm font-medium disabled:opacity-50">
+          className="btn-primary px-5 py-2 rounded-md text-sm font-medium disabled:opacity-50">
           {busy ? "..." : "Einladen"}
         </button>
       </div>
       {msg && (
-        <div className="mt-3 p-2.5 rounded-lg bg-white border border-stone-200 text-sm">
+        <div className="mt-3 p-2.5 rounded-md bg-white border border-stone-200 text-sm">
           <div className="text-stone-800">{msg.text}</div>
           {msg.url && <div className="mt-1 text-xs text-rose-700 break-all">{msg.url}</div>}
         </div>

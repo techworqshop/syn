@@ -1,439 +1,526 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { getLocaleFromCookies, type Locale } from "@/lib/i18n";
 import { auth } from "@/lib/auth";
 import LanguageSwitch from "@/components/LanguageSwitch";
+import PricingSwitcher from "@/components/landing/PricingSwitcher";
 
 export const dynamic = "force-dynamic";
 
-// Root: Marketing-Landing fuer Anonyme, redirect zum Dashboard fuer
-// Eingeloggte. Marketing-Inhalte sind direkt unter `/` erreichbar
-// (asksyn.com/ statt asksyn.com/landing). — wird spaeter zur asksin.com Root. Layout
-// folgt dem v3 Mockup, Bilder werden zur Build-Zeit von Gemini erzeugt
-// und unter /api/assets/landing/{name} ausgeliefert.
+const PERSONAS = [
+  { slug: "maya",   name: "Maya Reyes",   role: { de: "Skeptische CMO",     en: "Skeptical CMO" } },
+  { slug: "jonas",  name: "Jonas Frei",   role: { de: "Frühadopter PM",     en: "Early-adopter PM" } },
+  { slug: "noor",   name: "Noor Hassan",  role: { de: "Budget-Lead",        en: "Budget lead" } },
+  { slug: "adrian", name: "Adrian Cole",  role: { de: "Quereinsteiger",     en: "Career-switcher" } },
+  { slug: "lia",    name: "Lia Tanaka",   role: { de: "Nutzerin",           en: "End user" } }
+];
+
+const PERSONA_STANCES: Record<string, { stance: { de: string; en: string }; blindspot: { de: string; en: string } }> = {
+  maya:   { stance:   { de: "Misstrauen gegen Versprechen. Fragt: „Was heißt das in Q4?“",
+                        en: "Distrusts promises. Asks: “What does that mean in Q4?”" },
+            blindspot: { de: "Unterschätzt kreative Sprünge, die sich noch nicht in Zahlen zeigen.",
+                         en: "Underestimates creative leaps that haven't shown up in the numbers yet." } },
+  jonas:  { stance:   { de: "Sieht Potenzial schnell. Will testen, nicht analysieren.",
+                        en: "Spots potential fast. Wants to test, not analyse." },
+            blindspot: { de: "Verwechselt Begeisterung mit Marktrelevanz.",
+                         en: "Confuses enthusiasm with market relevance." } },
+  noor:   { stance:   { de: "Denkt in Trade-offs und Opportunitätskosten. Fragt immer: „Statt was?“",
+                        en: "Thinks in trade-offs and opportunity cost. Always asks: “Instead of what?”" },
+            blindspot: { de: "Übersieht strategischen Wert, der nicht in dieser Quartalsrechnung steht.",
+                         en: "Misses strategic value that doesn't show up in this quarter's P&L." } },
+  adrian: { stance:   { de: "Hat die Branche nicht im Reflex. Fragt das, was niemand sonst fragt.",
+                        en: "Doesn't have the industry on reflex. Asks the thing no one else asks." },
+            blindspot: { de: "Manchmal naiv — auf produktive Weise, manchmal nicht.",
+                         en: "Sometimes naive — productively, sometimes not." } },
+  lia:    { stance:   { de: "Spricht aus dem Alltag. Reagiert auf Tonalität und Versprechen, nicht auf Strategie.",
+                        en: "Speaks from everyday use. Reacts to tone and promise, not strategy." },
+            blindspot: { de: "Vermischt persönliche Vorliebe mit Marktrepräsentativität.",
+                         en: "Conflates personal preference with market representativeness." } }
+};
+
+const USE_CASES = [
+  { slug: "products",
+    title: { de: "Produkte",  en: "Products" },
+    body:  { de: "Neue Features, Konzepte, Roadmap-Vorschläge — bevor sie in den Backlog wandern oder im Standup verteidigt werden müssen.",
+             en: "New features, concepts, roadmap proposals — before they hit the backlog or have to be defended in standup." },
+    fit:   { de: "Feature-Cuts · Positionierung · Pricing-Hypothesen", en: "Feature cuts · Positioning · Pricing hypotheses" },
+    nofit: { de: "Marktgröße · Statistische Repräsentativität",        en: "Market sizing · Statistical representativeness" } },
+  { slug: "websites",
+    title: { de: "Websites",  en: "Websites" },
+    body:  { de: "Landing-Pages, Hero-Copy, Funnel-Stages — bevor du Traffic drauflenkst und die Daten Wochen brauchen.",
+             en: "Landing pages, hero copy, funnel stages — before you drive traffic and the data takes weeks." },
+    fit:   { de: "Hero-Varianten · CTA-Klarheit · Tonalität",           en: "Hero variants · CTA clarity · Tone of voice" },
+    nofit: { de: "A/B-Test-Ergebnisse · Performance-Benchmarks",        en: "A/B test results · Performance benchmarks" } },
+  { slug: "designs",
+    title: { de: "Designs",   en: "Designs" },
+    body:  { de: "Visuals, Layout-Entscheidungen, Brand-Richtungen — bevor sie in Production gehen oder das Designsystem prägen.",
+             en: "Visuals, layout decisions, brand directions — before they hit production or shape the design system." },
+    fit:   { de: "Brand-Richtungen · Visual Tone · Layout-Hypothesen", en: "Brand directions · Visual tone · Layout hypotheses" },
+    nofit: { de: "Usability-Testing · Eye-Tracking",                   en: "Usability testing · Eye-tracking" } }
+];
+
+const METHOD_STEPS = [
+  { num: "01", label: { de: "Setup",     en: "Setup" },     title: { de: "Briefing",        en: "Briefing" },
+    body:  { de: "Konzept, Zielgruppe, offene Fragen. Standard-Set oder eigene Personas.",
+             en: "Concept, audience, open questions. Standard set or custom personas." } },
+  { num: "02", label: { de: "Runde 1",   en: "Round 1" },   title: { de: "Erste Reaktionen", en: "First reactions" },
+    body:  { de: "Jede Persona reagiert aus ihrer Haltung heraus. Keine Konsensbildung.",
+             en: "Each persona reacts from their stance. No premature consensus." } },
+  { num: "03", label: { de: "Runde 2",   en: "Round 2" },   title: { de: "Pushback",         en: "Pushback" },
+    body:  { de: "Personas widersprechen einander. Härte steuerbar von Resonanz bis Konfrontation.",
+             en: "Personas push back on each other. Intensity from resonance to confrontation." } },
+  { num: "04", label: { de: "Runde 3",   en: "Round 3" },   title: { de: "Priorisierung",    en: "Prioritisation" },
+    body:  { de: "Was zählt wirklich? Die Synthese arbeitet die echten Spannungslinien raus.",
+             en: "What actually matters? The synthesis surfaces the real tension lines." } },
+  { num: "05", label: { de: "Output",    en: "Output" },    title: { de: "Abschlussbericht", en: "Final report" },
+    body:  { de: "PDF mit Synthesen, Spannungslinien und priorisierter Handlungsliste.",
+             en: "PDF with syntheses, tension lines, and a prioritised action list." } }
+];
+
+const FAQS = [
+  { q: { de: "Sind die Personas echte Menschen?", en: "Are the personas real people?" },
+    a: { de: "Nein. Es sind konstruierte KI-Charaktere mit klaren Haltungen, Triggern und Blindspots. Sie ersetzen keine echte Marktforschung — sie ersetzen die improvisierte Diskussion davor.",
+         en: "No. They're constructed AI characters with clear stances, triggers, and blind spots. They don't replace real research — they replace the improvised discussion before it." } },
+  { q: { de: "Wie unterscheidet sich Syn von einem normalen LLM-Chat?", en: "How is Syn different from a regular LLM chat?" },
+    a: { de: "Ein Chat ist ein Universal-Assistent, der dir tendenziell zustimmt. Syn ist ein moderiertes Format mit fünf eigenständigen Stimmen, drei strukturierten Runden und einem priorisierten Abschlussbericht — auf ein konkretes Konzept hin.",
+         en: "A chat is a universal assistant that tends to agree with you. Syn is a moderated format with five distinct voices, three structured rounds, and a prioritised final report — focused on one concrete concept." } },
+  { q: { de: "Wem gehören meine Daten?", en: "Who owns my data?" },
+    a: { de: "Dir. Briefings, Sessions und Berichte gehören deinem Account. Anthropic trainiert keine Modelle auf API-Inputs und -Outputs (Standard der Commercial Terms). Hosting in der EU.",
+         en: "You. Briefings, sessions, and reports belong to your account. Anthropic does not train models on API inputs or outputs (default under Commercial Terms). Hosting in the EU." } },
+  { q: { de: "Kann ich eigene Personas bauen?", en: "Can I build my own personas?" },
+    a: { de: "Jederzeit, in jedem Plan. Du gibst Rolle, Haltung, Sprachstil und Tabus vor — Syn baut die Persona und prüft sie über mehrere Runden auf Konsistenz.",
+         en: "Anytime, on every plan. You provide role, stance, language style, and taboos — Syn builds the persona and validates its consistency over multiple rounds." } },
+  { q: { de: "Was passiert nach der Session?", en: "What happens after the session?" },
+    a: { de: "Du bekommst einen Abschlussbericht als PDF mit Synthesen, Spannungslinien und priorisierter Handlungsliste. Jede Persona bleibt verfügbar — wenn du eine spannend fandst, kannst du sie 1:1 weiter befragen.",
+         en: "You get a final report as PDF with syntheses, tension lines, and a prioritised action list. Each persona stays available — if you found one particularly insightful, you can keep talking to them 1:1." } }
+];
+
+const COPY = {
+  nav: { de: { method: "Methodik", personas: "Personas", use: "Wofür", pricing: "Preise", faq: "FAQ", login: "Login", start: "Jetzt starten" },
+         en: { method: "How it works", personas: "Personas", use: "Use cases", pricing: "Pricing", faq: "FAQ", login: "Log in", start: "Get started" } },
+  hero: { de: { eyebrow: "Synthetische Fokusgruppen",
+                title1: "Diskutier dein Konzept.",
+                title2: "Heute.",
+                title3: "Nicht in vier Wochen.",
+                sub: "Bis zu fünf Personas mit eigenen Haltungen, bis zu drei Runden moderierter Diskurs, ein priorisierter Abschlussbericht. Zwischen Konzeptpapier und Creative Brief — bevor du Budget für Recruiting freigibst.",
+                cta: "Jetzt starten →", meta: "⌀ 14 Min. pro Session" },
+          en: { eyebrow: "Synthetic focus groups",
+                title1: "Debate your concept.",
+                title2: "Today.",
+                title3: "Not in four weeks.",
+                sub: "Up to five personas with their own stances, up to three rounds of moderated discourse, one prioritised final report. Between concept paper and creative brief — before you commit budget to recruiting.",
+                cta: "Get started →", meta: "⌀ 14 min per session" } },
+  demo: { de: { title: "Perspektiven zur Landing-Hero",
+                metaPrefix: "Diskussion läuft",
+                metaSuffix: "· 3 Personas · 2 Files",
+                allSessions: "Alle Sessions" },
+          en: { title: "Perspectives on the landing hero",
+                metaPrefix: "Discussion live",
+                metaSuffix: "· 3 personas · 2 files",
+                allSessions: "All sessions" } },
+  demoBubbles: {
+    de: [
+      { name: "Maya Reyes",  role: "Skeptische CMO",
+        text: "„Heute statt vier Wochen“ klingt wie ein SaaS-Versprechen, das ich seit Jahren von zwölf Tools höre. Was ist hier konkret heute?" },
+      { name: "Jonas Frei",  role: "Frühadopter PM",
+        text: "Widerspruch. Die Headline tut genau das Richtige — sie benennt den Schmerzpunkt: vier Wochen Recruiting. Das ist konkret genug." },
+      { name: "Noor Hassan", role: "Budget-Lead",
+        text: "Mich interessiert nicht heute vs. vier Wochen. Mich interessiert: ersetzt das echte Studien oder nicht? Die Page muss das oben klären." }
+    ],
+    en: [
+      { name: "Maya Reyes",  role: "Skeptical CMO",
+        text: "“Today, not four weeks” sounds like a SaaS promise I've heard from twelve tools for years. What is concretely today here?" },
+      { name: "Jonas Frei",  role: "Early-adopter PM",
+        text: "Disagree. The headline does exactly the right thing — it names the pain: four weeks of recruiting. That is concrete enough." },
+      { name: "Noor Hassan", role: "Budget lead",
+        text: "I don't care about today vs. four weeks. I care: does this replace real research or not? The page has to clarify that up top." }
+    ]
+  },
+  method: { de: { eyebrow: "Methodik", title1: "Eine Session, fünf Schritte —", title2: "nicht fünf Sessions.",
+                  sub: "Briefing rein, Bericht raus. Drei Runden stehen dir zur Verfügung — was in jeder Runde passiert, bestimmst du. Vom freundlichen Stresstest bis zum harten Pushback." },
+            en: { eyebrow: "How it works", title1: "One session, five steps —", title2: "not five sessions.",
+                  sub: "Briefing in, report out. Three rounds at your disposal — what happens in each round is yours to define. From friendly stress-test to hard pushback." } },
+  personas: { de: { eyebrow: "Das Standard-Set", title1: "Fünf Charaktere.", title2: "Fünf Blindspots.",
+                    sub: "Du entscheidest, mit wem du diskutierst. Für jede Frage stellst du dein eigenes Panel zusammen — Rollen, Haltungen, Sprachstil, Tabus. Briefings, Dokumente und Visuals lädst du dazu, Syn baut die Personas darauf auf." },
+              en: { eyebrow: "The standard set", title1: "Five characters.", title2: "Five blindspots.",
+                    sub: "You decide who's in the room. Every persona is built for your case — roles, stances, language styles, taboos. Briefings, documents, and visuals you upload; Syn builds the personas on top." },
+              blindspotLabel: { de: "Blindspot", en: "Blindspot" } },
+  use: { de: { eyebrow: "Wofür · Wofür nicht", title1: "Bevor du es veröffentlichst,", title2: "lass es diskutieren.",
+               sub: "Drei Phasen, in denen Syn deutlich präziser arbeitet als ein LLM-Chat — und drei, in denen du echte Marktforschung brauchst.",
+               fit: "Stark bei", nofit: "Nicht bei" },
+         en: { eyebrow: "Use cases · Non-use cases", title1: "Before you ship it,", title2: "let it be debated.",
+               sub: "Three phases where Syn is meaningfully more precise than an LLM chat — and three where you need real market research.",
+               fit: "Strong for", nofit: "Not for" } },
+  trust: { de: { eyebrow: "Was Syn ist · was Syn nicht ist", title1: "Kein Chat.", title2: "Ein Format.",
+                 h1: "Warum kein LLM-Chat", p1: "Ein Chat ist ein Universal-Assistent. Syn ist ein moderiertes Format mit festen Rollen, definierten Runden und einer strukturierten Output-Form. Personas widersprechen einander — nicht dir.",
+                 h2: "Wie Personas konstruiert sind", p2: "Jede Persona hat Rolle, Haltung, Vokabular, Trigger und Blindspots — geprüft auf Konsistenz über mehrere Runden. Du baust eigene ab Pro: Rolle vorgeben, Tabus definieren, Sprachstil festlegen.",
+                 h3: "Wem die Daten gehören", p3: "Dir. Briefings, Sessions und Berichte gehören deinem Account. Anthropic trainiert keine Modelle auf API-Inputs und -Outputs (Standard der Commercial Terms). Hosting in der EU.",
+                 quote: "Syn ersetzt keine echte Marktforschung. Es ersetzt das, was du sonst mit Slack, einem Whiteboard und vier Kolleg:innen am Freitagnachmittag improvisierst.",
+                 quoteAttr: "Methodik-Note · Worqshop" },
+           en: { eyebrow: "What Syn is · what Syn isn't", title1: "Not a chat.", title2: "A format.",
+                 h1: "Why not an LLM chat", p1: "A chat is a universal assistant. Syn is a moderated format with fixed roles, defined rounds, and a structured output form. Personas contradict each other — not you.",
+                 h2: "How personas are constructed", p2: "Each persona has role, stance, vocabulary, triggers, and blind spots — validated for consistency over multiple rounds. You build your own from Pro: define the role, set taboos, fix the language style.",
+                 h3: "Who owns the data", p3: "You. Briefings, sessions, and reports belong to your account. Anthropic does not train models on API inputs or outputs (default under Commercial Terms). Hosting in the EU.",
+                 quote: "Syn doesn't replace real market research. It replaces what you'd otherwise improvise on a Friday afternoon with Slack, a whiteboard, and four colleagues.",
+                 quoteAttr: "Method note · Worqshop" } },
+  pricing: { de: { eyebrow: "Preise", title1: "Drei Pläne.", title2: "Transparent.",
+                   sub: "Jährlich −20% sparen, monatlich für maximale Flexibilität. Keine versteckten Kosten, kein Setup." },
+             en: { eyebrow: "Pricing", title1: "Three plans.", title2: "Transparent.",
+                   sub: "Yearly saves 20%, monthly stays flexible. No hidden fees, no setup costs." } },
+  faq: { de: { eyebrow: "Was du wissen willst", title1: "Häufige", title2: "Fragen." },
+         en: { eyebrow: "What you want to know", title1: "Frequent", title2: "questions." } },
+  finalCta: { de: { title: "Probier es an deinem nächsten Konzept.", cta: "Jetzt starten" },
+              en: { title: "Try it on your next concept.", cta: "Get started" } },
+  footer: { de: { tagline: "Synthetische Fokusgruppen — für jede Frage, jede Idee, jede Entscheidung.",
+                  product: "Produkt", legal: "Recht", contact: "Kontakt",
+                  about: "Über Worqshop", privacy: "Datenschutz", imprint: "Impressum", terms: "AGB",
+                  status: "Status", builtBy: "© 2026 Syn · Ein Produkt von Worqshop", region: "DE · Hamburg / Berlin" },
+            en: { tagline: "Synthetic focus groups — for every question, every idea, every decision.",
+                  product: "Product", legal: "Legal", contact: "Contact",
+                  about: "About Worqshop", privacy: "Privacy", imprint: "Imprint", terms: "Terms",
+                  status: "Status", builtBy: "© 2026 Syn · A Worqshop product", region: "DE · Hamburg / Berlin" } }
+};
+
+const PERSONA_TINTS = ["#BE123C", "#D97706", "#0E7490", "#7C3AED", "#0891B2"];
+
 export default async function Home() {
   const session = await auth();
   if (session?.user) redirect("/app/dashboard");
 
-  // Host-aware: auf der oeffentlichen Verkaufs-Domain (asksyn.com) blenden
-  // wir Preise + Pricing-Details aus, weil die noch nicht final sind. Auf
-  // dem Dev-Deployment (worqshop.io) bleibt der volle Inhalt.
-  const h = await headers();
-  const host = (h.get("host") || "").toLowerCase();
-  const isDev = host.includes("worqshop.io");
-
-  const locale = await getLocaleFromCookies();
-  const c = LANDING_COPY[locale];
+  const locale: Locale = await getLocaleFromCookies();
+  const t = COPY;
 
   return (
-    <main className="min-h-screen" style={{ background: "#E8E2D2", color: "#1F2420", fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}>
+    <main className="min-h-screen" style={{ background: "#F4F1EA", color: "#1F2420" }}>
 
-      {/* Nav — Links: Logo + Nav-Items zusammen gruppiert. Rechts: Lang + Login + CTA. */}
-      <nav className="flex items-center justify-between px-7 py-3.5 sticky top-0 z-30"
-        style={{ background: "rgba(243,239,226,0.7)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.5)" }}>
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2.5">
-            <img src="/api/assets/syn-avatar" alt="Syn"
-              className="w-7 h-7 rounded-full ring-1 ring-white/40 object-cover" />
-            <span className="font-semibold text-lg tracking-tight" style={{ color: "#BE123C" }}>Syn</span>
-          </Link>
-          <div className="hidden md:flex gap-6 items-center text-sm" style={{ color: "#4A4640" }}>
-            <a href="#how" className="hover:text-stone-900 transition-colors">{c.nav.how}</a>
-            <a href="#pricing" className="hover:text-stone-900 transition-colors">{c.nav.pricing}</a>
-            <a href="#faq" className="hover:text-stone-900 transition-colors">{c.nav.faq}</a>
+      {/* NAV */}
+      <nav className="border-b sticky top-0 z-30 backdrop-blur-md" style={{ borderColor: "rgba(26,24,21,0.12)", background: "rgba(244,241,234,0.85)" }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-12 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-10">
+            <Link href="/" className="flex items-center gap-2.5">
+              <img src="/api/assets/syn-avatar" alt="Syn" className="w-7 h-7 rounded-full ring-1 ring-white/40 object-cover" />
+              <span className="font-serif text-xl font-medium tracking-tight" style={{ color: "#1F2420" }}>Syn</span>
+            </Link>
+            <div className="hidden md:flex gap-7 text-sm" style={{ color: "#4A4640" }}>
+              <a href="#method" className="hover:text-rose-700 transition-colors">{t.nav[locale].method}</a>
+              <a href="#personas" className="hover:text-rose-700 transition-colors">{t.nav[locale].personas}</a>
+              <a href="#use" className="hover:text-rose-700 transition-colors">{t.nav[locale].use}</a>
+              <a href="#pricing" className="hover:text-rose-700 transition-colors">{t.nav[locale].pricing}</a>
+              <a href="#faq" className="hover:text-rose-700 transition-colors">{t.nav[locale].faq}</a>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-3.5">
-          <LanguageSwitch locale={locale} />
-          <Link href="/login" className="hidden sm:inline text-sm hover:text-stone-900 transition-colors" style={{ color: "#4A4640" }}>{c.nav.login}</Link>
-          <Link href="/login" className="btn-primary px-4 py-2 rounded-lg text-sm font-medium">{c.nav.start}</Link>
+          <div className="flex items-center gap-4">
+            <LanguageSwitch locale={locale} />
+            <Link href="/login" className="hidden sm:inline text-sm hover:text-rose-700 transition-colors" style={{ color: "#4A4640" }}>{t.nav[locale].login}</Link>
+            <Link href="/login" className="btn-primary px-4 py-2 rounded-md text-sm font-medium text-white">{t.nav[locale].start}</Link>
+          </div>
         </div>
       </nav>
 
-      {/* Hero — Logo prominent als grosses Wasserzeichen-artiges Element */}
-      <section className="relative max-w-4xl mx-auto px-8 pt-28 pb-24 text-center">
-        <div className="flex justify-center mb-10">
-          <div className="relative">
-            <img src="/api/assets/syn-avatar" alt=""
-              className="w-32 h-32 md:w-40 md:h-40 rounded-full ring-2 ring-white/40 shadow-xl" />
-            {/* Glow-Ring */}
-            <div className="absolute inset-0 rounded-full pointer-events-none"
-              style={{ boxShadow: "0 0 80px -10px rgba(190,18,60,0.25)" }} />
-          </div>
-        </div>
-        <h1 className="font-semibold tracking-tight leading-[1.08] mb-6" style={{ fontSize: "clamp(36px, 6vw, 54px)" }}>
-          {c.hero.title}
-        </h1>
-        <p className="text-lg mx-auto max-w-xl leading-relaxed" style={{ color: "#4A4640" }}>
-          {c.hero.sub}
-        </p>
-      </section>
-
-      {/* How it works */}
-      <section id="how" className="max-w-5xl mx-auto px-8 py-16">
-        <p className="text-[11px] font-bold uppercase tracking-[0.1em] mb-3 text-center" style={{ color: "#7A7268" }}>{c.how.label}</p>
-        <h2 className="text-3xl font-semibold tracking-tight mb-3 text-center" style={{ color: "#1F2420" }}>{c.how.title}</h2>
-        <p className="text-[15px] mx-auto max-w-xl text-center mb-10 leading-relaxed" style={{ color: "#7A7268" }}>{c.how.intro}</p>
-        <div className="grid md:grid-cols-3 gap-4">
-          {c.how.steps.map((s, i) => (
-            <div key={i} className="relative rounded-2xl overflow-hidden p-8 px-6 pl-7"
-              style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)" }}>
-              <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1"
-                style={{ background: STEP_GRADIENTS[i] }} />
-              <p className="text-[13px] font-semibold tracking-wide mb-2" style={{ color: "#7A7268" }}>{s.round}</p>
-              <h3 className="text-lg font-semibold mb-2 tracking-tight" style={{ color: "#1F2420" }}>{s.title}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#4A4640" }}>{s.body}</p>
+      {/* HERO */}
+      <section className="border-b" style={{ borderColor: "rgba(26,24,21,0.12)" }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-12 py-20 lg:py-24 grid lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-16 items-center">
+          <div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.15em] mb-7 flex items-center gap-3" style={{ color: "#8A857C" }}>
+              <span className="w-6 h-px" style={{ background: "#8A857C" }} />
+              {t.hero[locale].eyebrow}
             </div>
-          ))}
-        </div>
-      </section>
+            <h1 className="font-serif font-normal tracking-tight leading-[1.02] mb-7" style={{ fontSize: "clamp(40px, 6vw, 64px)" }}>
+              {t.hero[locale].title1}<br />
+              <em className="not-italic" style={{ color: "#BE123C", fontStyle: "italic", fontWeight: 400 }}>{t.hero[locale].title2}</em><br />
+              {t.hero[locale].title3}
+            </h1>
+            <p className="text-[17px] leading-[1.55] mb-8 max-w-lg" style={{ color: "#4A4640" }}>
+              {t.hero[locale].sub}
+            </p>
+            <div className="flex items-center gap-4">
+              <Link href="/login" className="btn-primary inline-flex items-center px-5 py-3 rounded-md text-sm font-medium text-white">
+                {t.hero[locale].cta}
+              </Link>
 
-      {/* Use cases mit echten Gemini-Bildern */}
-      <section className="py-16" style={{ background: "#DDD3BC" }}>
-        <div className="max-w-5xl mx-auto px-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.1em] mb-3 text-center" style={{ color: "#7A7268" }}>{c.use.label}</p>
-          <h2 className="text-3xl font-semibold tracking-tight mb-3 text-center" style={{ color: "#1F2420" }}>{c.use.title}</h2>
-          <p className="text-[15px] mx-auto max-w-xl text-center mb-10 leading-relaxed" style={{ color: "#7A7268" }}>{c.use.intro}</p>
-          <div className="grid md:grid-cols-3 gap-4">
-            {c.use.cards.map((card, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden flex flex-col"
-                style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)" }}>
-                <img src={`/api/assets/landing/${USE_SLUGS[i]}`} alt=""
-                  className="w-full h-40 object-cover" />
-                <div className="p-6 flex-1">
-                  <p className="text-[17px] font-semibold mb-2" style={{ color: "#1F2420" }}>{card.title}</p>
-                  <p className="text-sm leading-relaxed" style={{ color: "#4A4640" }}>{card.body}</p>
+            </div>
+          </div>
+
+          {/* DEMO CARD - mirrors the actual app chat shell */}
+          <div className="rounded-md shadow-md overflow-hidden border" style={{ borderColor: "rgba(26,24,21,0.12)", background: "#F4F1EA" }}>
+            <div className="px-6 py-4 border-b flex items-start justify-between gap-4" style={{ borderColor: "rgba(26,24,21,0.08)" }}>
+              <div>
+                <div className="font-serif text-[18px] font-medium tracking-tight" style={{ color: "#1F2420" }}>{t.demo[locale].title}</div>
+                <div className="font-mono text-[11px] uppercase tracking-[0.05em] mt-1" style={{ color: "#3A7E58" }}>
+                  <span className="font-semibold">{t.demo[locale].metaPrefix}</span>
+                  <span style={{ color: "#8A857C" }}> {t.demo[locale].metaSuffix}</span>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Tension statement mit Logo-Element */}
-      <section className="max-w-3xl mx-auto px-8 py-20 text-center">
-        <p className="text-[11px] font-bold uppercase tracking-[0.1em] mb-3" style={{ color: "#7A7268" }}>{c.tension.label}</p>
-        <h2 className="text-3xl font-semibold tracking-tight mb-8" style={{ color: "#1F2420" }}>{c.tension.title}</h2>
-        <p className="text-[17px] leading-relaxed" style={{ color: "#4A4640" }}>{c.tension.body}</p>
-      </section>
-
-      {/* Pricing — host-aware: Production zeigt Beta-Placeholder, Dev volle Karten */}
-      <section id="pricing" className="py-16" style={{ background: "#DDD3BC" }}>
-        <div className="max-w-5xl mx-auto px-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.1em] mb-3 text-center" style={{ color: "#7A7268" }}>{c.pricing.label}</p>
-          <h2 className="text-3xl font-semibold tracking-tight mb-10 text-center" style={{ color: "#1F2420" }}>{isDev ? c.pricing.title : c.pricing.comingTitle}</h2>
-          {!isDev && (
-            <div className="max-w-2xl mx-auto">
-              <div className="relative rounded-2xl overflow-hidden p-10 text-center"
-                style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)" }}>
-                <span aria-hidden className="absolute top-0 left-0 right-0"
-                  style={{ height: "4px", background: "linear-gradient(90deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }} />
-                <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full text-white mb-4"
-                  style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>
-                  {c.pricing.comingBadge}
-                </span>
-                <h3 className="text-2xl font-semibold tracking-tight mb-3" style={{ color: "#1F2420" }}>{c.pricing.comingHeadline}</h3>
-                <p className="text-[15px] leading-relaxed mb-7 max-w-md mx-auto" style={{ color: "#4A4640" }}>{c.pricing.comingBody}</p>
-                <Link href="/register" className="btn-primary inline-block px-8 py-3.5 rounded-xl font-medium text-[15px]">
-                  {c.pricing.comingCta}
-                </Link>
-              </div>
+              <span className="font-mono text-[11px] uppercase tracking-[0.05em] shrink-0" style={{ color: "#8A857C" }}>{t.demo[locale].allSessions}</span>
             </div>
-          )}
-          {isDev && (
-          <div className="grid md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-            {c.pricing.tiers.map((tier, i) => (
-              <div key={tier.name}
-                className={`relative rounded-2xl overflow-hidden flex flex-col ${tier.featured ? "md:-translate-y-2" : ""}`}
-                style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)" }}>
-                <div className="h-1 w-full" style={{ background: TIER_STRIPES[i] }} />
-                {tier.featured && (
-                  <span className="absolute top-3 right-3 text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full text-white"
-                    style={{ background: "linear-gradient(180deg, #4C1D95, #BE123C)" }}>
-                    {c.pricing.popular}
-                  </span>
-                )}
-                <div className="p-6 flex flex-col flex-1">
-                  <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "#7A7268" }}>{tier.name}</p>
-                  <div className="flex items-baseline gap-1.5 mb-1">
-                    <span className="text-4xl font-semibold tracking-tight" style={{ color: "#1F2420" }}>{tier.price}</span>
-                    <span className="text-sm" style={{ color: "#7A7268" }}>{c.pricing.perMonth}</span>
+            <div className="p-6 space-y-5">
+              {t.demoBubbles[locale].map((b, i) => {
+                const stops = [
+                  { top: "#F472B6", bottom: "#BE123C", text: "#BE123C" },
+                  { top: "#FBBF24", bottom: "#B45309", text: "#B45309" },
+                  { top: "#34D399", bottom: "#047857", text: "#047857" }
+                ][i];
+                return (
+                  <div key={i} className="flex gap-3 items-start">
+                    <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 ring-1 ring-white/40"
+                      style={{ background: `linear-gradient(180deg, ${stops.top}, ${stops.bottom})` }}>
+                      <img src={`/api/assets/landing/persona-${PERSONAS[i].slug}`} alt={b.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] mb-1 flex items-baseline gap-2">
+                        <span className="font-semibold" style={{ color: stops.text }}>{b.name}</span>
+                        <span className="font-mono text-[10px] uppercase tracking-[0.05em]" style={{ color: "#8A857C" }}>{b.role}</span>
+                      </div>
+                      <div className="bubble-card py-3"
+                        style={{ ['--edge-top' as string]: stops.top, ['--edge-bottom' as string]: stops.bottom } as React.CSSProperties}>
+                        <p className="text-[13.5px] leading-[1.55]" style={{ color: "#3A3530" }}>{b.text}</p>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-sm mb-5" style={{ color: "#4A4640" }}>{tier.quota}</p>
-                  <ul className="space-y-2 flex-1 mb-6">
-                    {tier.features.map((f, k) => (
-                      <li key={k} className="flex items-start gap-2 text-sm" style={{ color: "#4A4640" }}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="#3A7E58" strokeWidth="2.5" className="w-4 h-4 mt-0.5 shrink-0"><polyline points="20 6 9 17 4 12" /></svg>
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href="/login" className={`block w-full text-center py-2.5 rounded-lg text-sm font-medium transition-colors ${tier.featured ? "btn-primary text-white" : ""}`}
-                    style={!tier.featured ? { background: "#1F2420", color: "#F3EFE2" } : undefined}>
-                    {tier.cta}
-                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* METHODIK */}
+      <section id="method" className="border-b py-24" style={{ borderColor: "rgba(26,24,21,0.12)" }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-12">
+          <div className="max-w-2xl mb-16">
+            <div className="font-mono text-[11px] uppercase tracking-[0.15em] mb-4 flex items-center gap-3" style={{ color: "#8A857C" }}>
+              <span className="w-6 h-px" style={{ background: "#8A857C" }} />
+              {t.method[locale].eyebrow}
+            </div>
+            <h2 className="font-serif font-normal text-4xl lg:text-5xl tracking-tight leading-[1.1] mb-4">
+              {t.method[locale].title1} <em className="not-italic" style={{ color: "#BE123C", fontStyle: "italic" }}>{t.method[locale].title2}</em>
+            </h2>
+            <p className="text-[17px] max-w-lg leading-[1.55]" style={{ color: "#4A4640" }}>{t.method[locale].sub}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-5 border rounded-md bg-white overflow-hidden" style={{ borderColor: "rgba(26,24,21,0.12)" }}>
+            {METHOD_STEPS.map((s, i) => (
+              <div key={s.num} className={`p-7 ${i < 4 ? "md:border-r" : ""}`}
+                style={{ borderColor: "rgba(26,24,21,0.12)", background: i === 4 ? "#FBF9F5" : undefined }}>
+                <div className="font-mono text-[11px] tracking-[0.05em] mb-4" style={{ color: i === 4 ? "#BE123C" : "#8A857C" }}>
+                  {s.num} · {s.label[locale]}
+                </div>
+                <h3 className="font-serif text-[19px] font-medium tracking-tight mb-2.5" style={{ color: "#1F2420" }}>{s.title[locale]}</h3>
+                <p className="text-[13.5px] leading-[1.55]" style={{ color: "#4A4640" }}>{s.body[locale]}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-center font-mono text-[12px] mt-6 max-w-2xl mx-auto" style={{ color: "#8A857C" }}>
+            {locale === "en"
+              ? "Round titles above are an example. The content of each round is yours to define — what to focus on, how hard to push back, what to synthesise."
+              : "Die Runden oben sind ein Beispiel. Was in jeder Runde passiert, bestimmst du — worauf der Fokus liegt, wie hart Pushback ist, was synthetisiert wird."}
+          </p>
+        </div>
+      </section>
+
+      {/* PERSONAS */}
+      <section id="personas" className="border-b py-24" style={{ borderColor: "rgba(26,24,21,0.12)" }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-12">
+          <div className="max-w-2xl mb-16">
+            <div className="font-mono text-[11px] uppercase tracking-[0.15em] mb-4 flex items-center gap-3" style={{ color: "#8A857C" }}>
+              <span className="w-6 h-px" style={{ background: "#8A857C" }} />
+              {t.personas[locale].eyebrow}
+            </div>
+            <h2 className="font-serif font-normal text-4xl lg:text-5xl tracking-tight leading-[1.1] mb-4">
+              {t.personas[locale].title1} <em className="not-italic" style={{ color: "#BE123C", fontStyle: "italic" }}>{t.personas[locale].title2}</em>
+            </h2>
+            <p className="text-[17px] max-w-lg leading-[1.55]" style={{ color: "#4A4640" }}>{t.personas[locale].sub}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-px rounded-md bg-white overflow-hidden border" style={{ background: "rgba(26,24,21,0.12)", borderColor: "rgba(26,24,21,0.12)" }}>
+            {PERSONAS.map((p, i) => {
+              const s = PERSONA_STANCES[p.slug];
+              return (
+                <div key={p.slug} className="bg-white p-7 transition-colors hover:bg-stone-50 flex flex-col">
+                  <div className="mb-5 relative">
+                    <img src={`/api/assets/landing/persona-${p.slug}`} alt={p.name}
+                      className="w-14 h-14 rounded-full object-cover ring-2"
+                      style={{ boxShadow: `0 0 0 1px ${PERSONA_TINTS[i]}33` }} />
+                  </div>
+                  <h3 className="font-serif text-[19px] font-medium tracking-tight mb-1" style={{ color: "#1F2420" }}>{p.name}</h3>
+                  <div className="font-mono text-[11px] uppercase tracking-[0.05em] mb-4" style={{ color: "#8A857C" }}>{p.role[locale]}</div>
+                  <p className="text-[13px] leading-[1.55] mb-4" style={{ color: "#4A4640", height: "calc(4 * 1.55 * 13px)" }}>{s.stance[locale]}</p>
+                  <div className="mt-auto pt-4 border-t" style={{ borderColor: "rgba(26,24,21,0.12)" }}>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.05em] font-medium mb-1" style={{ color: "#4A4640" }}>
+                      {t.personas.blindspotLabel[locale]}
+                    </div>
+                    <p className="text-[12px] leading-[1.5]" style={{ color: "#8A857C", height: "calc(3 * 1.5 * 12px)" }}>{s.blindspot[locale]}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* USE CASES */}
+      <section id="use" className="border-b py-24" style={{ borderColor: "rgba(26,24,21,0.12)" }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-12">
+          <div className="max-w-2xl mb-16">
+            <div className="font-mono text-[11px] uppercase tracking-[0.15em] mb-4 flex items-center gap-3" style={{ color: "#8A857C" }}>
+              <span className="w-6 h-px" style={{ background: "#8A857C" }} />
+              {t.use[locale].eyebrow}
+            </div>
+            <h2 className="font-serif font-normal text-4xl lg:text-5xl tracking-tight leading-[1.1] mb-4">
+              {t.use[locale].title1} <em className="not-italic" style={{ color: "#BE123C", fontStyle: "italic" }}>{t.use[locale].title2}</em>
+            </h2>
+            <p className="text-[17px] max-w-lg leading-[1.55]" style={{ color: "#4A4640" }}>{t.use[locale].sub}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {USE_CASES.map((u) => (
+              <div key={u.slug} className="rounded-md overflow-hidden bg-white border flex flex-col" style={{ borderColor: "rgba(26,24,21,0.12)" }}>
+                <div className="w-full aspect-[16/9] overflow-hidden" style={{ background: "#1A1815" }}>
+                  <img src={`/api/assets/landing/${u.slug}`} alt="" className="w-full h-full object-cover object-center" style={{ imageRendering: "auto" }} />
+                </div>
+                <div className="p-7 flex-1 flex flex-col">
+                  <h3 className="font-serif text-[22px] font-medium tracking-tight mb-3" style={{ color: "#1F2420" }}>{u.title[locale]}</h3>
+                  <p className="text-[14px] leading-[1.55] mb-5" style={{ color: "#4A4640", height: "calc(4 * 1.55 * 14px)" }}>{u.body[locale]}</p>
+                  <div className="mt-auto pt-4 border-t font-mono text-[11px] leading-[1.5]" style={{ borderColor: "rgba(26,24,21,0.12)", color: "#3A7E58" }}>
+                    <div className="font-medium uppercase tracking-[0.05em] mb-1.5">{t.use[locale].fit}</div>
+                    <div className="mb-3" style={{ height: "calc(2 * 1.5 * 11px)" }}>{u.fit[locale]}</div>
+                    <div className="font-medium uppercase tracking-[0.05em] mb-1.5" style={{ color: "#8A857C" }}>{t.use[locale].nofit}</div>
+                    <div style={{ color: "#8A857C", height: "calc(2 * 1.5 * 11px)" }}>{u.nofit[locale]}</div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-          )}
+        </div>
+      </section>
+
+      {/* METHOD / TRUST */}
+      <section className="border-b py-24" style={{ borderColor: "rgba(26,24,21,0.12)" }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-12 grid lg:grid-cols-2 gap-16 items-start">
+          <div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.15em] mb-4 flex items-center gap-3" style={{ color: "#8A857C" }}>
+              <span className="w-6 h-px" style={{ background: "#8A857C" }} />
+              {t.trust[locale].eyebrow}
+            </div>
+            <h2 className="font-serif font-normal text-4xl tracking-tight leading-[1.1] mb-12">
+              {t.trust[locale].title1} <em className="not-italic" style={{ color: "#BE123C", fontStyle: "italic" }}>{t.trust[locale].title2}</em>
+            </h2>
+            <div className="space-y-7">
+              {(["h1", "h2", "h3"] as const).map((k, i) => (
+                <div key={k} className={`pb-7 ${i < 2 ? "border-b" : ""}`} style={{ borderColor: "rgba(26,24,21,0.12)" }}>
+                  <h3 className="font-serif text-[22px] font-medium tracking-tight mb-2.5" style={{ color: "#1F2420" }}>
+                    {t.trust[locale][k as "h1" | "h2" | "h3"]}
+                  </h3>
+                  <p className="text-[15px] leading-[1.6]" style={{ color: "#4A4640" }}>
+                    {t.trust[locale][`p${i + 1}` as "p1" | "p2" | "p3"]}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-md p-12 lg:p-14" style={{ background: "#1A1815", color: "#F4F1EA" }}>
+            <p className="font-serif text-[24px] lg:text-[26px] leading-[1.45] italic tracking-tight">{t.trust[locale].quote}</p>
+            <div className="mt-8 font-mono text-[12px] uppercase tracking-[0.05em]" style={{ color: "#E8C9B5" }}>
+              — {t.trust[locale].quoteAttr}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING */}
+      <section id="pricing" className="border-b py-24" style={{ borderColor: "rgba(26,24,21,0.12)", background: "#EFEBE2" }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-12">
+          <div className="max-w-2xl mb-12">
+            <div className="font-mono text-[11px] uppercase tracking-[0.15em] mb-4 flex items-center gap-3" style={{ color: "#8A857C" }}>
+              <span className="w-6 h-px" style={{ background: "#8A857C" }} />
+              {t.pricing[locale].eyebrow}
+            </div>
+            <h2 className="font-serif font-normal text-4xl lg:text-5xl tracking-tight leading-[1.1] mb-4">
+              {t.pricing[locale].title1} <em className="not-italic" style={{ color: "#BE123C", fontStyle: "italic" }}>{t.pricing[locale].title2}</em>
+            </h2>
+            <p className="text-[17px] max-w-lg leading-[1.55]" style={{ color: "#4A4640" }}>{t.pricing[locale].sub}</p>
+          </div>
+          <PricingSwitcher locale={locale} />
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="max-w-3xl mx-auto px-8 py-16">
-        <p className="text-[11px] font-bold uppercase tracking-[0.1em] mb-3 text-center" style={{ color: "#7A7268" }}>{c.faq.label}</p>
-        <h2 className="text-3xl font-semibold tracking-tight mb-8 text-center" style={{ color: "#1F2420" }}>{c.faq.title}</h2>
-        <div className="space-y-2.5">
-          {c.faq.items.map((item, i) => (
-            <details key={i} className="group rounded-xl transition-colors"
-              style={{ background: "#F3EFE2", border: "1px solid rgba(31,36,32,0.06)" }}>
-              <summary className="cursor-pointer px-5 py-4 flex justify-between items-center font-medium text-[15px] list-none"
-                style={{ color: "#1F2420" }}>
-                <span>{item.q}</span>
-                <span className="text-2xl font-light group-open:rotate-45 transition-transform" style={{ color: "#7A7268" }}>+</span>
-              </summary>
-              <p className="px-5 pb-4 text-sm leading-relaxed" style={{ color: "#4A4640" }}>{item.a}</p>
-            </details>
-          ))}
+      <section id="faq" className="border-b py-24" style={{ borderColor: "rgba(26,24,21,0.12)" }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-12">
+          <div className="max-w-2xl mb-12">
+            <div className="font-mono text-[11px] uppercase tracking-[0.15em] mb-4 flex items-center gap-3" style={{ color: "#8A857C" }}>
+              <span className="w-6 h-px" style={{ background: "#8A857C" }} />
+              {t.faq[locale].eyebrow}
+            </div>
+            <h2 className="font-serif font-normal text-4xl lg:text-5xl tracking-tight leading-[1.1]">
+              {t.faq[locale].title1} <em className="not-italic" style={{ color: "#BE123C", fontStyle: "italic" }}>{t.faq[locale].title2}</em>
+            </h2>
+          </div>
+          <div className="max-w-3xl">
+            {FAQS.map((f, i) => (
+              <div key={i} className="py-7 border-b" style={{ borderColor: "rgba(26,24,21,0.12)", borderTop: i === 0 ? "1px solid rgba(26,24,21,0.12)" : undefined }}>
+                <h3 className="font-serif text-[20px] font-medium tracking-tight mb-3.5 flex justify-between items-baseline gap-4">
+                  <span style={{ color: "#1F2420" }}>{f.q[locale]}</span>
+                  <span className="font-mono text-[11px] font-normal" style={{ color: "#8A857C" }}>0{i + 1}</span>
+                </h3>
+                <p className="text-[15px] leading-[1.6] max-w-2xl" style={{ color: "#4A4640" }}>{f.a[locale]}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-16 text-center text-white"
-        style={{ background: "linear-gradient(135deg, #4C1D95 0%, #9F1239 60%, #BE123C 100%)" }}>
-        <div className="max-w-3xl mx-auto px-8">
-          <img src="/api/assets/syn-avatar" alt=""
-            className="w-16 h-16 mx-auto mb-6 rounded-full ring-2 ring-white/30 shadow-lg" />
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-3 leading-tight">{c.finalCta.title}</h2>
-          <Link href="/login"
-            className="inline-block px-8 py-3.5 rounded-xl font-medium text-[15px] transition-all"
-            style={{ background: "#F3EFE2", color: "#4C1D95" }}>
-            {c.finalCta.cta}
+      {/* FINAL CTA */}
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-6 lg:px-12 text-center">
+          <h2 className="font-serif font-normal text-3xl lg:text-4xl tracking-tight leading-[1.15] mb-7 max-w-xl mx-auto" style={{ color: "#1F2420" }}>
+            {t.finalCta[locale].title}
+          </h2>
+          <Link href="/login" className="btn-primary inline-block px-7 py-3.5 rounded-md text-[15px] font-medium text-white">
+            {t.finalCta[locale].cta}
           </Link>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 px-8" style={{ background: "#1F2420", color: "#B4B2A9" }}>
-        <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
+      {/* FOOTER */}
+      <footer className="border-t py-16" style={{ borderColor: "rgba(26,24,21,0.12)" }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-12">
+          <div className="grid lg:grid-cols-[2fr_1fr_1fr_1fr] gap-12 mb-16">
             <div>
-              <div className="flex items-center gap-2.5 mb-3">
-                <img src="/api/assets/syn-avatar" alt="" className="w-6 h-6 rounded-full" />
-                <span className="font-semibold text-[#F3EFE2]">Syn</span>
-              </div>
-              <p className="text-xs leading-relaxed">{c.footer.tagline}</p>
+              <Link href="/" className="flex items-center gap-2.5 mb-4">
+                <img src="/api/assets/syn-avatar" alt="" className="w-7 h-7 rounded-full ring-1 ring-white/40 object-cover" />
+                <span className="font-serif text-xl font-medium tracking-tight" style={{ color: "#1F2420" }}>Syn</span>
+              </Link>
+              <p className="text-sm leading-[1.55] max-w-xs" style={{ color: "#4A4640" }}>{t.footer[locale].tagline}</p>
             </div>
-            {c.footer.cols.map((col, i) => (
-              <div key={i}>
-                <h4 className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: "#F3EFE2" }}>{col.title}</h4>
-                <ul className="space-y-2">
-                  {col.links.map((l, k) => (
-                    <li key={k}>
-                      <a href={l.href} className="text-[13px] hover:text-[#F3EFE2] transition-colors">{l.label}</a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            <div>
+              <h4 className="font-mono text-[11px] uppercase tracking-[0.05em] font-medium mb-4" style={{ color: "#8A857C" }}>{t.footer[locale].product}</h4>
+              <ul className="space-y-2.5 text-sm" style={{ color: "#4A4640" }}>
+                <li><a href="#method" className="hover:text-rose-700 transition-colors">{t.nav[locale].method}</a></li>
+                <li><a href="#personas" className="hover:text-rose-700 transition-colors">{t.nav[locale].personas}</a></li>
+                <li><a href="#use" className="hover:text-rose-700 transition-colors">{t.nav[locale].use}</a></li>
+                <li><a href="#pricing" className="hover:text-rose-700 transition-colors">{t.nav[locale].pricing}</a></li>
+                <li><a href="#faq" className="hover:text-rose-700 transition-colors">{t.nav[locale].faq}</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-mono text-[11px] uppercase tracking-[0.05em] font-medium mb-4" style={{ color: "#8A857C" }}>{t.footer[locale].legal}</h4>
+              <ul className="space-y-2.5 text-sm" style={{ color: "#4A4640" }}>
+                <li><Link href="/impressum" className="hover:text-rose-700 transition-colors">{t.footer[locale].imprint}</Link></li>
+                <li><Link href="/datenschutz" className="hover:text-rose-700 transition-colors">{t.footer[locale].privacy}</Link></li>
+                <li><Link href="/agb" className="hover:text-rose-700 transition-colors">{t.footer[locale].terms}</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-mono text-[11px] uppercase tracking-[0.05em] font-medium mb-4" style={{ color: "#8A857C" }}>{t.footer[locale].contact}</h4>
+              <ul className="space-y-2.5 text-sm" style={{ color: "#4A4640" }}>
+                <li><a href="mailto:hello@asksyn.com" className="hover:text-rose-700 transition-colors">hello@asksyn.com</a></li>
+              </ul>
+            </div>
           </div>
-          <div className="pt-6 border-t border-white/10 flex justify-between text-xs" style={{ color: "#7A7268" }}>
-            <span>© {new Date().getFullYear()} Syn · {c.footer.builtBy}</span>
-            <span>{locale === "de" ? "DE" : "EN"}</span>
+          <div className="pt-8 border-t flex flex-col sm:flex-row justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.05em]" style={{ borderColor: "rgba(26,24,21,0.12)", color: "#8A857C" }}>
+            <span>{t.footer[locale].builtBy}</span>
+            <span>{t.footer[locale].region}</span>
           </div>
         </div>
       </footer>
     </main>
   );
 }
-
-const STEP_GRADIENTS = [
-  "linear-gradient(180deg, #DBA947, #A77E22)",   // Mustard
-  "linear-gradient(180deg, #3A7E58, #144A2C)",   // Deep Emerald
-  "linear-gradient(180deg, #913B4F, #4F1A28)"    // Bordeaux
-];
-
-const TIER_STRIPES = [
-  "linear-gradient(90deg, #DBA947, #A77E22)",
-  "linear-gradient(90deg, #4C1D95, #9F1239, #BE123C)",
-  "linear-gradient(90deg, #913B4F, #4F1A28)"
-];
-
-const USE_SLUGS = ["products", "websites", "designs"];
-
-type LandingCopy = {
-  nav: { how: string; pricing: string; faq: string; login: string; start: string };
-  hero: { title: string; sub: string };
-  how: { label: string; title: string; intro: string; steps: Array<{ round: string; title: string; body: string }> };
-  use: { label: string; title: string; intro: string; cards: Array<{ title: string; body: string }> };
-  tension: { label: string; title: string; body: string };
-  pricing: { label: string; title: string; comingTitle: string; comingBadge: string; comingHeadline: string; comingBody: string; comingCta: string; popular: string; perMonth: string; tiers: Array<{ name: string; price: string; quota: string; features: string[]; cta: string; featured?: boolean }> };
-  faq: { label: string; title: string; items: Array<{ q: string; a: string }> };
-  finalCta: { title: string; cta: string };
-  footer: { tagline: string; builtBy: string; cols: Array<{ title: string; links: Array<{ label: string; href: string }> }> };
-};
-
-const LANDING_COPY: Record<Locale, LandingCopy> = {
-  de: {
-    nav: { how: "Funktionsweise", pricing: "Preise", faq: "FAQ", login: "Login", start: "Jetzt starten" },
-    hero: {
-      title: "Diskutier dein Konzept. Heute. Nicht in vier Wochen.",
-      sub: "Fünf Perspektiven, drei Runden, ein Abschlussbericht. Ohne Recruiting, ohne Konferenzraum."
-    },
-    how: {
-      label: "Wie es funktioniert",
-      title: "Du gibst die Methodik.",
-      intro: "Syn ist ein anpassbares Diskursformat. Anzahl der Runden, Persona-Profile und Synthesetiefe bestimmst du.",
-      steps: [
-        { round: "Bis zu 3", title: "Runden",    body: "Du entscheidest, wie viele Diskussions-Runden es gibt und was in jeder Runde besprochen wird." },
-        { round: "Bis zu 5", title: "Personas",  body: "Eigenständige Charaktere mit klar abgegrenzten Haltungen. Standard-Set oder eigene Personas — deine Wahl." },
-        { round: "Bis zu 3", title: "Synthesen", body: "Jede Runde wird zu einer Synthese verdichtet. Im Abschlussbericht gebündelt als priorisierte Handlungsliste." }
-      ]
-    },
-    use: {
-      label: "Wann du es benutzt",
-      title: "Bevor du es veröffentlichst, lass es diskutieren.",
-      intro: "Drei Anwendungsfälle, bei denen Syn am stärksten ist.",
-      cards: [
-        { title: "Produkte",  body: "Neue Features, Konzepte, Roadmap-Vorschläge — bevor sie in den Backlog wandern." },
-        { title: "Websites",  body: "Landing-Pages, Hero-Copy, Funnels — bevor du Traffic drauflenkst." },
-        { title: "Designs",   body: "Visuals, Layouts, Branding-Entscheidungen — bevor sie in Production gehen." }
-      ]
-    },
-    tension: {
-      label: "Was anders ist",
-      title: "Echte Diskussionen, keine Höflichkeitsfloskeln.",
-      body: "Die Personas widersprechen einander, nicht dir. Du steuerst, wie hart sie das tun — von freundlicher Resonanz bis zu kompromisslosem Pushback."
-    },
-    pricing: {
-      label: "Preise",
-      title: "Drei Pläne. Transparent.",
-      comingTitle: "Beta — Preise folgen.",
-      comingBadge: "Beta",
-      comingHeadline: "Aktuell im Closed-Beta.",
-      comingBody: "Wir feilen noch an Personas, Synthesen und Methodik. Sobald wir live gehen, geben wir die Pläne und Preise frei.",
-      comingCta: "Beta-Zugang anfragen",
-      popular: "Beliebt",
-      perMonth: "/Monat",
-      tiers: [
-        { name: "Solo",  price: "39 €",  quota: "2 Audiences pro Monat",
-          features: ["Standard-Personas", "Drei Diskussions-Runden", "Abschlussbericht als PDF", "1:1-Follow-Up je Persona"],
-          cta: "Solo wählen" },
-        { name: "Pro",   price: "199 €", quota: "10 Audiences pro Monat", featured: true,
-          features: ["Alles aus Solo", "Eigene Personas bauen", "Share-Links für Stakeholder", "Rigidity-Steuerung"],
-          cta: "Pro wählen" },
-        { name: "Team",  price: "499 €", quota: "30 Audiences pro Monat",
-          features: ["Alles aus Pro", "Team-Workspaces", "API-Zugang", "Priority-Support"],
-          cta: "Team wählen" }
-      ]
-    },
-    faq: {
-      label: "Häufige Fragen",
-      title: "Was du wissen willst.",
-      items: [
-        { q: "Sind die Personas echte Menschen?",
-          a: "Nein. Es sind AI-generierte Charaktere mit klaren Haltungen, Triggern und Blindspots. Sie ersetzen keine echte Marktforschung, sondern beschleunigen die Phase davor." },
-        { q: "Wie unterscheidet sich Syn von einem normalen LLM-Chat?",
-          a: "Ein LLM-Chat ist ein Universal-Assistent. Syn ist ein moderierter Diskursraum: fünf eigenständige Personas mit klar abgegrenzten Haltungen, strukturierte Runden, ein Abschlussbericht — alles auf ein konkretes Konzept hin." },
-        { q: "Wem gehören meine Daten?",
-          a: "Dir. Briefings, Sessions und Berichte gehören deinem Account. Wir trainieren keine Modelle auf deinen Inhalten." },
-        { q: "Kann ich eigene Personas bauen?",
-          a: "Ab dem Pro-Plan. Du gibst Rolle, Haltung, Sprachstil und Tabus vor — Syn baut die Persona und prüft sie auf Konsistenz." },
-        { q: "Was passiert nach der Session?",
-          a: "Du bekommst einen Abschlussbericht als PDF. Jede Persona bleibt verfügbar — wenn du eine besonders spannend fandst, kannst du sie nachträglich 1:1 weiter befragen." }
-      ]
-    },
-    finalCta: { title: "Probier es an deinem nächsten Konzept.", cta: "Jetzt starten" },
-    footer: {
-      tagline: "Synthetische Fokusgruppen für Konzepte, die noch nicht raus sind.",
-      builtBy: "Ein Produkt von Worqshop",
-      cols: [
-        { title: "Produkt", links: [{ label: "Funktionsweise", href: "#how" }, { label: "Preise", href: "#pricing" }, { label: "FAQ", href: "#faq" }] },
-        { title: "Recht",   links: [{ label: "Impressum", href: "/impressum" }, { label: "Datenschutz", href: "/datenschutz" }, { label: "AGB", href: "/agb" }] },
-        { title: "Kontakt", links: [{ label: "hello@asksyn.com", href: "mailto:hello@asksyn.com" }, { label: "Status", href: "#" }] }
-      ]
-    }
-  },
-  en: {
-    nav: { how: "How it works", pricing: "Pricing", faq: "FAQ", login: "Log in", start: "Get started" },
-    hero: {
-      title: "Debate your concept. Today. Not in four weeks.",
-      sub: "Five perspectives, three rounds, one final report. No recruiting, no conference room."
-    },
-    how: {
-      label: "How it works",
-      title: "You set the method.",
-      intro: "Syn is a customizable discourse format. You decide the round count, persona profiles, and synthesis depth.",
-      steps: [
-        { round: "Up to 3", title: "Rounds",     body: "Decide how many discussion rounds there are and what each round explores." },
-        { round: "Up to 5", title: "Personas",   body: "Distinct characters with clearly defined stances. Standard set or build your own — your call." },
-        { round: "Up to 3", title: "Syntheses",  body: "Each round gets compressed into a synthesis. The final report bundles them into a prioritised action list." }
-      ]
-    },
-    use: {
-      label: "When to use it",
-      title: "Before you ship it, let it be debated.",
-      intro: "Three use cases where Syn is strongest.",
-      cards: [
-        { title: "Products", body: "New features, concepts, roadmap proposals — before they go into the backlog." },
-        { title: "Websites", body: "Landing pages, hero copy, funnels — before you drive traffic to them." },
-        { title: "Designs",  body: "Visuals, layouts, branding decisions — before they hit production." }
-      ]
-    },
-    tension: {
-      label: "What's different",
-      title: "Real debates, no polite hedging.",
-      body: "The personas contradict each other, not you. You steer how hard they push — from friendly resonance to uncompromising pushback."
-    },
-    pricing: {
-      label: "Pricing",
-      title: "Three plans. Transparent.",
-      comingTitle: "Beta — pricing to follow.",
-      comingBadge: "Beta",
-      comingHeadline: "Currently in closed beta.",
-      comingBody: "We're still refining personas, syntheses, and methodology. Once we launch, plans and pricing will be published.",
-      comingCta: "Request beta access",
-      popular: "Popular",
-      perMonth: "/month",
-      tiers: [
-        { name: "Solo",  price: "€39",  quota: "2 audiences per month",
-          features: ["Standard personas", "Three discussion rounds", "Final report as PDF", "1:1 follow-up per persona"],
-          cta: "Choose Solo" },
-        { name: "Pro",   price: "€199", quota: "10 audiences per month", featured: true,
-          features: ["Everything in Solo", "Build custom personas", "Share links for stakeholders", "Rigidity control"],
-          cta: "Choose Pro" },
-        { name: "Team",  price: "€499", quota: "30 audiences per month",
-          features: ["Everything in Pro", "Team workspaces", "API access", "Priority support"],
-          cta: "Choose Team" }
-      ]
-    },
-    faq: {
-      label: "Frequent questions",
-      title: "What you want to know.",
-      items: [
-        { q: "Are the personas real people?",
-          a: "No. They are AI-generated characters with clear stances, triggers, and blind spots. They don't replace real market research — they accelerate the phase before it." },
-        { q: "How is Syn different from a regular LLM chat?",
-          a: "An LLM chat is a universal assistant. Syn is a moderated discourse space: five distinct personas with clearly defined stances, structured rounds, a final report — all focused on one concrete concept." },
-        { q: "Who owns my data?",
-          a: "You. Briefings, sessions, and reports belong to your account. We don't train models on your content." },
-        { q: "Can I build my own personas?",
-          a: "From the Pro plan onwards. You provide role, stance, language style, and taboos — Syn builds the persona and validates its consistency." },
-        { q: "What happens after the session?",
-          a: "You get a final report as PDF. Every persona stays available — if you found one particularly insightful, you can keep talking to them 1:1." }
-      ]
-    },
-    finalCta: { title: "Try it on your next concept.", cta: "Get started" },
-    footer: {
-      tagline: "Synthetic focus groups for concepts that haven't shipped yet.",
-      builtBy: "A product of Worqshop",
-      cols: [
-        { title: "Product", links: [{ label: "How it works", href: "#how" }, { label: "Pricing", href: "#pricing" }, { label: "FAQ", href: "#faq" }] },
-        { title: "Legal",   links: [{ label: "Imprint", href: "/impressum" }, { label: "Privacy", href: "/datenschutz" }, { label: "Terms", href: "/agb" }] },
-        { title: "Contact", links: [{ label: "hello@asksyn.com", href: "mailto:hello@asksyn.com" }, { label: "Status", href: "#" }] }
-      ]
-    }
-  }
-};

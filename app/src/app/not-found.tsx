@@ -17,7 +17,7 @@ export default function NotFound() {
       <div className="flex flex-col items-center gap-2">
         <Link
           href="/"
-          className="inline-block px-7 py-3 rounded-[11px] text-sm font-medium text-white"
+          className="inline-block px-7 py-3 rounded-md text-sm font-medium text-white"
           style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}
         >
           Zurück zur Startseite

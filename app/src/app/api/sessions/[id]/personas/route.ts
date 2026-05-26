@@ -21,10 +21,12 @@ export async function GET(_: Request, { params }: P) {
     const readySlots = new Set(
       images.filter(i => i.status === "ready" || i.attempts >= 3).map(i => i.slot)
     );
-    const personas = state.personas.map(p => ({
-      ...p,
-      imageReady: p.slack_slot != null && readySlots.has(p.slack_slot)
-    }));
+    const personas = state.personas
+      .filter(p => !p.status || p.status === "committed")
+      .map(p => ({
+        ...p,
+        imageReady: p.slack_slot != null && readySlots.has(p.slack_slot)
+      }));
     return NextResponse.json({ personas, syntheses: state.syntheses });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "unknown";

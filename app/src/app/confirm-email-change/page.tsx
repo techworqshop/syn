@@ -66,7 +66,7 @@ function FailureState({ locale }: { locale: "de" | "en" }) {
       <p className="text-sm mb-7 leading-relaxed" style={{ color: "#4A4640" }}>
         {t("confirmEmail.failBody", locale)}
       </p>
-      <Link href="/app/settings" className="block text-center text-white rounded-[11px] py-3 px-4 text-sm font-medium" style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}>
+      <Link href="/app/settings" className="block text-center text-white rounded-md py-3 px-4 text-sm font-medium" style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}>
         {t("confirmEmail.gotoSettings", locale)}
       </Link>
     </>
@@ -82,7 +82,7 @@ function ConflictState({ locale }: { locale: "de" | "en" }) {
       <p className="text-sm mb-7 leading-relaxed" style={{ color: "#4A4640" }}>
         {t("confirmEmail.conflictBody", locale)}
       </p>
-      <Link href="/app/settings" className="block text-center text-white rounded-[11px] py-3 px-4 text-sm font-medium" style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}>
+      <Link href="/app/settings" className="block text-center text-white rounded-md py-3 px-4 text-sm font-medium" style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}>
         {t("confirmEmail.gotoSettings", locale)}
       </Link>
     </>
@@ -105,7 +105,7 @@ function SuccessState({ locale, newEmail }: { locale: "de" | "en"; newEmail: str
         <span className="font-medium" style={{ color: "#1F2420" }}>{newEmail}</span>
         {t("confirmEmail.successBody2", locale)}
       </p>
-      <Link href="/login" className="block text-center text-white rounded-[11px] py-3 px-4 text-sm font-medium" style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}>
+      <Link href="/login" className="block text-center text-white rounded-md py-3 px-4 text-sm font-medium" style={{ background: "linear-gradient(180deg, #4C1D95 0%, #9F1239 55%, #BE123C 100%)" }}>
         {t("confirmEmail.relogin", locale)}
       </Link>
     </>

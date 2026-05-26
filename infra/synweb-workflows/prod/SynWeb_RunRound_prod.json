@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-05-19T18:40:22.408Z",
+    "updatedAt": "2026-05-20T20:56:45.880Z",
     "createdAt": "2026-05-10T17:55:45.890Z",
     "id": "KFRat6mb9Pj3iW7I",
     "name": "SynWeb_RunRound_prod",
@@ -73,7 +73,7 @@
           0
         ],
         "parameters": {
-          "jsCode": "var trig=$('Execute Workflow Trigger').first().json;var rows=$input.all();var out=[];for(var i=0;i<rows.length;i++){var p=rows[i].json;out.push({json:{session_id:trig.session_id,round_number:trig.round_number,problem_brief:trig.problem_brief,persona_id:p.persona_id||'',persona_profile:p.profile||'',rigidity:typeof p.rigidity==='number'?p.rigidity:5,slack_slot:p.slack_slot}});}return out;"
+          "jsCode": "var trig=$('Execute Workflow Trigger').first().json;\nvar rows=$('Get Personas').all();\nvar syn=$('Get Syntheses').all();\nsyn.sort(function(a,b){return (a.json.round_number||0)-(b.json.round_number||0);});\nvar rn=trig.round_number;\nvar sh=syn.filter(function(s){return s.json.round_number&&s.json.round_number<rn&&s.json.synthesis_text;}).map(function(s){return 'RUNDE '+s.json.round_number+' (Synthese):\\n'+s.json.synthesis_text;}).join('\\n\\n---\\n\\n');\nvar out=[];\nfor(var i=0;i<rows.length;i++){\n  var p=rows[i].json;\n  var own='';\n  for(var r=1;r<rn;r++){\n    var resp=p['round_'+r+'_response'];\n    if(resp){own+='RUNDE '+r+' (deine Antwort):\\n'+resp+'\\n\\n';}\n  }\n  own=own.trim();\n  out.push({json:{session_id:trig.session_id,round_number:rn,problem_brief:trig.problem_brief,persona_id:p.persona_id||'',persona_profile:p.profile||'',rigidity:typeof p.rigidity==='number'?p.rigidity:5,slack_slot:p.slack_slot,own_history:own,synthesis_history:sh},pairedItem:{item:0}});\n}\nreturn out;\n"
         }
       },
       {
@@ -87,7 +87,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://n8n.worqshop.io/webhook/synweb/run-persona",
+          "url": "https://n8n.worqshop.io/webhook/synweb/run-persona-prod",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ JSON.stringify($json) }}",
@@ -228,7 +228,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://n8n.worqshop.io/webhook/synweb/synthesize",
+          "url": "https://n8n.worqshop.io/webhook/synweb/synthesize-prod",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ JSON.stringify({session_id: $('Execute Workflow Trigger').item.json.session_id, round_number: $('Execute Workflow Trigger').item.json.round_number, problem_brief: $('Execute Workflow Trigger').item.json.problem_brief}) }}",
@@ -348,7 +348,7 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({sessionId: $json.session_id, kind: 'status', text: 'Die Runde laeuft - das kann einen Augenblick dauern. Hol dir gerne in der Zwischenzeit einen Kaffee.'}) }}",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').first().json.session_id, kind: 'status', text: 'Syn fragt Personas ...'}) }}",
           "options": {
             "timeout": 10000
           }
@@ -417,7 +417,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://n8n.worqshop.io/webhook/synweb/run-persona",
+          "url": "https://n8n.worqshop.io/webhook/synweb/run-persona-prod",
           "sendBody": true,
           "specifyBody": "json",
           "jsonBody": "={{ JSON.stringify($json) }}",
@@ -469,37 +469,110 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').first().json.session_id, kind: 'status', text: 'Alle Stimmen sind da - die Synthese entsteht gerade...'}) }}",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').first().json.session_id, kind: 'status', text: 'Syn macht Synthese ...'}) }}",
           "options": {
             "timeout": 10000
           }
         },
         "continueOnFail": true
+      },
+      {
+        "id": "275b365a-00dd-4303-8c2d-ed5b57240267",
+        "name": "Notify Panel Saved",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          120,
+          -120
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://asksyn.com/api/n8n/callback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({sessionId: $json.session_id, kind: 'panel_committed', roundNumber: $json.round_number}) }}",
+          "options": {
+            "timeout": 10000
+          }
+        }
+      },
+      {
+        "id": "1714c54b-be02-4bdc-a721-2cd2d7686729",
+        "name": "Get Syntheses",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          360,
+          0
+        ],
+        "parameters": {
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "panel_syntheses"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $('Execute Workflow Trigger').item.json.session_id }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "alwaysOutputData": true
+      },
+      {
+        "id": "4dcdf529-ba75-4c13-8be3-12c779624050",
+        "name": "Notify Round Started",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          220,
+          -120
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://asksyn.com/api/n8n/callback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').first().json.session_id, kind: 'status', text: 'Syn fragt Personas ...'}) }}",
+          "options": {
+            "timeout": 10000
+          }
+        }
       }
     ],
     "connections": {
-      "Execute Workflow Trigger": {
-        "main": [
-          [
-            {
-              "node": "Get Personas",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Get Personas": {
-        "main": [
-          [
-            {
-              "node": "Build Payloads",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
       "Build Payloads": {
         "main": [
           [
@@ -667,6 +740,61 @@
             }
           ]
         ]
+      },
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Notify Panel Saved",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Personas": {
+        "main": [
+          [
+            {
+              "node": "Get Syntheses",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Syntheses": {
+        "main": [
+          [
+            {
+              "node": "Build Payloads",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Notify Panel Saved": {
+        "main": [
+          [
+            {
+              "node": "Notify Round Started",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Notify Round Started": {
+        "main": [
+          [
+            {
+              "node": "Get Personas",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "settings": {
@@ -679,9 +807,9 @@
     "staticData": null,
     "meta": null,
     "pinData": null,
-    "versionId": "2f005908-4edb-4404-bbfe-295eb62b9a88",
-    "activeVersionId": "2f005908-4edb-4404-bbfe-295eb62b9a88",
-    "versionCounter": 28,
+    "versionId": "7481275c-7548-418a-97c5-bc0fcdf8e4ae",
+    "activeVersionId": "7481275c-7548-418a-97c5-bc0fcdf8e4ae",
+    "versionCounter": 69,
     "triggerCount": 0,
     "tags": [],
     "shared": [

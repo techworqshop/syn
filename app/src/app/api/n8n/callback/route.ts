@@ -3,10 +3,10 @@ import { db } from "@/lib/db";
 import { messages, audienceMessages, sessions } from "@/db/schema";
 import { publish } from "@/lib/redis";
 import { readState } from "@/lib/n8n";
-import { suggestTitle } from "@/lib/title-gen";
+import { suggestTitle, suggestTitleFromBrief } from "@/lib/title-gen";
 import { generatePersonaImage, MAX_ATTEMPTS } from "@/lib/persona-image-gen";
 import { personaImages } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, and } from "drizzle-orm";
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -15,6 +15,47 @@ import { renderReportPDF } from "@/lib/report-pdf";
 const REPORTS_DIR = "/app/uploads/reports";
 
 const SECRET = process.env.N8N_CALLBACK_SECRET!;
+
+// Phase-Marker-Parser. Coordinator hängt am Ende seiner Panel-Vorschlag-Messages
+// HTML-Kommentare an: <!-- syn:phase=panel_proposed -->, panel_added, panel_updated
+// persona=X, panel_removed persona=X. Markdown rendert HTML-Comments nicht — User
+// sieht die nie. Die Marker steuern den Pre-Save-Agent (ProposePersonas).
+type PhaseOp = { op: "set" | "add" | "update" | "remove" | "brief_set" | "report"; personaId?: string };
+function parsePhaseMarkers(text: string): { cleanText: string; ops: PhaseOp[] } {
+  const ops: PhaseOp[] = [];
+  const re = /<!--\s*syn:phase=(panel_proposed|panel_added|panel_updated|panel_removed|brief_proposed|generate_report)(?:\s+persona=([a-z0-9_-]+))?\s*-->/gi;
+  const opMap: Record<string, PhaseOp["op"]> = {
+    panel_proposed: "set",
+    panel_added: "add",
+    panel_updated: "update",
+    panel_removed: "remove",
+    brief_proposed: "brief_set",
+    generate_report: "report"
+  };
+  const cleanText = text.replace(re, (_m, opName, pid) => {
+    const op = opMap[opName.toLowerCase()];
+    if (op) ops.push({ op, personaId: pid ? String(pid).toLowerCase() : undefined });
+    return "";
+  }).replace(/\n{3,}/g, "\n\n").trim();
+  return { cleanText, ops };
+}
+
+
+
+// Maps known n8n-side German status texts to English. Used when session.locale==='en'.
+const STATUS_DE_TO_EN: Record<string, string> = {
+  "Syn denkt ...": "Syn is thinking ...",
+  "Syn speichert Panel ...": "Syn is saving panel ...",
+  "Syn fragt Personas ...": "Syn is asking personas ...",
+  "Syn macht Synthese ...": "Syn is creating synthesis ...",
+  "Syn startet Runde 1 ...": "Syn starts round 1 ...",
+  "Syn startet Runde 2 ...": "Syn starts round 2 ...",
+  "Syn startet Runde 3 ...": "Syn starts round 3 ..."
+};
+function translateStatusDeToEn(de: string): string {
+  return STATUS_DE_TO_EN[de] || de;
+}
+
 
 type Body = {
   sessionId: string;
@@ -26,9 +67,16 @@ type Body = {
 
 type SessionRow = typeof sessions.$inferSelect;
 
+const SYNC_DEBOUNCE_MS = 3000;
+const SYNC_LAST_AT = new Map<string, number>();
 async function syncPanelAndImages(sessionId: string, sess: SessionRow) {
+  const last = SYNC_LAST_AT.get(sessionId) || 0;
+  const now = Date.now();
+  if (now - last < SYNC_DEBOUNCE_MS) return;
+  SYNC_LAST_AT.set(sessionId, now);
   const state = await readState(sessionId);
-  const personaCount = state.personas.length;
+  // Only count personas with real content (name set) - empty placeholders should not count.
+  const personaCount = state.personas.filter(p => p && p.name && p.name.trim().length > 0).length;
   const derivedRound = Math.max(
     0,
     ...state.syntheses.map(s => s.round_number || 0),
@@ -45,10 +93,8 @@ async function syncPanelAndImages(sessionId: string, sess: SessionRow) {
     await publish(`session:${sessionId}`, {
       type: "session", personaCount, currentRound: derivedRound
     });
-  } else if (personaCount > 0) {
-    // even if counts didn't change, prompt sidebar to refetch (rigidity/content may have)
-    await publish(`session:${sessionId}`, { type: "panel_refresh" });
   }
+  // panel_refresh nur noch bei persona_round - verhindert ReadState-Spam.
 
   queueImageGen(sessionId, state.personas);
 }
@@ -94,7 +140,13 @@ export async function POST(req: Request) {
   const [sess] = await db.select().from(sessions).where(eq(sessions.id, b.sessionId)).limit(1);
   if (!sess) return NextResponse.json({ error: "session not found" }, { status: 404 });
 
-  const text = b.text || "";
+  let text = b.text || "";
+  let phaseOps: PhaseOp[] = [];
+  if (b.kind === "coordinator") {
+    const parsed = parsePhaseMarkers(text);
+    text = parsed.cleanText;
+    phaseOps = parsed.ops;
+  }
   if (b.kind === "audience_reply" || b.kind === "audience_no_persona") {
     const slot = typeof b.personaId === "string" ? parseInt(b.personaId) : (b.personaId ?? 0);
     const [row] = await db.insert(audienceMessages).values({
@@ -105,12 +157,46 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  if (b.kind === "persona_saved") {
+    // Fired by SavePanel sub-workflow per persona. LIGHTWEIGHT - just
+    // publish panel_refresh so sidebar refetches /personas. NO server-side
+    // readState here (browser fetch will trigger it once per event, but that
+    // is acceptable - previously we ran 2x readState per persona).
+    await publish(`session:${b.sessionId}`, { type: "panel_refresh" });
+    return NextResponse.json({ ok: true });
+  }
+
+  if (b.kind === "proposed_saved") {
+    // Fired by SynWeb_ProposePersonas after a persona was upserted with
+    // status='proposed'. Kick off image-gen so the avatar is already ready
+    // by the time the user confirms (committed). syncPanelAndImages reads
+    // all rows from readState (including proposed) and queues only personas
+    // that lack a ready image. Idempotent.
+    syncPanelAndImages(b.sessionId, sess).catch(() => {});
+    return NextResponse.json({ ok: true });
+  }
+
+  if (b.kind === "panel_committed") {
+    // Round start signal. No chat bubble - the spinner status from message-route
+    // (e.g. "Syn startet Runde N") + the RunRound's Notify Round Started status
+    // (e.g. "Syn fragt Personas ...") give the user enough feedback.
+    SYNC_LAST_AT.delete(b.sessionId);
+    syncPanelAndImages(b.sessionId, sess).catch(()=>{});
+    return NextResponse.json({ ok: true });
+  }
+
+
+
+
   if (b.kind === "status") {
-    // Ephemeral progress indicator - broadcast but don't persist
-    await publish(`session:${b.sessionId}`, { type: "status", text });
+    // Ephemeral progress indicator - broadcast but don't persist.
+    // Translate known German n8n-side texts to EN when session locale is en.
+    const t2 = (sess as { locale?: string }).locale === "en"
+      ? translateStatusDeToEn(text)
+      : text;
+    await publish(`session:${b.sessionId}`, { type: "status", text: t2 });
     // Opportunistic: while the agent is working, personas may be getting saved
-    // progressively - kick off image-gen for any that exist but have no image yet,
-    // and signal the sidebar to refetch so new tiles pop in.
+    // progressively - kick off image-gen for any that exist but have no image yet.
     syncPanelAndImages(b.sessionId, sess).catch(()=>{});
     return NextResponse.json({ ok: true });
   }
@@ -207,21 +293,123 @@ export async function POST(req: Request) {
   }).returning();
   await publish(`session:${b.sessionId}`, { type: "message", message: row });
 
+
+  // If session has reached final round but no synthesis for round 3 is in chat yet,
+  // re-publish a "Syn macht Synthese ..." status so the spinner stays visible until
+  // the synthesis arrives.
+  if (role === "coordinator") {
+    const [latestSess] = await db.select().from(sessions).where(eq(sessions.id, b.sessionId)).limit(1);
+    if (latestSess && (latestSess.currentRound ?? 0) >= 3) {
+      const synthExists = await db.select().from(messages)
+        .where(and(eq(messages.sessionId, b.sessionId), eq(messages.role, "synthesis"), eq(messages.roundNumber, 3)))
+        .limit(1);
+      if (synthExists.length === 0) {
+        const synthText = (latestSess as { locale?: string }).locale === "en"
+          ? "Syn is creating synthesis ..."
+          : "Syn macht Synthese ...";
+        await publish(`session:${b.sessionId}`, { type: "status", text: synthText });
+      }
+    }
+  }
+
+  // Fallback: heuristic title-gen (used when no brief_proposed marker came —
+  // e.g. legacy sessions or unmarked coordinator outputs). Brief-marker path
+  // above sets titleLocked=true, so this branch is skipped after a real brief.
   if (role === "coordinator" && !sess.titleLocked && (sess.title === "Neue Fokusgruppe" || !sess.title)) {
-    const allMsgs = await db.select().from(messages)
-      .where(eq(messages.sessionId, b.sessionId)).orderBy(asc(messages.createdAt));
-    const firstUserMsgs = allMsgs.filter(m => m.role === "user").map(m => m.content).slice(0, 3);
-    if (firstUserMsgs.length >= 1) {
-      const suggestion = await suggestTitle(null, firstUserMsgs);
-      if (suggestion && suggestion.length >= 4) {
-        await db.update(sessions).set({ title: suggestion, updatedAt: new Date() })
-          .where(eq(sessions.id, b.sessionId));
-        await publish(`session:${b.sessionId}`, { type: "session", title: suggestion });
+    // Re-fetch to see if the brief-marker path just set the title
+    const [refresh] = await db.select().from(sessions).where(eq(sessions.id, b.sessionId)).limit(1);
+    if (refresh && !refresh.titleLocked && (refresh.title === "Neue Fokusgruppe" || !refresh.title)) {
+      const allMsgs = await db.select().from(messages)
+        .where(eq(messages.sessionId, b.sessionId)).orderBy(asc(messages.createdAt));
+      const firstUserMsgs = allMsgs.filter(m => m.role === "user").map(m => m.content).slice(0, 3);
+      if (firstUserMsgs.length >= 1) {
+        const suggestion = await suggestTitle(null, firstUserMsgs);
+        if (suggestion && suggestion.length >= 4) {
+          await db.update(sessions).set({ title: suggestion, updatedAt: new Date() })
+            .where(eq(sessions.id, b.sessionId));
+          await publish(`session:${b.sessionId}`, { type: "session", title: suggestion });
+        }
       }
     }
   }
   if (role === "coordinator" || role === "persona" || role === "synthesis") {
     syncPanelAndImages(b.sessionId, sess).catch(()=>{});
+  }
+
+  // Auto-trigger the final report once the third (last) round synthesis lands.
+  // Internal fetch — fire-and-forget so the callback returns immediately.
+  if (role === "synthesis" && b.roundNumber === 3) {
+    const baseUrl = process.env.APP_URL || "https://syn.worqshop.io";
+    fetch(`${baseUrl}/api/sessions/${b.sessionId}/final-report`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Syn-Callback-Secret": SECRET || ""
+      },
+      body: JSON.stringify({ auto: true })
+    }).catch(() => {});
+  }
+
+  // PRE-SAVE DISPATCH: route each phase-marker the coordinator emitted to
+  // SynWeb_ProposePersonas. The sub-workflow uses Haiku to parse the (already-
+  // stripped) text into structured personas and upserts them with
+  // status='proposed'. Operations:
+  //   set    — full replace of the proposed snapshot (initial panel)
+  //   add    — append one or more new personas to the snapshot
+  //   update — overwrite an existing persona by persona_id
+  //   remove — drop a persona by persona_id (no Haiku parse needed)
+  // Multiple markers → sequential dispatch (ProposePersonas itself uses an
+  // advisory-lock on session_id to serialize against concurrent writes).
+  if (role === "coordinator" && phaseOps.length > 0) {
+    // brief_set is a special op: not panel-related, just title generation.
+    // Handle it inline (no sub-workflow needed), then continue with persona ops.
+    const briefOp = phaseOps.find(o => o.op === "brief_set");
+    if (briefOp && !sess.titleLocked) {
+      try {
+        const title = await suggestTitleFromBrief(text);
+        if (title && title.length >= 4) {
+          await db.update(sessions).set({ title, titleLocked: true, updatedAt: new Date() })
+            .where(eq(sessions.id, b.sessionId));
+          await publish(`session:${b.sessionId}`, { type: "session", title });
+        }
+      } catch (e) {
+        console.error("[callback] suggestTitleFromBrief failed", e);
+      }
+    }
+    // generate_report: early-stop after round 2. User chose to finish early —
+    // fire the final-report endpoint (same path as the round-3 auto-trigger).
+    // The endpoint's once-guard prevents double generation.
+    const reportOp = phaseOps.find(o => o.op === "report");
+    if (reportOp) {
+      const baseUrl = process.env.APP_URL || "https://syn.worqshop.io";
+      fetch(`${baseUrl}/api/sessions/${b.sessionId}/final-report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Syn-Callback-Secret": SECRET || "" },
+        body: JSON.stringify({ auto: true, earlyStop: true })
+      }).catch(() => {});
+    }
+    const personaOps = phaseOps.filter(o => o.op !== "brief_set" && o.op !== "report");
+    const proposeUrl = process.env.SYNWEB_PROPOSE_PERSONAS_WEBHOOK;
+    if (proposeUrl && personaOps.length > 0) {
+      // Fire-and-forget the whole sequence — each fetch starts a new workflow
+      // run; we don't block the callback response on them.
+      (async () => {
+        for (const op of personaOps) {
+          try {
+            await fetch(proposeUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                sessionId: b.sessionId,
+                content: text,          // already stripped of markers
+                op: op.op,
+                personaId: op.personaId ?? null
+              })
+            });
+          } catch { /* ignore per-op failures, others continue */ }
+        }
+      })();
+    }
   }
   return NextResponse.json({ ok: true });
 }
