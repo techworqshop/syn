@@ -360,7 +360,7 @@ export async function POST(req: Request) {
   // Auto-trigger the final report once the third (last) round synthesis lands.
   // Internal fetch — fire-and-forget so the callback returns immediately.
   if (role === "synthesis" && b.roundNumber === 3) {
-    const baseUrl = process.env.APP_URL || "https://syn.worqshop.io";
+    const baseUrl = process.env.PUBLIC_BASE_URL || "https://syn.worqshop.io";
     fetch(`${baseUrl}/api/sessions/${b.sessionId}/final-report`, {
       method: "POST",
       headers: {
@@ -402,7 +402,7 @@ export async function POST(req: Request) {
     // The endpoint's once-guard prevents double generation.
     const reportOp = phaseOps.find(o => o.op === "report");
     if (reportOp) {
-      const baseUrl = process.env.APP_URL || "https://syn.worqshop.io";
+      const baseUrl = process.env.PUBLIC_BASE_URL || "https://syn.worqshop.io";
       fetch(`${baseUrl}/api/sessions/${b.sessionId}/final-report`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Syn-Callback-Secret": SECRET || "" },
