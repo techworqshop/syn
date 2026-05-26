@@ -13,6 +13,14 @@ cd "$(dirname "$0")/.."
 echo "==> Build prod-app image from current source"
 docker compose --env-file .env.prod -f docker-compose.prod.yml build app
 
+echo "==> Sync shared brand assets (_admin: landing images + Syn avatar) dev -> prod"
+# uploads is a per-env volume (dev ./uploads, prod ./uploads_prod). Session files
+# stay separate, but the shared _admin brand assets (landing product/persona images,
+# Syn avatar) must be carried over or the live landing shows stale/broken images.
+mkdir -p ./uploads_prod/_admin/landing
+cp -f ./uploads/_admin/landing/*.png ./uploads_prod/_admin/landing/ 2>/dev/null || true
+cp -f ./uploads/_admin/syn-avatar.png ./uploads_prod/_admin/syn-avatar.png 2>/dev/null || true
+
 echo "==> Recreate prod-app container (DB+Redis bleiben unangefasst)"
 docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --force-recreate app
 

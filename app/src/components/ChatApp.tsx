@@ -29,6 +29,8 @@ export default function ChatApp({ sessionId, session, initialMessages, locale = 
   const [status, setStatus] = useState<string | null>(null);
   const [personaCount, setPersonaCount] = useState<number>(session.personaCount);
   const [personaRoleBySlot, setPersonaRoleBySlot] = useState<Record<number, string>>({});
+  const [personaNameBySlot, setPersonaNameBySlot] = useState<Record<number, string>>({});
+  const [refreshToken, setRefreshToken] = useState(0);
 
   // Load persona slot→role map for inline labels in MessageBubble headers.
   useEffect(() => {
@@ -38,18 +40,20 @@ export default function ChatApp({ sessionId, session, initialMessages, locale = 
       .then(d => {
         if (cancelled || !d?.personas) return;
         const map: Record<number, string> = {};
+        const nameMap: Record<number, string> = {};
         for (const p of d.personas) {
-          if (typeof p.slack_slot === "number" && typeof p.type === "string" && p.type.trim()) {
-            map[p.slack_slot] = p.type.trim();
+          if (typeof p.slack_slot === "number") {
+            if (typeof p.type === "string" && p.type.trim()) map[p.slack_slot] = p.type.trim();
+            if (typeof p.name === "string" && p.name.trim()) nameMap[p.slack_slot] = p.name.trim();
           }
         }
         setPersonaRoleBySlot(map);
+        setPersonaNameBySlot(nameMap);
       })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [session.id, personaCount]);
+  }, [session.id, personaCount, refreshToken]);
   const [currentRound, setCurrentRound] = useState<number>(session.currentRound);
-  const [refreshToken, setRefreshToken] = useState(0);
   const [filesList, setFilesList] = useState<FileRow[]>([]);
   const [showUpload, setShowUpload] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -241,7 +245,7 @@ export default function ChatApp({ sessionId, session, initialMessages, locale = 
               {t("chat.empty", locale)}
             </div>
           )}
-          {msgs.map(m => <MessageBubble key={m.id} m={m} locale={locale} personaRole={m.personaSlot != null ? (personaRoleBySlot[m.personaSlot] ?? null) : null} />)}
+          {msgs.map(m => <MessageBubble key={m.id} m={m} locale={locale} personaRole={m.personaSlot != null ? (personaRoleBySlot[m.personaSlot] ?? null) : null} personaName={m.personaSlot != null ? (personaNameBySlot[m.personaSlot] ?? null) : null} />)}
           {waiting && (
             <div className="flex items-center gap-2 text-stone-500 text-sm">
               <span className="inline-block w-2 h-2 bg-rose-700 rounded-full animate-pulse" />

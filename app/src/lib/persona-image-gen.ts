@@ -128,7 +128,8 @@ export async function generatePersonaImage(p: PersonaInput): Promise<"ready" | "
     mimeType: result.mime,
     status: "ready",
     attempts: sql`attempts + 1`,
-    lastError: null
+    lastError: null,
+    generatedName: p.name
   }).where(and(eq(personaImages.sessionId, p.sessionId), eq(personaImages.slot, p.slot)));
   console.log(`[persona-image] session=${p.sessionId} slot=${p.slot} ready (${result.bytes.length}b)`);
   return "ready";

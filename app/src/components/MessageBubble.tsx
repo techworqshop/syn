@@ -155,7 +155,7 @@ function fmtTime(d: string | Date, locale: Locale = "de") {
 
 type ReportMeta = { kind?: string; reportId?: string; filename?: string; generatedAt?: string };
 
-export default function MessageBubble({ m, locale = "de", personaRole }: { m: Message; locale?: Locale; personaRole?: string | null }) {
+export default function MessageBubble({ m, locale = "de", personaRole, personaName }: { m: Message; locale?: Locale; personaRole?: string | null; personaName?: string | null }) {
   const COLLAPSE_AT = 600;
   const isLong = m.role === "persona" && m.content.length > COLLAPSE_AT;
   const [expanded, setExpanded] = useState(false);
@@ -168,7 +168,7 @@ export default function MessageBubble({ m, locale = "de", personaRole }: { m: Me
   const bubbleStyle = { ['--edge-top' as string]: stops.top, ['--edge-bottom' as string]: stops.bottom } as React.CSSProperties;
 
   let label: string = t(`role.${m.role}`, locale);
-  if (m.role === "persona") label = m.personaName || (m.personaSlot ? `${t("role.persona", locale)} ${m.personaSlot}` : t("role.persona", locale));
+  if (m.role === "persona") label = personaName || m.personaName || (m.personaSlot ? `${t("role.persona", locale)} ${m.personaSlot}` : t("role.persona", locale));
   if (m.role === "synthesis" && m.roundNumber) label = `${t("role.synthesisRound", locale)} ${m.roundNumber}`;
   if (isError) label = t("role.error", locale);
   void LABELS; // legacy lookup retained for grep-ability
@@ -177,7 +177,7 @@ export default function MessageBubble({ m, locale = "de", personaRole }: { m: Me
 
   return (
     <div className={`flex gap-3 items-start group ${isUser ? "flex-row-reverse" : ""}`}>
-      <Avatar role={m.role} name={m.personaName} slot={m.personaSlot} sessionId={m.sessionId} locale={locale} />
+      <Avatar role={m.role} name={personaName || m.personaName} slot={m.personaSlot} sessionId={m.sessionId} locale={locale} />
       <div className={`flex-1 min-w-0 flex flex-col ${isUser ? "items-end" : "items-start"}`}>
         <div className={`flex items-baseline gap-2 mb-1 ${isUser ? "flex-row-reverse" : ""}`}>
           <span className="font-semibold text-[14px] leading-tight" style={{ color: labelColor }}>{label}</span>

@@ -97,6 +97,7 @@ export const personaImages = pgTable("persona_images", {
   status: text("status").notNull().default("pending"),
   attempts: integer("attempts").notNull().default(0),
   lastError: text("last_error"),
+  generatedName: text("generated_name"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
 });
 

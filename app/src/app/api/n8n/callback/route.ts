@@ -6,7 +6,7 @@ import { readState } from "@/lib/n8n";
 import { suggestTitle, suggestTitleFromBrief } from "@/lib/title-gen";
 import { generatePersonaImage, MAX_ATTEMPTS } from "@/lib/persona-image-gen";
 import { personaImages } from "@/db/schema";
-import { eq, asc, and } from "drizzle-orm";
+import { eq, asc, and, ne } from "drizzle-orm";
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -110,9 +110,30 @@ function queueImageGen(sessionId: string, personas: Array<{ slack_slot?: number 
     for (const p of personas) {
       const slot = p.slack_slot;
       if (!slot) continue;
+      const curName = (p.name || "").trim();
       const row = byslot.get(slot);
-      if (row?.status === "ready") continue;
-      if (row && row.attempts >= MAX_ATTEMPTS) continue;
+      const gen = row ? (row.generatedName ?? null) : null;
+      // null = legacy/untracked row -> assume current image is fine; backfill below.
+      const nameMatches = !!row && (gen === null || gen === curName);
+      // Keep chat-bubble persona names in sync with the current slot identity
+      // (covers nachtraegliche Umbenennung einer Persona).
+      if (curName) {
+        await db.update(messages).set({ personaName: curName })
+          .where(and(eq(messages.sessionId, sessionId), eq(messages.personaSlot, slot), ne(messages.personaName, curName)));
+      }
+      // Legacy ready row (untracked) -> backfill name, NO regen, so future renames are detectable.
+      if (row && row.status === "ready" && gen === null && curName) {
+        await db.update(personaImages).set({ generatedName: curName })
+          .where(and(eq(personaImages.sessionId, sessionId), eq(personaImages.slot, slot)));
+      }
+      // Tracked persona changed identity -> stale portrait. Reset so it regenerates.
+      if (row && row.status === "ready" && gen !== null && gen !== curName) {
+        await db.update(personaImages).set({ status: "pending", storagePath: null, attempts: 0, lastError: null })
+          .where(and(eq(personaImages.sessionId, sessionId), eq(personaImages.slot, slot)));
+      }
+      const upToDate = row?.status === "ready" && nameMatches;
+      const exhausted = !!row && row.attempts >= MAX_ATTEMPTS && nameMatches;
+      if (upToDate || exhausted) continue;
       const result = await generatePersonaImage({
         sessionId, slot, name: p.name || "", type: p.type, profile: p.profile
       });
