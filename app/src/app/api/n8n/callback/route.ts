@@ -40,6 +40,31 @@ function parsePhaseMarkers(text: string): { cleanText: string; ops: PhaseOp[] } 
   return { cleanText, ops };
 }
 
+type PanelOp =
+  | { op: "set"; personas: Array<Record<string, unknown>> }
+  | { op: "upsert"; persona: Record<string, unknown> }
+  | { op: "delete"; personaId: string };
+function parsePanelBlock(text: string): { cleanText: string; ops: PanelOp[] } {
+  const ops: PanelOp[] = [];
+  const re = /<!--\s*syn:panel\s+([\s\S]*?)\s*-->/gi;
+  const cleanText = text.replace(re, (_m, jsonStr) => {
+    try {
+      const parsed = JSON.parse(String(jsonStr));
+      const arr = Array.isArray(parsed.ops) ? parsed.ops : [parsed];
+      for (const o of arr) {
+        if (!o || !o.op) continue;
+        const op = String(o.op).toLowerCase();
+        if (op === "set" && Array.isArray(o.personas)) ops.push({ op: "set", personas: o.personas });
+        else if (op === "upsert" && o.persona) ops.push({ op: "upsert", persona: o.persona });
+        else if ((op === "delete" || op === "remove") && (o.personaId || o.persona_id)) ops.push({ op: "delete", personaId: String(o.personaId || o.persona_id).toLowerCase() });
+      }
+    } catch { /* malformed -> ignore */ }
+    return "";
+  }).replace(/\n{3,}/g, "\n\n").trim();
+  return { cleanText, ops };
+}
+
+
 
 
 // Maps known n8n-side German status texts to English. Used when session.locale==='en'.
@@ -163,10 +188,14 @@ export async function POST(req: Request) {
 
   let text = b.text || "";
   let phaseOps: PhaseOp[] = [];
+  let panelOps: PanelOp[] = [];
   if (b.kind === "coordinator") {
     const parsed = parsePhaseMarkers(text);
     text = parsed.cleanText;
     phaseOps = parsed.ops;
+    const pb = parsePanelBlock(text);
+    text = pb.cleanText;
+    panelOps = pb.ops;
   }
   if (b.kind === "audience_reply" || b.kind === "audience_no_persona") {
     const slot = typeof b.personaId === "string" ? parseInt(b.personaId) : (b.personaId ?? 0);
@@ -381,7 +410,7 @@ export async function POST(req: Request) {
   //   remove — drop a persona by persona_id (no Haiku parse needed)
   // Multiple markers → sequential dispatch (ProposePersonas itself uses an
   // advisory-lock on session_id to serialize against concurrent writes).
-  if (role === "coordinator" && phaseOps.length > 0) {
+  if (role === "coordinator" && (phaseOps.length > 0 || panelOps.length > 0)) {
     // brief_set is a special op: not panel-related, just title generation.
     // Handle it inline (no sub-workflow needed), then continue with persona ops.
     const briefOp = phaseOps.find(o => o.op === "brief_set");
@@ -411,7 +440,18 @@ export async function POST(req: Request) {
     }
     const personaOps = phaseOps.filter(o => o.op !== "brief_set" && o.op !== "report");
     const proposeUrl = process.env.SYNWEB_PROPOSE_PERSONAS_WEBHOOK;
-    if (proposeUrl && personaOps.length > 0) {
+    if (proposeUrl && panelOps.length > 0) {
+      // NEW: Syn provided exact personas in a structured block -> store verbatim, no Haiku re-parse.
+      (async () => {
+        for (const op of panelOps) {
+          let payload: Record<string, unknown> = { sessionId: b.sessionId };
+          if (op.op === "set") payload = { ...payload, op: "set", personas: op.personas };
+          else if (op.op === "upsert") payload = { ...payload, op: "update", personaId: String((op.persona["persona_id"] ?? op.persona["personaId"] ?? "")).toLowerCase(), persona: op.persona };
+          else if (op.op === "delete") payload = { ...payload, op: "remove", personaId: op.personaId };
+          try { await fetch(proposeUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); } catch { /* ignore */ }
+        }
+      })();
+    } else if (proposeUrl && personaOps.length > 0) {
       // Fire-and-forget the whole sequence — each fetch starts a new workflow
       // run; we don't block the callback response on them.
       (async () => {

@@ -108,7 +108,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect, loca
               className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-bold ring-1 ring-white/40 shadow-md hover:scale-105 transition-transform overflow-hidden ${!p.imageReady ? "animate-pulse" : ""}`}
               style={gradStyle(stops)}>
               {p.imageReady
-                ? <img src={`/api/persona-images/${sessionId}/${n}`} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display="none")} />
+                ? <img src={`/api/persona-images/${sessionId}/${n}?v=${refreshToken}`} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display="none")} />
                 : <span>{initials}</span>}
             </button>
           );
@@ -161,7 +161,7 @@ export default function PersonaSidebar({ sessionId, refreshToken, onSelect, loca
                 <div className={`w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-white text-xs font-bold shrink-0 ring-1 ring-white/40 ${!p.imageReady ? "animate-pulse" : ""}`}
                   style={gradStyle(stops)}>
                   {p.imageReady
-                    ? <img src={`/api/persona-images/${sessionId}/${n}`} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display="none")} />
+                    ? <img src={`/api/persona-images/${sessionId}/${n}?v=${refreshToken}`} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display="none")} />
                     : <span>{initials}</span>}
                 </div>
                 <div className="flex-1 min-w-0">

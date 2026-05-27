@@ -7,9 +7,10 @@ type Props = {
   initials: string;
   tintClass: string;
   size?: string;
+  version?: number | string;
 };
 
-export default function PersonaAvatar({ sessionId, slot, initials, tintClass, size = "w-11 h-11" }: Props) {
+export default function PersonaAvatar({ sessionId, slot, initials, tintClass, size = "w-11 h-11", version = 0 }: Props) {
   const [failed, setFailed] = useState(false);
   if (failed) {
     return (
@@ -20,7 +21,7 @@ export default function PersonaAvatar({ sessionId, slot, initials, tintClass, si
   }
   return (
     <img
-      src={`/api/persona-images/${sessionId}/${slot}`}
+      src={`/api/persona-images/${sessionId}/${slot}?v=${version}`}
       alt={initials}
       onError={() => setFailed(true)}
       className={`${size} rounded-md object-cover ring-1 ring-white/10 shrink-0 bg-stone-50`}

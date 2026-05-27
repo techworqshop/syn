@@ -53,8 +53,14 @@ export async function GET(req: Request, { params }: P) {
   } catch { return new Response("not found", { status: 404 }); }
   if (!row || !row.storagePath) return new Response("not found", { status: 404 });
   if (!fs.existsSync(row.storagePath)) return new Response("gone", { status: 410 });
+  // ETag (size+mtime) so the browser re-fetches after a regeneration (persona swap)
+  // but gets a cheap 304 when unchanged. no-cache forces revalidation before reuse.
+  const st = fs.statSync(row.storagePath);
+  const etag = `"${st.size}-${Math.floor(st.mtimeMs)}"`;
+  const baseHeaders: Record<string, string> = { "Cache-Control": "private, no-cache, must-revalidate", "ETag": etag };
+  if (req.headers.get("if-none-match") === etag) {
+    return new Response(null, { status: 304, headers: baseHeaders });
+  }
   const buf = fs.readFileSync(row.storagePath);
-  return new Response(buf, {
-    headers: { "Content-Type": row.mimeType, "Cache-Control": "private, max-age=3600" }
-  });
+  return new Response(buf, { headers: { ...baseHeaders, "Content-Type": row.mimeType } });
 }
