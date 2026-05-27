@@ -1,0 +1,572 @@
+[
+  {
+    "updatedAt": "2026-05-27T00:12:38.814Z",
+    "createdAt": "2026-05-26T08:06:30.462Z",
+    "id": "XU3nxKw5UsLkXJsA",
+    "name": "SynWeb_ProposePersonas",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "webhook",
+        "name": "Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          0,
+          0
+        ],
+        "webhookId": "synweb-propose-personas-2",
+        "parameters": {
+          "path": "synweb-propose-personas",
+          "httpMethod": "POST",
+          "responseMode": "lastNode",
+          "options": {}
+        }
+      },
+      {
+        "id": "op-router",
+        "name": "Op Router",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          240,
+          0
+        ],
+        "parameters": {
+          "jsCode": "const body = $input.first().json.body || {};\nconst sessionId = String(body.sessionId || '').trim();\nconst op = String(body.op || 'set').toLowerCase();\nconst personaId = body.personaId ? String(body.personaId).toLowerCase() : null;\nconst content = String(body.content || '');\nif (!sessionId) throw new Error('sessionId missing');\nconst validOps = ['set', 'add', 'update', 'remove'];\nif (!validOps.includes(op)) throw new Error('invalid op: ' + op);\nif ((op === 'update' || op === 'remove') && !personaId) {\n  throw new Error('personaId required for op=' + op);\n}\nreturn [{ json: { sessionId, op, personaId, content,\n  isRemove: op === 'remove',\n  isSet: op === 'set',\n  needsParse: op !== 'remove'\n}}];\n"
+        }
+      },
+      {
+        "id": "if-remove",
+        "name": "Is Remove?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          480,
+          0
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.isRemove }}",
+                "rightValue": "true",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          }
+        }
+      },
+      {
+        "id": "direct-delete",
+        "name": "Direct Delete Persona",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          720,
+          -150
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "DELETE FROM \"data_table_user_oAfVlk69fSh57ABR\" WHERE session_id = $1 AND persona_id = $2;",
+          "options": {
+            "queryReplacement": "={{ $json.sessionId }},{{ $json.personaId }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "if-set",
+        "name": "Is Set?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          720,
+          150
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $('Op Router').first().json.isSet }}",
+                "rightValue": "true",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          }
+        }
+      },
+      {
+        "id": "delete-all-proposed",
+        "name": "Delete All Proposed",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          960,
+          50
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "DELETE FROM \"data_table_user_oAfVlk69fSh57ABR\" WHERE session_id = $1;",
+          "options": {
+            "queryReplacement": "={{ $('Op Router').first().json.sessionId }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "haiku-model",
+        "name": "Parse with Haiku",
+        "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+        "typeVersion": 1.3,
+        "position": [
+          960,
+          350
+        ],
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "claude-haiku-4-5",
+            "mode": "id",
+            "cachedResultName": "Claude Haiku 4.5"
+          },
+          "options": {
+            "temperature": 0
+          }
+        },
+        "credentials": {
+          "anthropicApi": {
+            "id": "xryPDagnAi6vifng",
+            "name": "Anthropic account"
+          }
+        }
+      },
+      {
+        "id": "parser-agent",
+        "name": "Persona Parser Agent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 2.2,
+        "position": [
+          1200,
+          250
+        ],
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $('Op Router').item.json.content }}",
+          "hasOutputParser": false,
+          "options": {
+            "systemMessage": "You parse coordinator-output text into strict JSON.\n\nOutput ONLY a JSON array of persona objects with fields:\n  persona_id  — lowercase first name only (e.g. 'lena', 'mira')\n  name        — full name (e.g. 'Lena Hofer')\n  type        — role/profession one-liner\n  core_perspective — 1-2 sentence summary\n  profile     — full descriptive profile (multi-line OK)\n\nRules:\n- ONLY personas explicitly described in the input text.\n- Do NOT invent personas. If only 1 is described, return array with 1 item.\n- persona_id MUST be lowercase ASCII first name (no umlauts, no spaces).\n  If the first name contains umlauts (Mü -> mu, ö -> oe), normalize.\n- NO commentary, NO code fences, NO explanation. Just the JSON array."
+          }
+        }
+      },
+      {
+        "id": "build-records",
+        "name": "Build Records",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1440,
+          250
+        ],
+        "parameters": {
+          "jsCode": "const trig = $('Op Router').first().json;\nconst sessionId = trig.sessionId;\nconst op = trig.op;\nconst personaIdHint = trig.personaId;\n\n// Existing panel. Check Committed returns ONE row {rows:[{persona_id,slack_slot,status}], cnt}.\n// Slot-aware assignment = bulletproof: deltas never collide with already-occupied slots.\nconst cc = $('Check Committed').first().json || {};\nconst committedCnt = Number(cc.cnt) || 0;\nlet existingRaw = cc.rows;\nif (typeof existingRaw === 'string') { try { existingRaw = JSON.parse(existingRaw); } catch (e) { existingRaw = []; } }\nconst existing = Array.isArray(existingRaw) ? existingRaw : [];\nconst slotByPid = {};\nconst occupied = new Set();\nfor (const r of existing) {\n  const s = Number(r && r.slack_slot);\n  if (r && r.persona_id) slotByPid[r.persona_id] = s;\n  if (s) occupied.add(s);\n}\nfunction nextFreeSlot() {\n  for (let s = 1; s <= 8; s++) { if (!occupied.has(s)) { occupied.add(s); return s; } }\n  return 8;\n}\n\nconst raw = $('Resolve Personas').first().json.output || $('Resolve Personas').first().json.text || '[]';\nlet personas;\ntry {\n  const cleaned = typeof raw === 'string' ? raw.replace(/^```json\\s*|\\s*```$/g, '').trim() : raw;\n  personas = typeof cleaned === 'string' ? JSON.parse(cleaned) : cleaned;\n} catch (e) {\n  console.warn('ProposePersonas: Haiku output not valid JSON, aborting safely (no delete):', e.message);\n  return [];\n}\nif (!Array.isArray(personas)) { console.warn('ProposePersonas: parser output not an array, aborting safely'); return []; }\nif (personas.length === 0) return [];\n\nfunction normalizeId(s) {\n  return String(s || '').toLowerCase()\n    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')\n    .replace(/[^a-z0-9_-]/g, '');\n}\n\n// op=update targets exactly ONE existing persona. Keep its persona_id so the upsert REPLACES\n// the row in place (same slot, no duplicate) even when the LLM renames it (Lara -> Napoleon).\nif (op === 'update' && personaIdHint) {\n  personas = personas.slice(0, 1);\n  personas[0].persona_id = personaIdHint;\n}\n\nreturn personas.slice(0, 8).map((p, i) => {\n  const pid = normalizeId(p.persona_id || p.name || '').slice(0, 30) || ('p' + (i + 1));\n  let slot;\n  if (op === 'set') {\n    slot = i + 1;\n  } else if (slotByPid[pid] != null) {\n    slot = slotByPid[pid];\n  } else {\n    slot = nextFreeSlot();\n  }\n  return { json: {\n    session_id: sessionId,\n    persona_id: pid,\n    name: String(p.name || '').slice(0, 100),\n    type: String(p.type || '').slice(0, 200),\n    core_perspective: String(p.core_perspective || '').slice(0, 400),\n    profile: String(p.profile || '').slice(0, 3000),\n    slack_slot: slot,\n    rigidity: 5,\n    status: (committedCnt > 0) ? 'committed' : 'proposed'\n  }};\n});"
+        }
+      },
+      {
+        "id": "upsert-proposed",
+        "name": "Upsert Proposed",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1680,
+          250
+        ],
+        "parameters": {
+          "operation": "upsert",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "oAfVlk69fSh57ABR"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "session_id",
+                "keyValue": "={{ $json.session_id }}"
+              },
+              {
+                "keyName": "persona_id",
+                "keyValue": "={{ $json.persona_id }}"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": [
+              "session_id",
+              "persona_id"
+            ],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          }
+        }
+      },
+      {
+        "id": "notify-saved",
+        "name": "Notify SynWeb",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1920,
+          250
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://syn.worqshop.io/api/n8n/callback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({sessionId: $json.session_id, kind: 'proposed_saved', personaSlot: $json.slack_slot, personaName: $json.name, personaId: $json.persona_id}) }}",
+          "options": {
+            "timeout": 5000
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "id": "restore-records-node1",
+        "name": "Restore Records",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1180,
+          50
+        ],
+        "parameters": {
+          "jsCode": "// 'Delete All Proposed' outputs {success}; bring back the parsed\n// persona records so Upsert gets the real rows.\nreturn $('Build Records').all();"
+        }
+      },
+      {
+        "id": "proposepersonas-check-committed",
+        "name": "Check Committed",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          1400,
+          410
+        ],
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT COALESCE(json_agg(json_build_object('persona_id',persona_id,'slack_slot',slack_slot,'status',status) ORDER BY slack_slot),'[]'::json) AS rows, count(*) FILTER (WHERE status='committed')::int AS cnt FROM \"data_table_user_oAfVlk69fSh57ABR\" WHERE session_id = $1;",
+          "options": {
+            "queryReplacement": "={{ $('Op Router').first().json.sessionId }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "ba8d8f15-b85d-45b7-b7f9-0835f4bb52c5",
+        "name": "Resolve Personas",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          820,
+          0
+        ],
+        "parameters": {
+          "jsCode": "// Deterministic: prefer Syn-provided personas (structured block via webhook body).\n// Fall back to the Haiku parse ONLY if no structured data was sent (transition safety).\nconst body = $('Webhook').first().json.body || {};\nconst op = $('Op Router').first().json.op;\nlet prov = op === 'set'\n  ? (Array.isArray(body.personas) ? body.personas : null)\n  : (body.persona ? [body.persona] : (Array.isArray(body.personas) ? body.personas : null));\nif (prov && prov.length) return [{ json: { output: prov, source: 'provided' } }];\nlet agentOut = null;\ntry { agentOut = $('Persona Parser Agent').first().json.output; } catch (e) {}\nreturn [{ json: { output: agentOut || [], source: 'haiku-fallback' } }];"
+        }
+      },
+      {
+        "id": "2d99ab42-d897-4bf6-9f98-adf7b2e44fad",
+        "name": "Has Provided?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          440,
+          120
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ !!$('Webhook').first().json.body.persona || (Array.isArray($('Webhook').first().json.body.personas) && $('Webhook').first().json.body.personas.length > 0) }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Op Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Op Router": {
+        "main": [
+          [
+            {
+              "node": "Is Remove?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Is Remove?": {
+        "main": [
+          [
+            {
+              "node": "Direct Delete Persona",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Has Provided?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Is Set?": {
+        "main": [
+          [
+            {
+              "node": "Delete All Proposed",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Upsert Proposed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Delete All Proposed": {
+        "main": [
+          [
+            {
+              "node": "Restore Records",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse with Haiku": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Persona Parser Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Records": {
+        "main": [
+          [
+            {
+              "node": "Is Set?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert Proposed": {
+        "main": [
+          [
+            {
+              "node": "Notify SynWeb",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Restore Records": {
+        "main": [
+          [
+            {
+              "node": "Upsert Proposed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Committed": {
+        "main": [
+          [
+            {
+              "node": "Build Records",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Persona Parser Agent": {
+        "main": [
+          [
+            {
+              "node": "Resolve Personas",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Resolve Personas": {
+        "main": [
+          [
+            {
+              "node": "Check Committed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Has Provided?": {
+        "main": [
+          [
+            {
+              "node": "Resolve Personas",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Persona Parser Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "saveManualExecutions": true,
+      "saveExecutionProgress": true
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": null,
+    "versionId": "7fc73605-b956-4505-a1a4-b955040b056a",
+    "activeVersionId": "7fc73605-b956-4505-a1a4-b955040b056a",
+    "versionCounter": 76,
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-05-26T08:06:30.462Z",
+        "createdAt": "2026-05-26T08:06:30.462Z",
+        "role": "workflow:owner",
+        "workflowId": "XU3nxKw5UsLkXJsA",
+        "projectId": "ckYCj2WnRYeX9dyH",
+        "project": {
+          "updatedAt": "2025-09-17T22:00:48.229Z",
+          "createdAt": "2025-09-17T19:21:15.442Z",
+          "id": "ckYCj2WnRYeX9dyH",
+          "name": "Tech Worqshop <tech@worqshop.io>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

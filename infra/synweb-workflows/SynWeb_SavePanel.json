@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-05-20T19:18:04.603Z",
+    "updatedAt": "2026-05-26T23:41:50.485Z",
     "createdAt": "2026-05-20T12:32:23.574Z",
     "id": "mAnhua1D7huLHtVt",
     "name": "SynWeb_SavePanel",
@@ -9,7 +9,7 @@
     "isArchived": false,
     "nodes": [
       {
-        "id": "trig",
+        "id": "trigger",
         "name": "Execute Workflow Trigger",
         "type": "n8n-nodes-base.executeWorkflowTrigger",
         "typeVersion": 1.1,
@@ -24,80 +24,23 @@
                 "name": "session_id"
               },
               {
-                "name": "personas_json"
-              },
-              {
                 "name": "problem_brief"
-              }
-            ]
-          }
-        }
-      },
-      {
-        "id": "split",
-        "name": "Parse Personas",
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          220,
-          0
-        ],
-        "parameters": {
-          "jsCode": "const trig=$('Execute Workflow Trigger').first().json;\nlet arr;\ntry{arr=typeof trig.personas_json==='string'?JSON.parse(trig.personas_json):(trig.personas_json||[]);}catch(e){throw new Error('Invalid personas_json: '+e.message);}\nif(!Array.isArray(arr))throw new Error('personas_json must be array');\nreturn arr.map(p=>({json:{session_id:trig.session_id,persona_id:String(p.persona_id||''),name:String(p.name||''),type:String(p.type||''),core_perspective:String(p.core_perspective||''),profile:String(p.profile||''),slack_slot:Number(p.slack_slot||0),rigidity:Number(p.rigidity!=null?p.rigidity:5)}}));"
-        }
-      },
-      {
-        "id": "upsert",
-        "name": "Upsert Persona",
-        "type": "n8n-nodes-base.dataTable",
-        "typeVersion": 1.1,
-        "position": [
-          440,
-          0
-        ],
-        "parameters": {
-          "operation": "upsert",
-          "dataTableId": {
-            "__rl": true,
-            "mode": "id",
-            "value": "oAfVlk69fSh57ABR"
-          },
-          "matchType": "allConditions",
-          "filters": {
-            "conditions": [
-              {
-                "keyName": "session_id",
-                "keyValue": "={{ $json.session_id }}"
               },
               {
-                "keyName": "persona_id",
-                "keyValue": "={{ $json.persona_id }}"
+                "name": "personas_json"
               }
             ]
-          },
-          "columns": {
-            "mappingMode": "defineBelow",
-            "value": {
-              "session_id": "={{ $json.session_id }}",
-              "persona_id": "={{ $json.persona_id }}",
-              "name": "={{ $json.name }}",
-              "type": "={{ $json.type }}",
-              "core_perspective": "={{ $json.core_perspective }}",
-              "profile": "={{ $json.profile }}",
-              "slack_slot": "={{ $json.slack_slot }}",
-              "rigidity": "={{ $json.rigidity }}"
-            }
           }
         }
       },
       {
-        "id": "cb",
-        "name": "Notify Saved",
+        "id": "notify-saving",
+        "name": "Notify Saving",
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
         "position": [
-          660,
-          0
+          220,
+          -180
         ],
         "parameters": {
           "method": "POST",
@@ -117,20 +60,21 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({sessionId: $json.session_id, kind: 'persona_saved', personaSlot: $json.slack_slot, personaName: $json.name}) }}",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').item.json.session_id, kind: 'status', text: 'Syn speichert Panel ...'}) }}",
           "options": {
             "timeout": 5000
           }
-        }
+        },
+        "continueOnFail": true
       },
       {
-        "id": "1422424f-f39b-488c-a2c2-d6997652a667",
+        "id": "save-brief",
         "name": "Save Brief",
         "type": "n8n-nodes-base.dataTable",
         "typeVersion": 1.1,
         "position": [
           220,
-          -180
+          0
         ],
         "parameters": {
           "operation": "upsert",
@@ -152,22 +96,93 @@
             "mappingMode": "defineBelow",
             "value": {
               "session_id": "={{ $('Execute Workflow Trigger').item.json.session_id }}",
-              "status": "ready",
               "problem_brief": "={{ $('Execute Workflow Trigger').item.json.problem_brief }}",
-              "persona_count": "={{ JSON.parse($('Execute Workflow Trigger').item.json.personas_json).length }}",
+              "status": "ready",
               "current_round": 0
-            }
+            },
+            "matchingColumns": [
+              "session_id"
+            ]
           }
         }
       },
       {
-        "id": "0b0aef1f-e526-422b-b41a-b7892175ae95",
-        "name": "Notify Saving",
+        "id": "promote-1",
+        "name": "Promote 1",
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          440,
+          0
+        ],
+        "alwaysOutputData": true,
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "WITH promoted AS (\n  UPDATE \"data_table_user_oAfVlk69fSh57ABR\" SET status='committed'\n  WHERE session_id=$1 AND status='proposed' RETURNING persona_id\n)\nSELECT persona_id, name, slack_slot, type, core_perspective\nFROM \"data_table_user_oAfVlk69fSh57ABR\"\nWHERE session_id=$1 AND status='committed';",
+          "options": {
+            "queryReplacement": "={{ $('Execute Workflow Trigger').first().json.session_id }}"
+          }
+        },
+        "credentials": {
+          "postgres": {
+            "id": "3bFmPfSLWhmF9NRR",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "id": "has-personas",
+        "name": "Has Personas?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          660,
+          0
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.persona_id }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "exists",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          }
+        }
+      },
+      {
+        "id": "collect-1",
+        "name": "Collect Rows",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          880,
+          -120
+        ],
+        "parameters": {
+          "jsCode": "const items = $input.all();\nconst real = items.filter(i => i.json && i.json.persona_id && i.json.session_id);\nconst throwIfEmpty = false;\nif (real.length === 0 && throwIfEmpty) {\n  const sid = $('Execute Workflow Trigger').first().json.session_id;\n  throw new Error('SavePanel-Guardrail: 0 proposed personas in DB fuer session ' + sid +\n    ' (auch nach Retry). ProposePersonas ist gecrasht oder Marker fehlte. Coordinator muss Panel NEU senden mit <!-- syn:phase=panel_proposed -->.');\n}\nreturn real;\n"
+        }
+      },
+      {
+        "id": "notify-saved",
+        "name": "Notify Saved",
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.2,
         "position": [
-          120,
-          -160
+          1540,
+          0
         ],
         "parameters": {
           "method": "POST",
@@ -187,30 +202,85 @@
           },
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({sessionId: $json.session_id, kind: 'status', text: 'Syn speichert Panel ...'}) }}",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').item.json.session_id, kind: 'persona_saved', personaSlot: $json.slack_slot, personaName: $json.name, personaId: $json.persona_id}) }}",
           "options": {
             "timeout": 5000
           }
+        },
+        "continueOnFail": true
+      },
+      {
+        "id": "notify-committed",
+        "name": "Notify Panel Committed",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1540,
+          200
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://syn.worqshop.io/api/n8n/callback",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-Syn-Callback-Secret",
+                "value": "a43e6582abf82fcdf0caa75a7ff22ce1a9a80cf6447ca2b376c7c3c08a88675c"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify({sessionId: $('Execute Workflow Trigger').item.json.session_id, kind: 'panel_committed', roundNumber: 0}) }}",
+          "options": {
+            "timeout": 5000
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "id": "savepanel-retry-guard",
+        "name": "Retry Guard",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1100,
+          160
+        ],
+        "parameters": {
+          "jsCode": "const sid = $('Execute Workflow Trigger').first().json.session_id;\n// Promote 1 liefert ALLE committed Personas (gerade promoted ODER schon committed)\n// -> idempotent, sofortiger Erfolg bei Re-Call. Hierher nur wenn WEDER committed\n// NOCH proposed existiert = echte Race (Commit vor Proposal). Kurz pollen (~30s),\n// da SavePanel SYNCHRON in der Agent-Kette laeuft (laengeres Warten blockt den\n// Coordinator / die User-Antwort).\nif ($runIndex >= 5) {\n  throw new Error('SavePanel-Guardrail: nach ~30s weder committed noch proposed personas fuer session ' + sid +\n    '. Proposal kam nie an (Marker fehlte / ProposePersonas leer). Coordinator muss das Panel neu senden mit <!-- syn:phase=panel_proposed -->.');\n}\nreturn [{ json: { tick: $runIndex, session_id: sid } }];"
+        }
+      },
+      {
+        "id": "23379381-6ed6-4c55-9394-9d97c569c862",
+        "name": "Wait For Pre-Save",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          880,
+          160
+        ],
+        "parameters": {
+          "jsCode": "// In-process delay (NOT an n8n Wait node): keeps SavePanel one synchronous pass,\n// so the agent tool-call always receives the FINAL committed list instead of an\n// early empty resume (that early resume was the false 'Schluckauf' trigger).\nawait new Promise(r => setTimeout(r, 4000));\nreturn $input.all();"
         }
       }
     ],
     "connections": {
-      "Parse Personas": {
+      "Execute Workflow Trigger": {
         "main": [
           [
             {
-              "node": "Upsert Persona",
+              "node": "Notify Saving",
               "type": "main",
               "index": 0
-            }
-          ]
-        ]
-      },
-      "Upsert Persona": {
-        "main": [
-          [
+            },
             {
-              "node": "Notify Saved",
+              "node": "Save Brief",
               "type": "main",
               "index": 0
             }
@@ -221,29 +291,74 @@
         "main": [
           [
             {
-              "node": "Parse Personas",
+              "node": "Promote 1",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Execute Workflow Trigger": {
+      "Promote 1": {
         "main": [
           [
             {
-              "node": "Notify Saving",
+              "node": "Has Personas?",
               "type": "main",
               "index": 0
             }
           ]
         ]
       },
-      "Notify Saving": {
+      "Has Personas?": {
         "main": [
           [
             {
-              "node": "Save Brief",
+              "node": "Collect Rows",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Wait For Pre-Save",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Collect Rows": {
+        "main": [
+          [
+            {
+              "node": "Notify Saved",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Notify Panel Committed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Retry Guard": {
+        "main": [
+          [
+            {
+              "node": "Promote 1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wait For Pre-Save": {
+        "main": [
+          [
+            {
+              "node": "Retry Guard",
               "type": "main",
               "index": 0
             }
@@ -261,9 +376,9 @@
     "staticData": null,
     "meta": null,
     "pinData": null,
-    "versionId": "3df3f8c6-8ac8-4dcb-81d4-94e7d00fb07d",
-    "activeVersionId": "3df3f8c6-8ac8-4dcb-81d4-94e7d00fb07d",
-    "versionCounter": 23,
+    "versionId": "cc20083e-a6a1-4c5b-9709-8e4f2f39d148",
+    "activeVersionId": "cc20083e-a6a1-4c5b-9709-8e4f2f39d148",
+    "versionCounter": 67,
     "triggerCount": 0,
     "tags": [],
     "shared": [
