@@ -1,9 +1,9 @@
 [
   {
-    "updatedAt": "2026-05-28T11:38:40.999Z",
+    "updatedAt": "2026-05-28T11:40:06.688Z",
     "createdAt": "2026-04-16T22:10:33.552Z",
-    "id": "A3jxDuimyDE2G6uO",
-    "name": "SynWeb_Coordinator",
+    "id": "CskmKreTjg3SuMWo",
+    "name": "SynWeb_Coordinator_prod",
     "description": null,
     "active": true,
     "isArchived": false,
@@ -195,7 +195,7 @@
           "workflowId": {
             "__rl": true,
             "mode": "id",
-            "value": "XybiSig1oi3HquZd"
+            "value": "cM4K3qGsjfBvEfqV"
           },
           "workflowInputs": {
             "schema": [
@@ -528,7 +528,7 @@
       {
         "parameters": {
           "method": "POST",
-          "url": "={{ $('Execute Workflow Trigger').item.json.callbackUrl || 'https://syn.worqshop.io/api/n8n/callback' }}",
+          "url": "={{ $('Execute Workflow Trigger').item.json.callbackUrl || 'https://asksyn.com/api/n8n/callback' }}",
           "sendHeaders": true,
           "headerParameters": {
             "parameters": [
@@ -565,7 +565,7 @@
           "workflowId": {
             "__rl": true,
             "mode": "id",
-            "value": "6GNn5cZdVZyGoxR1"
+            "value": "edJSx7sUYW3p72Bb"
           },
           "workflowInputs": {
             "schema": [
@@ -788,7 +788,7 @@
           "workflowId": {
             "__rl": true,
             "mode": "id",
-            "value": "ubm4FU2nKDKuvFgw"
+            "value": "KFRat6mb9Pj3iW7I"
           },
           "workflowInputs": {
             "schema": [
@@ -847,7 +847,7 @@
           "workflowId": {
             "__rl": true,
             "mode": "id",
-            "value": "mAnhua1D7huLHtVt"
+            "value": "AsNpiiGTNL5g3gCn"
           },
           "workflowInputs": {
             "schema": [
@@ -1136,17 +1136,17 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "a5b13140-d10a-46f9-9b18-2ef006567d51",
-    "activeVersionId": "a5b13140-d10a-46f9-9b18-2ef006567d51",
-    "versionCounter": 199,
+    "versionId": "8b913013-d64b-406d-9e45-3f4e544a1cc8",
+    "activeVersionId": "8b913013-d64b-406d-9e45-3f4e544a1cc8",
+    "versionCounter": 198,
     "triggerCount": 0,
     "tags": [],
     "shared": [
       {
-        "updatedAt": "2026-04-16T22:10:33.552Z",
-        "createdAt": "2026-04-16T22:10:33.552Z",
+        "updatedAt": "2026-05-19T18:35:13.064Z",
+        "createdAt": "2026-05-19T18:35:13.064Z",
         "role": "workflow:owner",
-        "workflowId": "A3jxDuimyDE2G6uO",
+        "workflowId": "CskmKreTjg3SuMWo",
         "projectId": "ckYCj2WnRYeX9dyH",
         "project": {
           "updatedAt": "2025-09-17T22:00:48.229Z",

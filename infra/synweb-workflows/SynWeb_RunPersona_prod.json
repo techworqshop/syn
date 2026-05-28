@@ -1,9 +1,9 @@
 [
   {
-    "updatedAt": "2026-05-28T11:28:10.223Z",
+    "updatedAt": "2026-05-28T11:39:38.867Z",
     "createdAt": "2026-04-16T22:10:03.276Z",
-    "id": "XybiSig1oi3HquZd",
-    "name": "SynWeb_RunPersona",
+    "id": "cM4K3qGsjfBvEfqV",
+    "name": "SynWeb_RunPersona_prod",
     "description": null,
     "active": true,
     "isArchived": false,
@@ -209,7 +209,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://syn.worqshop.io/api/n8n/callback",
+          "url": "https://asksyn.com/api/n8n/callback",
           "sendHeaders": true,
           "headerParameters": {
             "parameters": [
@@ -274,7 +274,7 @@
           "workflowId": {
             "__rl": true,
             "mode": "id",
-            "value": "jMQEQggtVPu7XOwK"
+            "value": "Q4MEDGpNMcyTxwGl"
           },
           "workflowInputs": {
             "schema": [
@@ -332,7 +332,7 @@
         "waitBetweenTries": 3000
       },
       {
-        "id": "70ad947f-9030-4f95-a3ae-ee73aa31f3f6",
+        "id": "39eb5d85-66eb-46ca-9483-42d23808e820",
         "name": "Save Response",
         "type": "n8n-nodes-base.postgres",
         "typeVersion": 2.6,
@@ -491,17 +491,17 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": null,
-    "versionId": "86c39ccb-cfbe-4a56-8333-dc46d057949c",
-    "activeVersionId": "86c39ccb-cfbe-4a56-8333-dc46d057949c",
-    "versionCounter": 107,
+    "versionId": "5c6b1d4a-e13f-4b2f-a327-00dfc7071415",
+    "activeVersionId": "5c6b1d4a-e13f-4b2f-a327-00dfc7071415",
+    "versionCounter": 120,
     "triggerCount": 0,
     "tags": [],
     "shared": [
       {
-        "updatedAt": "2026-04-16T22:10:03.276Z",
-        "createdAt": "2026-04-16T22:10:03.276Z",
+        "updatedAt": "2026-05-19T18:35:27.600Z",
+        "createdAt": "2026-05-19T18:35:27.600Z",
         "role": "workflow:owner",
-        "workflowId": "XybiSig1oi3HquZd",
+        "workflowId": "cM4K3qGsjfBvEfqV",
         "projectId": "ckYCj2WnRYeX9dyH",
         "project": {
           "updatedAt": "2025-09-17T22:00:48.229Z",
