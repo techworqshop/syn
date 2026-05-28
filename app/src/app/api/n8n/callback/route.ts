@@ -6,7 +6,7 @@ import { readState } from "@/lib/n8n";
 import { suggestTitle, suggestTitleFromBrief } from "@/lib/title-gen";
 import { generatePersonaImage, MAX_ATTEMPTS } from "@/lib/persona-image-gen";
 import { personaImages } from "@/db/schema";
-import { eq, asc, and, ne } from "drizzle-orm";
+import { eq, asc, and, ne, sql } from "drizzle-orm";
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -343,6 +343,29 @@ export async function POST(req: Request) {
   }).returning();
   await publish(`session:${b.sessionId}`, { type: "message", message: row });
 
+  // Auto-trigger synthesis when all personas of this round have responded.
+  // Decoupled from the Coordinator agent so a stuck/canceled turn never loses the synthesis.
+  if (b.kind === "persona_round" && typeof b.roundNumber === "number") {
+    try {
+      const respondedRes = await db.select({ c: sql<number>`count(distinct persona_name)::int` })
+        .from(messages)
+        .where(and(eq(messages.sessionId, b.sessionId), eq(messages.role, "persona"), eq(messages.roundNumber, b.roundNumber)));
+      const responded = Number(respondedRes[0]?.c ?? 0);
+      const target = sess.personaCount ?? 0;
+      if (target > 0 && responded >= target) {
+        const synthExists = await db.select().from(messages)
+          .where(and(eq(messages.sessionId, b.sessionId), eq(messages.role, "synthesis"), eq(messages.roundNumber, b.roundNumber)))
+          .limit(1);
+        if (synthExists.length === 0) {
+          const synUrl = process.env.SYNWEB_SYNTHESIZE_WEBHOOK;
+          if (synUrl) {
+            console.log("[auto-synth] firing for session", b.sessionId, "round", b.roundNumber);
+            fetch(synUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: b.sessionId, round_number: b.roundNumber }) }).catch(() => {});
+          }
+        }
+      }
+    } catch (e) { console.error("[callback] auto-synthesize trigger failed", e); }
+  }
 
   // If session has reached final round but no synthesis for round 3 is in chat yet,
   // re-publish a "Syn macht Synthese ..." status so the spinner stays visible until
