@@ -343,8 +343,9 @@ export async function POST(req: Request) {
   }).returning();
   await publish(`session:${b.sessionId}`, { type: "message", message: row });
 
-  // Auto-trigger synthesis when all personas of this round have responded.
-  // Decoupled from the Coordinator agent so a stuck/canceled turn never loses the synthesis.
+  // Auto-trigger synthesis as RECOVERY only. RunRound's internal "Trigger Synthesize"
+  // is the primary path; we wait 45s and fire only if no synthesis arrived by then
+  // (e.g. Coordinator used Run Persona individually, or RunRound's trigger crashed).
   if (b.kind === "persona_round" && typeof b.roundNumber === "number") {
     try {
       const respondedRes = await db.select({ c: sql<number>`count(distinct persona_name)::int` })
@@ -353,18 +354,26 @@ export async function POST(req: Request) {
       const responded = Number(respondedRes[0]?.c ?? 0);
       const target = sess.personaCount ?? 0;
       if (target > 0 && responded >= target) {
-        const synthExists = await db.select().from(messages)
-          .where(and(eq(messages.sessionId, b.sessionId), eq(messages.role, "synthesis"), eq(messages.roundNumber, b.roundNumber)))
-          .limit(1);
-        if (synthExists.length === 0) {
-          const synUrl = process.env.SYNWEB_SYNTHESIZE_WEBHOOK;
-          if (synUrl) {
-            console.log("[auto-synth] firing for session", b.sessionId, "round", b.roundNumber);
-            fetch(synUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: b.sessionId, round_number: b.roundNumber }) }).catch(() => {});
-          }
-        }
+        const sessionId = b.sessionId;
+        const roundNumber = b.roundNumber;
+        setTimeout(async () => {
+          try {
+            const exists = await db.select().from(messages)
+              .where(and(eq(messages.sessionId, sessionId), eq(messages.role, "synthesis"), eq(messages.roundNumber, roundNumber)))
+              .limit(1);
+            if (exists.length > 0) {
+              console.log("[auto-synth] skip: synthesis already present", sessionId, "round", roundNumber);
+              return;
+            }
+            const synUrl = process.env.SYNWEB_SYNTHESIZE_WEBHOOK;
+            if (synUrl) {
+              console.log("[auto-synth] firing (recovery)", sessionId, "round", roundNumber);
+              fetch(synUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: sessionId, round_number: roundNumber }) }).catch(() => {});
+            }
+          } catch (e) { console.error("[callback] delayed auto-synth check failed", e); }
+        }, 45000);
       }
-    } catch (e) { console.error("[callback] auto-synthesize trigger failed", e); }
+    } catch (e) { console.error("[callback] auto-synthesize scheduling failed", e); }
   }
 
   // If session has reached final round but no synthesis for round 3 is in chat yet,
