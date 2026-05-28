@@ -1,9 +1,9 @@
 [
   {
-    "updatedAt": "2026-05-28T16:48:16.334Z",
+    "updatedAt": "2026-05-28T16:48:20.618Z",
     "createdAt": "2026-04-16T22:10:06.588Z",
-    "id": "xgBgCZeVWBVB7jLN",
-    "name": "SynWeb_Synthesize",
+    "id": "iyArSP79Z6awC3tG",
+    "name": "SynWeb_Synthesize_prod",
     "description": null,
     "active": true,
     "isArchived": false,
@@ -286,7 +286,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://syn.worqshop.io/api/n8n/callback",
+          "url": "https://asksyn.com/api/n8n/callback",
           "sendHeaders": true,
           "headerParameters": {
             "parameters": [
@@ -437,17 +437,17 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "81c1bac4-9b85-47b4-af1a-71492a6e16db",
-    "activeVersionId": "81c1bac4-9b85-47b4-af1a-71492a6e16db",
-    "versionCounter": 55,
+    "versionId": "c6ff60d2-1770-43a8-be82-5585df57d7cc",
+    "activeVersionId": "c6ff60d2-1770-43a8-be82-5585df57d7cc",
+    "versionCounter": 64,
     "triggerCount": 0,
     "tags": [],
     "shared": [
       {
-        "updatedAt": "2026-04-16T22:10:06.588Z",
-        "createdAt": "2026-04-16T22:10:06.588Z",
+        "updatedAt": "2026-05-19T18:35:42.164Z",
+        "createdAt": "2026-05-19T18:35:42.164Z",
         "role": "workflow:owner",
-        "workflowId": "xgBgCZeVWBVB7jLN",
+        "workflowId": "iyArSP79Z6awC3tG",
         "projectId": "ckYCj2WnRYeX9dyH",
         "project": {
           "updatedAt": "2025-09-17T22:00:48.229Z",
