@@ -7,7 +7,7 @@ syn.worqshop.io {
     encode zstd gzip
 
     # Long-lived SSE connections for realtime persona responses
-    @sse path /api/sessions/*/stream* /api/stream*
+    @sse path_regexp ^/api/(sessions/[^/]+/stream|stream)
     handle @sse {
         reverse_proxy 127.0.0.1:3100 {
             flush_interval -1
@@ -26,7 +26,7 @@ syn.worqshop.io {
 asksyn.com, www.asksyn.com, app.asksyn.com {
     encode zstd gzip
 
-    @sse path /api/sessions/*/stream* /api/stream*
+    @sse path_regexp ^/api/(sessions/[^/]+/stream|stream)
     handle @sse {
         reverse_proxy 127.0.0.1:3100 {
             flush_interval -1

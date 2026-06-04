@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-05-28T16:48:16.334Z",
+    "updatedAt": "2026-06-04T18:17:51.117Z",
     "createdAt": "2026-04-16T22:10:06.588Z",
     "id": "xgBgCZeVWBVB7jLN",
     "name": "SynWeb_Synthesize",
@@ -186,7 +186,7 @@
           "messages": {
             "values": [
               {
-                "content": "=RUNDE {{ $json.round_number }} - SYNTHESE\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\nALLE PERSONA-ANTWORTEN ({{ $json.persona_count }} Panelisten):\n{{ $json.all_responses }}\n\n{{ $json.fileForensic ? 'BILD-FORENSIK (Vorab-Analyse vom Vision-Spezialist Gemini 3.1 Pro - praezise Fakten zu allen Materialien):\\n\\n' + $json.fileForensic + '\\n\\nDie Original-Bilder sind zusaetzlich angehaengt. Bei Diskrepanz vertraue der Forensik-Analyse.\\n' : 'Angehaengte Dateien sind Teil des Panel-Kontexts. Analysiere sie gruendlich und beziehe sie in die Synthese ein.' }}\n\nSektionen:\n1. KONSENS\n2. SPANNUNGSLINIEN\n3. UEBERRASCHUNGEN\n4. OFFENE LUECKEN\n5. ENTSTEHENDE FRAGEN\n\nKeine vorgetaeuschten Konsense. Weise Ideen namentlich zu.\n\nVERBOTEN am Ende: KEIN Methoden-Disclaimer / KEIN kursiver \"*Synthese erstellt...\"-Footnote / KEINE Schluss-Reflektion ueber dein Vorgehen. Die letzte Zeile ist Inhalt aus Sektion 5, kein Meta-Kommentar."
+                "content": "=SPRACHE (HARTE REGEL): Schreibe die GESAMTE Synthese in derselben Sprache wie der PROBLEM BRIEF und die PERSONA-ANTWORTEN unten - inklusive ALLER Abschnittsueberschriften. Englischer Brief -> komplett Englisch (CONSENSUS / TENSIONS / SURPRISES / OPEN GAPS / EMERGING QUESTIONS). Deutscher Brief -> komplett Deutsch.\n\nRUNDE {{ $json.round_number }} - SYNTHESE\n\nPROBLEM BRIEF:\n{{ $json.problem_brief }}\n\nALLE PERSONA-ANTWORTEN ({{ $json.persona_count }} Panelisten):\n{{ $json.all_responses }}\n\n{{ $json.fileForensic ? 'BILD-FORENSIK (Vorab-Analyse vom Vision-Spezialist Gemini 3.1 Pro - praezise Fakten zu allen Materialien):\\n\\n' + $json.fileForensic + '\\n\\nDie Original-Bilder sind zusaetzlich angehaengt. Bei Diskrepanz vertraue der Forensik-Analyse.\\n' : 'Angehaengte Dateien sind Teil des Panel-Kontexts. Analysiere sie gruendlich und beziehe sie in die Synthese ein.' }}\n\nSektionen:\n1. KONSENS\n2. SPANNUNGSLINIEN\n3. UEBERRASCHUNGEN\n4. OFFENE LUECKEN\n5. ENTSTEHENDE FRAGEN\n\nKeine vorgetaeuschten Konsense. Weise Ideen namentlich zu.\n\nVERBOTEN am Ende: KEIN Methoden-Disclaimer / KEIN kursiver \"*Synthese erstellt...\"-Footnote / KEINE Schluss-Reflektion ueber dein Vorgehen. Die letzte Zeile ist Inhalt aus Sektion 5, kein Meta-Kommentar."
               }
             ]
           },
@@ -228,7 +228,7 @@
           "messages": {
             "values": [
               {
-                "content": "=RUNDE {{ $('Aggregate').first().json.round_number }} - SYNTHESE\n\nPROBLEM BRIEF:\n{{ $('Aggregate').first().json.problem_brief }}\n\nALLE PERSONA-ANTWORTEN ({{ $('Aggregate').first().json.persona_count }} Panelisten):\n{{ $('Aggregate').first().json.all_responses }}\n\nSektionen:\n1. KONSENS\n2. SPANNUNGSLINIEN\n3. UEBERRASCHUNGEN\n4. OFFENE LUECKEN\n5. ENTSTEHENDE FRAGEN\n\nKeine vorgetaeuschten Konsense. Weise Ideen namentlich zu.\n\nVERBOTEN am Ende: KEIN Methoden-Disclaimer / KEIN kursiver \"*Synthese erstellt...\"-Footnote / KEINE Schluss-Reflektion ueber dein Vorgehen. Die letzte Zeile ist Inhalt aus Sektion 5, kein Meta-Kommentar."
+                "content": "=SPRACHE (HARTE REGEL): Schreibe die GESAMTE Synthese in derselben Sprache wie der PROBLEM BRIEF und die PERSONA-ANTWORTEN unten - inklusive ALLER Abschnittsueberschriften. Englischer Brief -> komplett Englisch (CONSENSUS / TENSIONS / SURPRISES / OPEN GAPS / EMERGING QUESTIONS). Deutscher Brief -> komplett Deutsch.\n\nRUNDE {{ $('Aggregate').first().json.round_number }} - SYNTHESE\n\nPROBLEM BRIEF:\n{{ $('Aggregate').first().json.problem_brief }}\n\nALLE PERSONA-ANTWORTEN ({{ $('Aggregate').first().json.persona_count }} Panelisten):\n{{ $('Aggregate').first().json.all_responses }}\n\nSektionen:\n1. KONSENS\n2. SPANNUNGSLINIEN\n3. UEBERRASCHUNGEN\n4. OFFENE LUECKEN\n5. ENTSTEHENDE FRAGEN\n\nKeine vorgetaeuschten Konsense. Weise Ideen namentlich zu.\n\nVERBOTEN am Ende: KEIN Methoden-Disclaimer / KEIN kursiver \"*Synthese erstellt...\"-Footnote / KEINE Schluss-Reflektion ueber dein Vorgehen. Die letzte Zeile ist Inhalt aus Sektion 5, kein Meta-Kommentar."
               }
             ]
           },
@@ -437,9 +437,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "81c1bac4-9b85-47b4-af1a-71492a6e16db",
-    "activeVersionId": "81c1bac4-9b85-47b4-af1a-71492a6e16db",
-    "versionCounter": 55,
+    "versionId": "afd121fc-9b8e-4850-acab-095fa9661f08",
+    "activeVersionId": "afd121fc-9b8e-4850-acab-095fa9661f08",
+    "versionCounter": 57,
     "triggerCount": 0,
     "tags": [],
     "shared": [

@@ -1,9 +1,9 @@
 [
   {
-    "updatedAt": "2026-05-19T18:52:03.266Z",
+    "updatedAt": "2026-05-26T20:24:37.383Z",
     "createdAt": "2026-04-19T23:47:02.938Z",
-    "id": "vJ1K27VranwixXK1",
-    "name": "SynWeb_FinalReport",
+    "id": "pZc6MOe0cl3uQhVT",
+    "name": "SynWeb_FinalReport_prod",
     "description": null,
     "active": true,
     "isArchived": false,
@@ -18,11 +18,11 @@
           300
         ],
         "parameters": {
-          "path": "synweb/final-report",
+          "path": "synweb/final-report-prod",
           "httpMethod": "POST",
           "responseMode": "onReceived"
         },
-        "webhookId": "2adbc14a-5656-4ec8-b1c4-79af25b0aaeb"
+        "webhookId": "prod-2adbc14a-5656-4ec8-b1c4-79af25b0aaeb"
       },
       {
         "id": "gen",
@@ -96,7 +96,7 @@
         ],
         "parameters": {
           "method": "POST",
-          "url": "https://syn.worqshop.io/api/n8n/callback",
+          "url": "https://asksyn.com/api/n8n/callback",
           "sendHeaders": true,
           "headerParameters": {
             "parameters": [
@@ -163,17 +163,17 @@
     "staticData": null,
     "meta": null,
     "pinData": null,
-    "versionId": "5b1ed015-d67d-4e67-bdca-4e318efa60d0",
-    "activeVersionId": "5b1ed015-d67d-4e67-bdca-4e318efa60d0",
-    "versionCounter": 47,
+    "versionId": "51f3f3be-fda0-4752-9146-b4584dbd315a",
+    "activeVersionId": "51f3f3be-fda0-4752-9146-b4584dbd315a",
+    "versionCounter": 56,
     "triggerCount": 1,
     "tags": [],
     "shared": [
       {
-        "updatedAt": "2026-04-19T23:47:02.938Z",
-        "createdAt": "2026-04-19T23:47:02.938Z",
+        "updatedAt": "2026-05-19T18:35:56.249Z",
+        "createdAt": "2026-05-19T18:35:56.249Z",
         "role": "workflow:owner",
-        "workflowId": "vJ1K27VranwixXK1",
+        "workflowId": "pZc6MOe0cl3uQhVT",
         "projectId": "ckYCj2WnRYeX9dyH",
         "project": {
           "updatedAt": "2025-09-17T22:00:48.229Z",
