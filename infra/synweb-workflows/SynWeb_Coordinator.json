@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-05-28T14:48:17.558Z",
+    "updatedAt": "2026-06-04T17:53:49.195Z",
     "createdAt": "2026-04-16T22:10:33.552Z",
     "id": "A3jxDuimyDE2G6uO",
     "name": "SynWeb_Coordinator",
@@ -10,7 +10,7 @@
     "nodes": [
       {
         "parameters": {
-          "jsCode": "// Phase Detection: Data comes pre-processed from Syn_Gateway\nconst items = $input.all();\nconst item = items[0].json;\n\nconst threadTs = item.sessionId;\nconst channelId = item.channelId;\nconst userId = item.userId;\nconst cleanMessage = item.cleanMessage || '';\nconst hasFiles = item.hasFiles || false;\n\n// Detect intent patterns\nconst isPersonaQuery = /^(frage an|ask|@|befrag)\\s+/i.test(cleanMessage);\nconst isRigidityChange = /rigidity|rigidität|offener|härter|flexibler|standhafter/i.test(cleanMessage);\nconst isShowAnalysis = /^(zeig|show|was sagt|analyse von)\\s+/i.test(cleanMessage);\nconst isRound3Trigger = /^(runde 3|round 3|weiter|nächste runde|convergence)/i.test(cleanMessage);\nconst isConfirmation = /^(ja|yes|ok|bestätigt|confirmed|go|los|start|passt|gut)/i.test(cleanMessage);\nconst isCancel = /^(abbruch|cancel|stop|nein|no)/i.test(cleanMessage);\n\nlet targetPersona = '';\nif (isPersonaQuery) {\n  const match = cleanMessage.match(/^(?:frage an|ask|@|befrag)\\s+([\\w\\s]+?)(?::|,|\\s+(?:was|wie|ob|whether|how|what))/i);\n  if (match) targetPersona = match[1].trim();\n}\n\nlet newRigidity = null;\nif (isRigidityChange) {\n  const scoreMatch = cleanMessage.match(/(\\d+)/);\n  if (scoreMatch) newRigidity = Math.min(10, Math.max(0, parseInt(scoreMatch[1])));\n}\n\nreturn [{\n  json: {\n    threadTs,\n    channelId,\n    userId,\n    cleanMessage,\n    hasFiles,\n    isPersonaQuery,\n    isRigidityChange,\n    isShowAnalysis,\n    isRound3Trigger,\n    isConfirmation,\n    isCancel,\n    targetPersona,\n    newRigidity,\n    sessionId: threadTs\n  }\n}];"
+          "jsCode": "// Phase Detection: Data comes pre-processed from Syn_Gateway\nconst items = $input.all();\nconst item = items[0].json;\n\nconst threadTs = item.sessionId;\nconst channelId = item.channelId;\nconst userId = item.userId;\nconst cleanMessage = item.cleanMessage || '';\nconst hasFiles = item.hasFiles || false;\nconst locale = item.locale || 'de';\n\n// Detect intent patterns\nconst isPersonaQuery = /^(frage an|ask|@|befrag)\\s+/i.test(cleanMessage);\nconst isRigidityChange = /rigidity|rigidität|offener|härter|flexibler|standhafter/i.test(cleanMessage);\nconst isShowAnalysis = /^(zeig|show|was sagt|analyse von)\\s+/i.test(cleanMessage);\nconst isRound3Trigger = /^(runde 3|round 3|weiter|nächste runde|convergence)/i.test(cleanMessage);\nconst isConfirmation = /^(ja|yes|ok|bestätigt|confirmed|go|los|start|passt|gut)/i.test(cleanMessage);\nconst isCancel = /^(abbruch|cancel|stop|nein|no)/i.test(cleanMessage);\n\nlet targetPersona = '';\nif (isPersonaQuery) {\n  const match = cleanMessage.match(/^(?:frage an|ask|@|befrag)\\s+([\\w\\s]+?)(?::|,|\\s+(?:was|wie|ob|whether|how|what))/i);\n  if (match) targetPersona = match[1].trim();\n}\n\nlet newRigidity = null;\nif (isRigidityChange) {\n  const scoreMatch = cleanMessage.match(/(\\d+)/);\n  if (scoreMatch) newRigidity = Math.min(10, Math.max(0, parseInt(scoreMatch[1])));\n}\n\nreturn [{\n  json: {\n    threadTs,\n    channelId,\n    userId,\n    cleanMessage,\n    hasFiles,\n    isPersonaQuery,\n    isRigidityChange,\n    isShowAnalysis,\n    isRound3Trigger,\n    isConfirmation,\n    isCancel,\n    targetPersona,\n    newRigidity,\n    sessionId: threadTs,\n    locale\n  }\n}];"
         },
         "id": "phase-detect",
         "name": "Phase Detection",
@@ -1136,9 +1136,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "47ce1191-a337-4ebe-a0f6-d17504f4d16a",
-    "activeVersionId": "47ce1191-a337-4ebe-a0f6-d17504f4d16a",
-    "versionCounter": 202,
+    "versionId": "b7e4f62c-d6ca-4db2-8a97-7c4d8406ff68",
+    "activeVersionId": "b7e4f62c-d6ca-4db2-8a97-7c4d8406ff68",
+    "versionCounter": 205,
     "triggerCount": 0,
     "tags": [],
     "shared": [
