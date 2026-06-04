@@ -21,16 +21,21 @@ export async function GET(req: Request, { params }: P) {
   const enc = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      controller.enqueue(enc.encode(`: hi\n\n`));
-      await sub.subscribe(channel);
+      try {
+        await sub.subscribe(channel);
+      } catch (e) {
+        console.error("[sse] subscribe FAIL", channel, (e as Error).message);
+      }
+      try { controller.enqueue(enc.encode(`: hi\n\n`)); } catch {}
       sub.on("message", (_ch, payload) => {
-        controller.enqueue(enc.encode(`data: ${payload}\n\n`));
+        try { controller.enqueue(enc.encode(`data: ${payload}\n\n`)); }
+        catch { /* closed */ }
       });
       const keep = setInterval(() => {
         try { controller.enqueue(enc.encode(`: ping\n\n`)); }
         catch { clearInterval(keep); }
       }, 25000);
-      (controller as any)._keep = keep;
+      (controller as unknown as { _keep?: NodeJS.Timeout })._keep = keep;
     },
     async cancel() {
       try { await sub.unsubscribe(channel); } catch {}
