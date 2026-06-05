@@ -258,12 +258,25 @@ export const DICT: Dict = {
   // ============================================================
   "menu.report":        { de: "Abschlussbericht (PDF)", en: "Final report (PDF)" },
   "menu.chatPdf":       { de: "Chat-Verlauf PDF",       en: "Chat log PDF" },
+  "menu.chatMd":        { de: "Chat-Verlauf .md",        en: "Chat log .md" },
   "menu.share":         { de: "Teilen",                 en: "Share" },
   "menu.delete":        { de: "Loeschen",               en: "Delete" },
   "menu.share.copied":  { de: "Link kopiert",           en: "Link copied" },
   "menu.share.close":   { de: "Schliessen",             en: "Close" },
   "menu.share.revoke":  { de: "Link widerrufen",        en: "Revoke link" },
   "menu.confirm.delete":{ de: "Fokusgruppe und alle Inhalte loeschen?", en: "Delete focus group and all its content?" },
+
+  // ============================================================
+  // Share-Page (public read-only)
+  // ============================================================
+  "share.subtitle":     { de: "Geteilte Fokusgruppe - Read only", en: "Shared focus group - read only" },
+  "share.files":        { de: "Dateien",                 en: "Files" },
+  "share.empty":        { de: "Noch keine Nachrichten.",  en: "No messages yet." },
+  "share.pdf":          { de: "PDF",                      en: "PDF" },
+  "share.md":           { de: "Chat-Verlauf (.md)",       en: "Chat log (.md)" },
+  "share.cat.briefing": { de: "Briefing",                 en: "Briefing" },
+  "share.cat.persona":  { de: "Persona-Daten",            en: "Persona data" },
+  "share.cat.panel":    { de: "Panel-Review",             en: "Panel review" },
 
   // ============================================================
   // Files / Upload

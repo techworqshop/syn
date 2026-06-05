@@ -37,6 +37,7 @@ export default function SessionMenu({ sessionId, afterDelete, locale = "de", sho
     if (res.ok) { if (afterDelete) afterDelete(); else router.refresh(); }
   }
   function exportPdf() { setMenu(false); window.location.href = `/api/sessions/${sessionId}/export`; }
+  function exportMd() { setMenu(false); window.location.href = `/api/sessions/${sessionId}/transcript`; }
   async function finalReport() { setMenu(false); setBusy(true); try { await fetch(`/api/sessions/${sessionId}/final-report`, { method: "POST" }); } catch {} setBusy(false); }
 
   async function share() {
@@ -70,6 +71,7 @@ export default function SessionMenu({ sessionId, afterDelete, locale = "de", sho
             <div className="h-px bg-stone-200"></div>
           </>)}
           <button onClick={exportPdf} className="w-full text-left px-3 py-2 hover:bg-amber-100">{t("menu.chatPdf", locale)}</button>
+          <button onClick={exportMd} className="w-full text-left px-3 py-2 hover:bg-amber-100">{t("menu.chatMd", locale)}</button>
           <button onClick={share} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-amber-100 disabled:opacity-50">{t("menu.share", locale)}</button>
           <div className="h-px bg-stone-200"></div>
           <button onClick={del} disabled={busy} className="w-full text-left px-3 py-2 hover:bg-red-100 text-red-700 font-medium disabled:opacity-50">{t("menu.delete", locale)}</button>

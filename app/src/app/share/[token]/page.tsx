@@ -4,6 +4,8 @@ import { sessions, messages, files } from "@/db/schema";
 import { readState } from "@/lib/n8n";
 import { eq, asc } from "drizzle-orm";
 import MessageBubble from "@/components/MessageBubble";
+import LanguageSwitch from "@/components/LanguageSwitch";
+import { getLocaleFromCookies, t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +13,7 @@ type P = { params: Promise<{ token: string }> };
 
 export default async function SharePage({ params }: P) {
   const { token } = await params;
+  const locale = await getLocaleFromCookies();
   const [sess] = await db.select().from(sessions)
     .where(eq(sessions.shareToken, token)).limit(1);
   if (!sess) return notFound();
@@ -27,18 +30,28 @@ export default async function SharePage({ params }: P) {
           <img src="/api/assets/syn-avatar" alt="" className="w-9 h-9 rounded-full ring-1 ring-white/10 object-cover" />
           <div className="flex-1 min-w-0">
             <div className="font-semibold tracking-tight truncate">{sess.title}</div>
-            <div className="text-xs text-stone-500">Geteilte Fokusgruppe - Read only</div>
+            <div className="text-xs text-stone-500">{t("share.subtitle", locale)}</div>
           </div>
-          <a href={`/share/${token}/transcript`} download
+          <LanguageSwitch locale={locale} />
+          <a href={`/share/${token}/pdf`} download
             className="inline-flex items-center gap-2 px-3.5 py-2 rounded-md bg-gradient-to-r from-purple-900 to-rose-700 text-white text-sm font-semibold shadow-md hover:from-purple-950 hover:to-rose-800 transition-colors shrink-0"
-            title="Chat-Verlauf als Markdown herunterladen (gut zum Einfuegen in ChatGPT/Claude)">
+            title={t("share.pdf", locale)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            <span className="hidden sm:inline">Chat-Verlauf</span>
-            <span className="sm:hidden">.md</span>
+            <span>{t("share.pdf", locale)}</span>
+          </a>
+          <a href={`/share/${token}/transcript`} download
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-md border border-stone-400/70 bg-white/70 text-stone-700 text-sm font-semibold hover:bg-stone-100 hover:text-stone-900 transition-colors shrink-0"
+            title={t("share.md", locale)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span>.md</span>
           </a>
         </div>
       </header>
@@ -46,10 +59,10 @@ export default async function SharePage({ params }: P) {
         <div className="max-w-3xl mx-auto p-6 space-y-4">
           {sessionFiles.length > 0 && (
             <section className="rounded-md border border-stone-400/40 bg-stone-50 p-4 mb-2 shadow-sm">
-              <div className="text-xs uppercase tracking-wide text-amber-800 font-bold mb-3">Dateien ({sessionFiles.length})</div>
+              <div className="text-xs uppercase tracking-wide text-amber-800 font-bold mb-3">{t("share.files", locale)} ({sessionFiles.length})</div>
               <ul className="space-y-2">
                 {sessionFiles.map(f => {
-                  const catLabel = f.category === "briefing" ? "Briefing" : f.category === "persona" ? "Persona-Daten" : "Panel-Review";
+                  const catLabel = f.category === "briefing" ? t("share.cat.briefing", locale) : f.category === "persona" ? t("share.cat.persona", locale) : t("share.cat.panel", locale);
                   const catTone = f.category === "briefing"
                     ? "bg-yellow-200 text-yellow-950 border-yellow-700"
                     : f.category === "persona"
@@ -81,7 +94,7 @@ export default async function SharePage({ params }: P) {
           )}
           {msgs.map(m => <MessageBubble key={m.id} m={m} />)}
           {msgs.length === 0 && (
-            <div className="text-center text-stone-500 py-12">Noch keine Nachrichten.</div>
+            <div className="text-center text-stone-500 py-12">{t("share.empty", locale)}</div>
           )}
         </div>
       </main>
