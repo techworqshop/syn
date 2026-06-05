@@ -92,7 +92,7 @@ export default async function SharePage({ params }: P) {
               </ul>
             </section>
           )}
-          {msgs.map(m => <MessageBubble key={m.id} m={m} />)}
+          {msgs.map(m => <MessageBubble key={m.id} m={m} locale={locale} />)}
           {msgs.length === 0 && (
             <div className="text-center text-stone-500 py-12">{t("share.empty", locale)}</div>
           )}
