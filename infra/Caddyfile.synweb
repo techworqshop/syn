@@ -2,8 +2,8 @@
 # Append to /etc/caddy/Caddyfile, then: systemctl reload caddy
 # Remove: delete this block and reload.
 
-# Bestehende Worqshop-Dev-Domain (bleibt als Dev/Staging aktiv)
 syn.worqshop.io {
+    import security_headers
     encode zstd gzip
 
     # Long-lived SSE connections for realtime persona responses
@@ -23,12 +23,27 @@ syn.worqshop.io {
 }
 
 # Production-Domain: asksyn.com (+ www) + App-Subdomain
+# Routet zum PROD-Stack (synweb-prod-app) auf Port 3200 - separater Stack,
+# eigene DB, eigene Accounts. Dev bleibt auf 3100 (syn.worqshop.io).
 asksyn.com, www.asksyn.com, app.asksyn.com {
+    import security_headers
     encode zstd gzip
+
+    @app_root {
+        host app.asksyn.com
+        path /
+    }
+    redir @app_root /app/dashboard
+
+    @apex_app {
+        host asksyn.com www.asksyn.com
+        path /app /app/* /login
+    }
+    redir @apex_app https://app.asksyn.com{uri}
 
     @sse path_regexp ^/api/(sessions/[^/]+/stream|stream)
     handle @sse {
-        reverse_proxy 127.0.0.1:3100 {
+        reverse_proxy 127.0.0.1:3200 {
             flush_interval -1
             transport http {
                 read_timeout 0
@@ -37,12 +52,14 @@ asksyn.com, www.asksyn.com, app.asksyn.com {
     }
 
     handle {
-        reverse_proxy 127.0.0.1:3100
+        reverse_proxy 127.0.0.1:3200
     }
 }
 
 # Sekundaerdomains: 301-Permanent-Redirect auf asksyn.com,
 # Pfad + Query bleiben erhalten.
 asksyn.de, www.asksyn.de, asksyn.org, www.asksyn.org, asksyn.store, www.asksyn.store {
+    import security_headers
     redir https://asksyn.com{uri} 301
 }
+

@@ -174,11 +174,11 @@ const COPY = {
   footer: { de: { tagline: "Synthetische Fokusgruppen — für jede Frage, jede Idee, jede Entscheidung.",
                   product: "Produkt", legal: "Recht", contact: "Kontakt",
                   about: "Über Worqshop", privacy: "Datenschutz", imprint: "Impressum", terms: "AGB",
-                  status: "Status", builtBy: "© 2026 Syn · Ein Produkt von Worqshop", region: "DE · Hamburg / Berlin" },
+                  status: "Status", builtBy: "© 2026 Syn · Ein Produkt von Worqshop" },
             en: { tagline: "Synthetic focus groups — for every question, every idea, every decision.",
                   product: "Product", legal: "Legal", contact: "Contact",
                   about: "About Worqshop", privacy: "Privacy", imprint: "Imprint", terms: "Terms",
-                  status: "Status", builtBy: "© 2026 Syn · A Worqshop product", region: "DE · Hamburg / Berlin" } }
+                  status: "Status", builtBy: "© 2026 Syn · A Worqshop product" } }
 };
 
 const PERSONA_TINTS = ["#BE123C", "#D97706", "#0E7490", "#7C3AED", "#0891B2"];
@@ -517,7 +517,6 @@ export default async function Home() {
           </div>
           <div className="pt-8 border-t flex flex-col sm:flex-row justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.05em]" style={{ borderColor: "rgba(26,24,21,0.12)", color: "#8A857C" }}>
             <span>{t.footer[locale].builtBy}</span>
-            <span>{t.footer[locale].region}</span>
           </div>
         </div>
       </footer>
