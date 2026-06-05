@@ -1,0 +1,1 @@
+SELECT COALESCE(json_agg(json_build_object('persona_id',persona_id,'slack_slot',slack_slot,'status',status) ORDER BY slack_slot),'[]'::json) AS rows, count(*) FILTER (WHERE status='committed')::int AS cnt FROM "data_table_user_oAfVlk69fSh57ABR" WHERE session_id = $1;

@@ -1,0 +1,12 @@
+    if (proposeUrl && panelOps.length > 0) {
+      // NEW: Syn provided exact personas in a structured block -> store verbatim, no Haiku re-parse.
+      (async () => {
+        for (const op of panelOps) {
+          let payload: Record<string, unknown> = { sessionId: b.sessionId };
+          if (op.op === "set") payload = { ...payload, op: "set", personas: op.personas };
+          else if (op.op === "upsert") payload = { ...payload, op: "update", personaId: String((op.persona["persona_id"] ?? op.persona["personaId"] ?? "")).toLowerCase(), persona: op.persona };
+          else if (op.op === "delete") payload = { ...payload, op: "remove", personaId: op.personaId };
+          try { await fetch(proposeUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); } catch { /* ignore */ }
+        }
+      })();
+    } else if (proposeUrl && personaOps.length > 0) {

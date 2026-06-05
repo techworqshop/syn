@@ -1,0 +1,24 @@
+
+type PanelOp =
+  | { op: "set"; personas: Array<Record<string, unknown>> }
+  | { op: "upsert"; persona: Record<string, unknown> }
+  | { op: "delete"; personaId: string };
+function parsePanelBlock(text: string): { cleanText: string; ops: PanelOp[] } {
+  const ops: PanelOp[] = [];
+  const re = /<!--\s*syn:panel\s+([\s\S]*?)\s*-->/gi;
+  const cleanText = text.replace(re, (_m, jsonStr) => {
+    try {
+      const parsed = JSON.parse(String(jsonStr));
+      const arr = Array.isArray(parsed.ops) ? parsed.ops : [parsed];
+      for (const o of arr) {
+        if (!o || !o.op) continue;
+        const op = String(o.op).toLowerCase();
+        if (op === "set" && Array.isArray(o.personas)) ops.push({ op: "set", personas: o.personas });
+        else if (op === "upsert" && o.persona) ops.push({ op: "upsert", persona: o.persona });
+        else if ((op === "delete" || op === "remove") && (o.personaId || o.persona_id)) ops.push({ op: "delete", personaId: String(o.personaId || o.persona_id).toLowerCase() });
+      }
+    } catch { /* malformed -> ignore */ }
+    return "";
+  }).replace(/\n{3,}/g, "\n\n").trim();
+  return { cleanText, ops };
+}

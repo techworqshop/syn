@@ -1,0 +1,7 @@
+fix(workflow): RunPersona round-response no longer nulls previous rounds
+
+Save Response was a dataTable upsert writing all 3 round columns; non-current
+rounds got `undefined` -> persisted as NULL, so each round nulled the previous
+(personas lost cross-round memory; e.g. round-2 persona didn't know round 1).
+Replaced with a Postgres UPDATE that sets only the current round_N_response
+(+ position_summary). Applied DEV (XybiSig1oi3HquZd) + PROD (cM4K3qGsjfBvEfqV).

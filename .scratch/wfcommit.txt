@@ -1,0 +1,6 @@
+chore(workflows): backup ProposePersonas/SavePanel/Coordinator after block-based rebuild
+
+Persist DEV n8n definitions: ProposePersonas (Resolve Personas + slot-aware
+upsert/delete, Haiku fallback), SavePanel (in-process delay instead of Wait node),
+Coordinator (syn:panel structured-block instructions). ProposePersonas backup added.
+Promoted to PROD (Y4sB7NFBsdcSXfw9 / AsNpiiGTNL5g3gCn / CskmKreTjg3SuMWo).

@@ -26,7 +26,7 @@ export default async function SharePage({ params }: P) {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="glass border-b border-stone-200 px-6 py-4 sticky top-0 z-20">
-        <div className="max-w-3xl mx-auto flex items-center gap-3">
+        <div className="max-w-5xl mx-auto flex items-center gap-3">
           <img src="/api/assets/syn-avatar" alt="" className="w-9 h-9 rounded-full ring-1 ring-white/10 object-cover" />
           <div className="flex-1 min-w-0">
             <div className="font-semibold tracking-tight truncate">{sess.title}</div>
@@ -56,7 +56,7 @@ export default async function SharePage({ params }: P) {
         </div>
       </header>
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto p-6 space-y-4">
+        <div className="max-w-5xl mx-auto p-6 space-y-4">
           {sessionFiles.length > 0 && (
             <section className="rounded-md border border-stone-400/40 bg-stone-50 p-4 mb-2 shadow-sm">
               <div className="text-xs uppercase tracking-wide text-amber-800 font-bold mb-3">{t("share.files", locale)} ({sessionFiles.length})</div>
