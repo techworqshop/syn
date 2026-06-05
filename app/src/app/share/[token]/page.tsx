@@ -21,7 +21,16 @@ export default async function SharePage({ params }: P) {
     .where(eq(messages.sessionId, sess.id)).orderBy(asc(messages.createdAt));
   const sessionFiles = await db.select().from(files)
     .where(eq(files.sessionId, sess.id)).orderBy(asc(files.createdAt));
-  await readState(sess.id).catch(() => ({ personas: [], syntheses: [] }));
+  const state = await readState(sess.id).catch(() => ({ personas: [], syntheses: [] }));
+  const roleBySlot: Record<number, string> = {};
+  const nameBySlot: Record<number, string> = {};
+  for (const p of state.personas) {
+    if (p.status && p.status !== "committed") continue;
+    const slot = p.slack_slot;
+    if (typeof slot !== "number") continue;
+    if (p.type?.trim()) roleBySlot[slot] = p.type.trim();
+    if (p.name?.trim()) nameBySlot[slot] = p.name.trim();
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -92,7 +101,7 @@ export default async function SharePage({ params }: P) {
               </ul>
             </section>
           )}
-          {msgs.map(m => <MessageBubble key={m.id} m={m} locale={locale} />)}
+          {msgs.map(m => <MessageBubble key={m.id} m={m} locale={locale} personaRole={m.personaSlot != null ? (roleBySlot[m.personaSlot] ?? null) : null} personaName={m.personaSlot != null ? (nameBySlot[m.personaSlot] ?? null) : null} />)}
           {msgs.length === 0 && (
             <div className="text-center text-stone-500 py-12">{t("share.empty", locale)}</div>
           )}
