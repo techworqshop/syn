@@ -41,11 +41,13 @@ export async function registerAction(_prev: unknown, formData: FormData) {
     return { error: t("register.agbRequired", locale) };
   }
 
-  // Sign-Up-Gate: erlaubte Domains. Externe Domains koennen hier
-  // explizit freigeschaltet werden (Tester / Beta).
-  const ALLOWED_DOMAINS = ["@worqshop.io", "@connectima.net", "@funktio.ai"];
-  const ALLOWED_EMAILS = ["johannes@funktio.ai"];
-  if (!ALLOWED_DOMAINS.some(d => email.endsWith(d)) && !ALLOWED_EMAILS.includes(email)) {
+  // Sign-Up-Gate per Env: SIGNUP_OPEN=true -> offen fuer alle (Go-Live).
+  // Sonst SIGNUP_ALLOWED_DOMAINS / SIGNUP_ALLOWED_EMAILS (Komma-Listen);
+  // Default = bisherige Whitelist.
+  const signupOpen = process.env.SIGNUP_OPEN === "true";
+  const doms = (process.env.SIGNUP_ALLOWED_DOMAINS ?? "@worqshop.io,@connectima.net,@funktio.ai").split(",").map(x => x.trim()).filter(Boolean);
+  const mails = (process.env.SIGNUP_ALLOWED_EMAILS ?? "johannes@funktio.ai").split(",").map(x => x.trim().toLowerCase()).filter(Boolean);
+  if (!signupOpen && !doms.some(d => email.endsWith(d)) && !mails.includes(email)) {
     return { error: t("register.restrictedToWorqshop", locale) };
   }
 

@@ -92,6 +92,13 @@ async function applySubscriptionEvent(ev: ChargebeeEvent): Promise<void> {
     }
   }
   const userId = sub.customer_id;
+  // Env-Guard: Events fuer Customer aus anderer Umgebung (geteilte CB-Site)
+  // ueberspringen statt am users-FK zu scheitern (500 -> CB-Retry-Loop).
+  const [owner] = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
+  if (!owner) {
+    console.warn(`[webhook] unknown customer ${userId} - skipping sub event`);
+    return;
+  }
   const planId = planFromItems(sub.subscription_items);
   const existing = await db.select().from(subscriptions)
     .where(eq(subscriptions.chargebeeCustomerId, sub.customer_id)).limit(1);
