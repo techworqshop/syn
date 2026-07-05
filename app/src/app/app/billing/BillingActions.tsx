@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import type { Locale } from "@/lib/i18n";
 import PaymentMethodModal from "./PaymentMethodModal";
 import BillingInfoModal from "./BillingInfoModal";
@@ -77,6 +77,7 @@ const PLAN_CARDS: PlanCardData[] = [
 export default function BillingActions({ locale, hasActiveSub, justActivated, configured, quota, extrasHistory = [] }: Props) {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const errorBoxRef = useRef<HTMLDivElement | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [cycle, setCycle] = useState<"monthly" | "yearly">("yearly");
   const [confirmExtras, setConfirmExtras] = useState<number | null>(null);
@@ -88,6 +89,11 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
   const [planSwitchError, setPlanSwitchError] = useState<string | null>(null);
   const [showBillingInfoModal, setShowBillingInfoModal] = useState(false);
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
+  // Fehler-Banner sofort in den Viewport holen - User steht oft weiter unten
+  useEffect(() => {
+    if (error) errorBoxRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [error]);
+
   useEffect(() => {
     if (!justActivated) return;
     // Drop ?status=success so a reload doesn't re-trigger the banner.
@@ -300,7 +306,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
       <>
         <div className="space-y-4">
           {error && (
-            <div className="rounded-md border border-rose-300 bg-rose-50 px-4 py-3 text-sm" style={{ color: "#9F1239" }}>{error}</div>
+            <div ref={errorBoxRef} className="rounded-md border border-rose-300 bg-rose-50 px-4 py-3 text-sm" style={{ color: "#9F1239" }}>{error}</div>
           )}
           {successMsg && (
             <div className="rounded-md border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm" style={{ color: "#0F5132" }}>{successMsg}</div>

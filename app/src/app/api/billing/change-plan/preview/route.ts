@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { subscriptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireUser } from "@/lib/current-user";
+import { getLocaleFromCookies } from "@/lib/i18n";
 import { chargebee, PLANS, isPlanId, isBillingConfigured } from "@/lib/chargebee";
 import { loadQuotaState } from "@/lib/quota";
 
@@ -94,6 +95,13 @@ export async function POST(req: Request) {
     });
   } catch (e) {
     console.error("[change-plan/preview] failed:", e);
+    const m = String((e as { message?: string })?.message || "").toLowerCase();
+    if (m.includes("scheduled") || m.includes("pause")) {
+      const locale = await getLocaleFromCookies();
+      return NextResponse.json({ error: locale === "en"
+        ? "A scheduled change (pause or plan switch) is blocking this. Revert it first."
+        : "Eine geplante Aenderung (Pause oder Plan-Wechsel) blockiert das. Nimm sie zuerst zurueck." }, { status: 409 });
+    }
     return NextResponse.json({ error: "estimate failed" }, { status: 502 });
   }
 }
