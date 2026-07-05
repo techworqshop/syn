@@ -22,12 +22,14 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
   const u = await requireUser();
 
   if (justActivated) {
-    const [existing] = await db.select().from(subscriptions).where(eq(subscriptions.userId, u.id)).limit(1);
-    if (existing?.chargebeeCustomerId) {
-      const cbSub = await fetchLatestSubscriptionForCustomer(existing.chargebeeCustomerId);
+    // Erstkauf-Race: der Chargebee-Redirect kann VOR dem subscription_created-
+    // Webhook eintreffen -- dann existiert noch keine lokale Row. Customer-ID
+    // in Chargebee = User-ID, also direkt nachschlagen und upserten.
+    try {
+      const cbSub = await fetchLatestSubscriptionForCustomer(u.id);
       if (cbSub) {
         const newPriceId = cbSub.subscription_items?.[0]?.item_price_id ?? null;
-        await db.update(subscriptions).set({
+        const payload = {
           chargebeeSubscriptionId: cbSub.id,
           status: cbSub.status,
           planItemPriceId: newPriceId,
@@ -35,8 +37,16 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           currentTermEnd: cbSub.current_term_end ? new Date(cbSub.current_term_end * 1000) : null,
           trialEnd: cbSub.trial_end ? new Date(cbSub.trial_end * 1000) : null,
           updatedAt: new Date()
-        }).where(eq(subscriptions.id, existing.id));
+        };
+        const [existing] = await db.select().from(subscriptions).where(eq(subscriptions.userId, u.id)).limit(1);
+        if (existing) {
+          await db.update(subscriptions).set(payload).where(eq(subscriptions.id, existing.id));
+        } else {
+          await db.insert(subscriptions).values({ userId: u.id, chargebeeCustomerId: u.id, ...payload }).onConflictDoNothing();
+        }
       }
+    } catch (e) {
+      console.warn("[billing] success-sync failed:", e);
     }
   }
   const locale = await getLocaleFromCookies();

@@ -402,7 +402,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
           const anyBusy = loading !== null;
           const cta = busy
             ? (locale === "en" ? "Loading..." : "Lade...")
-            : (locale === "en" ? "Start free trial" : "Kostenlos testen");
+            : (locale === "en" ? "Subscribe now" : "Jetzt abonnieren");
           return (
             <div key={p.id} className={`rounded-md border bg-[#F3EFE2] shadow-sm flex flex-col relative ${p.highlight ? "border-rose-700 ring-2 ring-rose-700/30" : "border-stone-300"}`}>
               <div className="px-5 py-4 border-b border-stone-300/70 relative">
@@ -433,7 +433,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-emerald-700 mt-0.5">✓</span>
-                  <span>{locale === "en" ? "14-day free trial" : "14 Tage kostenlos testen"}</span>
+                  <span>{locale === "en" ? "Cancel anytime" : "Jederzeit kuendbar"}</span>
                 </div>
               </div>
               <div className="px-5 pb-5">
@@ -448,8 +448,8 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
       </div>
       <p className="text-xs" style={{ color: "#7A7268" }}>
         {locale === "en"
-          ? "Payments are processed by Chargebee. You'll be redirected to a secure hosted page. Cancel anytime during the trial."
-          : "Zahlungen werden ueber Chargebee abgewickelt. Du wirst zu einer sicheren externen Seite weitergeleitet. Waehrend der Testphase jederzeit kuendbar."}
+          ? "Payments are processed by Chargebee. You'll be redirected to a secure hosted page."
+          : "Zahlungen werden ueber Chargebee abgewickelt. Du wirst zu einer sicheren externen Seite weitergeleitet."}
       </p>
     </div>
   );
