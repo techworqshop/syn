@@ -1,3 +1,60 @@
+(security_headers) {
+	header {
+		# HTTPS-only — Browser cached for 1 year, includes subdomains, preload-ready
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		# Prevent clickjacking — page cannot be loaded in any iframe
+		X-Frame-Options "DENY"
+		# Block MIME-sniffing
+		X-Content-Type-Options "nosniff"
+		# Don't leak full URL on cross-origin navigation
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Disable APIs we don't use (camera/mic/geolocation/FLoC)
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=(), payment=(self)"
+		# CSP — baseline; tightened with nonces would be ideal but Next.js inlines runtime scripts.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.chargebee.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://n8n.worqshop.io https://*.chargebee.com https://api.stripe.com; frame-src https://*.chargebee.com https://js.chargebee.com https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none';"
+		# Hide Caddy version
+		-Server
+		# Pin to HTTPS only
+		Cross-Origin-Opener-Policy "same-origin"
+	}
+}
+
+n8n.worqshop.io {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:5678 {
+        flush_interval -1
+    }
+}
+
+mcp.n8n.worqshop.io {
+    @messages path /messages*
+    handle @messages {
+        reverse_proxy 127.0.0.1:3001 {
+            header_up Authorization "Bearer ba7d777659b64424bc05f0f694ef50f4eee7d105b19f2ee2592199c44f8ef21d"
+            header_up -X-Forwarded-For
+            header_up -X-Forwarded-Proto
+            header_up -X-Forwarded-Host
+            flush_interval -1
+        }
+    }
+
+    @unauthorized {
+        not query token=efrZ3eHATjRETqdfOwLYsyY9yReKXUEAC7FQf5pr
+    }
+    handle @unauthorized {
+        respond 403
+    }
+
+    handle {
+        reverse_proxy 127.0.0.1:3001 {
+            header_up Authorization "Bearer ba7d777659b64424bc05f0f694ef50f4eee7d105b19f2ee2592199c44f8ef21d"
+            header_up -X-Forwarded-For
+            header_up -X-Forwarded-Proto
+            header_up -X-Forwarded-Host
+            flush_interval -1
+        }
+    }
+}
 # SynWeb reverse proxy block.
 # Append to /etc/caddy/Caddyfile, then: systemctl reload caddy
 # Remove: delete this block and reload.
