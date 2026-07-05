@@ -83,6 +83,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
   const [successMsg, setSuccessMsg] = useState<string | null>(justActivated ? (locale === "en" ? "Thanks for subscribing — your plan is active!" : "Vielen Dank — dein Abo ist aktiv!") : null);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [showPauseModal, setShowPauseModal] = useState(false);
+  const [pauseError, setPauseError] = useState<string | null>(null);
   const [planSwitchPreview, setPlanSwitchPreview] = useState<PlanSwitchPreview | null>(null);
   const [planSwitchError, setPlanSwitchError] = useState<string | null>(null);
   const [showBillingInfoModal, setShowBillingInfoModal] = useState(false);
@@ -99,6 +100,11 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
     fetch("/api/billing/invoices").then(r => r.json()).then(d => setInvoices(d.invoices || [])).catch(() => {});
   }, [hasActiveSub]);
 
+  async function readErr(r: Response): Promise<string> {
+    const j = await r.json().catch(() => null) as { error?: string } | null;
+    return j?.error || `HTTP ${r.status}`;
+  }
+
   async function startCheckout(plan: PlanId) {
     setError(null); setLoading(`checkout-${plan}`);
     try {
@@ -107,7 +113,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan, cycle })
       });
-      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      if (!r.ok) throw new Error(await readErr(r));
       const j = await r.json();
       if (j.url) { window.location.href = j.url; return; }
       throw new Error("No redirect URL returned");
@@ -125,7 +131,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ quantity })
       });
-      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      if (!r.ok) throw new Error(await readErr(r));
       const j = await r.json().catch(() => ({})) as { quantity?: number; unitPriceEur?: number };
       const total = fmtEUR((j.quantity ?? quantity) * (j.unitPriceEur ?? 0) * 1.19, locale, 2);
       setConfirmExtras(null);
@@ -143,7 +149,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
     setError(null); setLoading("cancel");
     try {
       const r = await fetch("/api/billing/cancel", { method: "POST" });
-      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      if (!r.ok) throw new Error(await readErr(r));
       setConfirmCancel(false);
       setSuccessMsg(locale === "en" ? "Subscription cancelled at end of term." : "Abo zum Periodenende gekuendigt.");
       setTimeout(() => window.location.reload(), 2000);
@@ -157,7 +163,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
     setError(null); setLoading("resume-cancel");
     try {
       const r = await fetch("/api/billing/resume-cancel", { method: "POST" });
-      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      if (!r.ok) throw new Error(await readErr(r));
       setSuccessMsg(locale === "en" ? "Cancellation reverted. Reloading..." : "Kuendigung zurueckgenommen. Lade...");
       setTimeout(() => window.location.reload(), 1500);
     } catch (e) {
@@ -170,7 +176,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
     setError(null); setLoading(`collect-${invoiceId}`);
     try {
       const r = await fetch(`/api/billing/invoices/${invoiceId}/collect`, { method: "POST" });
-      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      if (!r.ok) throw new Error(await readErr(r));
       setSuccessMsg(locale === "en" ? "Payment retried successfully. Reloading..." : "Zahlung erfolgreich. Lade...");
       setTimeout(() => window.location.reload(), 1500);
     } catch (e) {
@@ -186,12 +192,12 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ months })
       });
-      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      if (!r.ok) throw new Error(await readErr(r));
       setShowPauseModal(false);
       setSuccessMsg(locale === "en" ? "Subscription paused. Reloading..." : "Abo pausiert. Lade...");
       setTimeout(() => window.location.reload(), 1500);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "pause failed");
+      setPauseError(e instanceof Error ? e.message : "pause failed");
       setLoading(null);
     }
   }
@@ -213,7 +219,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
     setError(null); setLoading("resume-pause");
     try {
       const r = await fetch("/api/billing/resume-pause", { method: "POST" });
-      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      if (!r.ok) throw new Error(await readErr(r));
       setSuccessMsg(locale === "en" ? "Subscription resumed. Reloading..." : "Abo fortgesetzt. Lade...");
       setTimeout(() => window.location.reload(), 1500);
     } catch (e) {
@@ -230,7 +236,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan: planId, cycle: switchCycle })
       });
-      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      if (!r.ok) throw new Error(await readErr(r));
       const j = await r.json() as PlanSwitchPreview;
       setPlanSwitchPreview(j);
     } catch (e) {
@@ -277,7 +283,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
     setError(null); setLoading("portal");
     try {
       const r = await fetch("/api/billing/portal", { method: "POST" });
-      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      if (!r.ok) throw new Error(await readErr(r));
       const j = await r.json();
       if (j.url) { window.location.href = j.url; return; }
       throw new Error("No redirect URL returned");
@@ -322,7 +328,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
           </div>
           <PlanSwitcher locale={locale} quota={quota} loading={loading}
             onPlanSwitch={requestPlanSwitch} onPaymentUpdate={doPaymentUpdate}
-            onCancel={() => setConfirmCancel(true)} onResumeCancel={doResumeCancel} onPauseRequest={() => setShowPauseModal(true)} onResumePause={doResumePause} onRevertScheduled={revertScheduled} onEditBilling={() => setShowBillingInfoModal(true)} />
+            onCancel={() => setConfirmCancel(true)} onResumeCancel={doResumeCancel} onPauseRequest={() => { setPauseError(null); setShowPauseModal(true); }} onResumePause={doResumePause} onRevertScheduled={revertScheduled} onEditBilling={() => setShowBillingInfoModal(true)} />
         </div>
         <InvoicesList locale={locale} invoices={invoices} onCollect={doCollectInvoice} loading={loading} />
         <p className="text-xs" style={{ color: "#7A7268" }}>
@@ -344,8 +350,9 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
         {showPauseModal && (
           <ConfirmPauseModal
             locale={locale}
+            error={pauseError}
             busy={(loading ?? "").startsWith("pause-")}
-            onCancel={() => setShowPauseModal(false)}
+            onCancel={() => { setShowPauseModal(false); setPauseError(null); }}
             onConfirm={doPause}
           />
         )}
@@ -1098,12 +1105,13 @@ function ConfirmPlanSwitchModal({ locale, preview, currentPlanId, busy, error, o
 
 type ConfirmPauseProps = {
   locale: Locale;
+  error?: string | null;
   busy: boolean;
   onCancel: () => void;
   onConfirm: (months: number) => void;
 };
 
-function ConfirmPauseModal({ locale, busy, onCancel, onConfirm }: ConfirmPauseProps) {
+function ConfirmPauseModal({ locale, busy, error, onCancel, onConfirm }: ConfirmPauseProps) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-md bg-[#F3EFE2] border border-stone-300 shadow-2xl overflow-hidden">
@@ -1117,6 +1125,9 @@ function ConfirmPauseModal({ locale, busy, onCancel, onConfirm }: ConfirmPausePr
               : "Wie lange willst du pausieren? Die Pause greift zum Ende deines aktuellen Abrechnungszeitraums (so verbrauchst du den bereits bezahlten Monat). Danach setzt sich das Abo automatisch fort."}
           </div>
         </div>
+        {error && (
+          <div className="mx-6 mt-4 rounded-md border border-rose-300 bg-rose-50 px-3 py-2.5 text-sm" style={{ color: "#9F1239" }}>{error}</div>
+        )}
         <div className="px-6 py-5 grid grid-cols-3 gap-3">
           {[1, 2, 3].map(m => (
             <button key={m} disabled={busy} onClick={() => onConfirm(m)}
