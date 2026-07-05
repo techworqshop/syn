@@ -97,7 +97,22 @@ export async function GET() {
         periodEnd: planLine?.date_to ?? null
       };
     });
-    return NextResponse.json({ invoices });
+    // Gutschriften (Proration bei Plan-Wechseln, Refunds) mit in die Liste
+    type CbCn = { id: string; date: number; total: number; status: string; currency_code: string };
+    let creditNotes: Array<{ id: string; date: number; total: number; status: string; currency: string; type: "credit_note" }> = [];
+    try {
+      const cnRes = await chargebee.creditNote.list({
+        limit: 50,
+        "customer_id[is]": sub.chargebeeCustomerId,
+        "sort_by[desc]": "date"
+      } as unknown as Record<string, unknown>);
+      creditNotes = ((cnRes as { list?: Array<{ credit_note: CbCn }> }).list ?? []).map(x => ({
+        id: x.credit_note.id, date: x.credit_note.date, total: x.credit_note.total,
+        status: x.credit_note.status, currency: x.credit_note.currency_code, type: "credit_note" as const
+      }));
+    } catch (e) { console.warn("[billing/invoices] credit notes failed:", e); }
+    const merged = [...invoices, ...creditNotes].sort((a, b) => (b.date ?? 0) - (a.date ?? 0));
+    return NextResponse.json({ invoices: merged });
   } catch (e) {
     console.error("[billing/invoices] failed:", e);
     return NextResponse.json({ invoices: [], error: "failed" }, { status: 502 });

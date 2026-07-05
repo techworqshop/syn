@@ -820,7 +820,9 @@ type InvoiceRow =
       type: "extras"; quantity: number; expiresAt: string | null; unitPriceEur: number }
   | { id: string; date: number; total: number; amountPaid?: number; status: string; currency: string;
       type: "subscription"; planId: PlanId | null; cycle: "monthly" | "yearly" | null;
-      periodStart: number | null; periodEnd: number | null };
+      periodStart: number | null; periodEnd: number | null }
+  | { id: string; date: number; total: number; amountPaid?: number; status: string; currency: string;
+      type: "credit_note" };
 
 type InvoiceProps = {
   locale: Locale;
@@ -844,6 +846,8 @@ function InvoicesList({ locale, invoices, onCollect, loading }: InvoiceProps) {
         {invoices.map(inv => {
           const amount = fmtEUR(inv.total / 100, locale, 2);
           const isPaid = inv.status === "paid";
+          const isCredit = inv.type === "credit_note";
+          const cnStatus = inv.status === "refunded" ? (locale === "en" ? "Refunded" : "Erstattet") : inv.status === "adjusted" ? (locale === "en" ? "Applied" : "Verrechnet") : inv.status === "refund_due" ? (locale === "en" ? "Refund pending" : "Erstattung ausstehend") : inv.status;
           const issueDate = fmtSec(inv.date);
           let title: ReactNode;
           let subtitle: ReactNode;
@@ -881,6 +885,16 @@ function InvoicesList({ locale, invoices, onCollect, loading }: InvoiceProps) {
             subtitle = (
               <span>{locale === "en" ? "Period: " : "Zeitraum: "}<span className="font-medium" style={{ color: "#4A4640" }}>{period}</span></span>
             );
+          } else if (inv.type === "credit_note") {
+            title = (
+              <span className="font-semibold" style={{ color: "#1F2420" }}>
+                {locale === "en" ? "Credit note" : "Gutschrift"}
+                <span className="ml-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold ring-1 ring-emerald-700/40 bg-emerald-50" style={{ color: "#3A7E58" }}>
+                  {locale === "en" ? "CREDIT" : "GUTSCHRIFT"}
+                </span>
+              </span>
+            );
+            subtitle = <span>{issueDate}</span>;
           } else {
             title = <span className="font-semibold" style={{ color: "#1F2420" }}>{locale === "en" ? "Invoice" : "Rechnung"}</span>;
             subtitle = <span>{issueDate}</span>;
@@ -890,18 +904,18 @@ function InvoicesList({ locale, invoices, onCollect, loading }: InvoiceProps) {
               <div className="flex-1 min-w-0">
                 <div>{title}</div>
                 <div className="text-xs mt-0.5" style={{ color: "#7A7268" }}>{subtitle}</div>
-                <div className="text-xs mt-1" style={{ color: isPaid ? "#3A7E58" : "#A77E22" }}>
-                  €{amount} {inv.currency} · {isPaid ? (locale === "en" ? "Paid" : "Bezahlt") : inv.status}
+                <div className="text-xs mt-1" style={{ color: isPaid || isCredit ? "#3A7E58" : "#A77E22" }}>
+                  {isCredit ? "\u2212" : ""}€{amount} {inv.currency} · {isCredit ? cnStatus : isPaid ? (locale === "en" ? "Paid" : "Bezahlt") : inv.status}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {inv.status !== "paid" && inv.status !== "voided" && (
+                {!isCredit && inv.status !== "paid" && inv.status !== "voided" && (
                   <button onClick={() => onCollect(inv.id)} disabled={loading !== null}
                     className={`px-3 py-1.5 rounded-md text-xs font-semibold text-white ${loading !== null ? "bg-stone-400 cursor-not-allowed" : "btn-primary"}`}>
                     {loading === `collect-${inv.id}` ? "..." : (locale === "en" ? "Pay now" : "Jetzt zahlen")}
                   </button>
                 )}
-                <a href={`/api/billing/invoices/${inv.id}/pdf`} target="_blank" rel="noreferrer"
+                <a href={inv.type === "credit_note" ? `/api/billing/credit-notes/${inv.id}/pdf` : `/api/billing/invoices/${inv.id}/pdf`} target="_blank" rel="noreferrer"
                   className="px-3 py-1.5 rounded-md text-xs font-semibold border border-stone-400 bg-white text-stone-900 hover:bg-stone-50">
                   PDF
                 </a>
