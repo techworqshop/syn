@@ -77,6 +77,12 @@ export async function POST(req: Request) {
     } as unknown as Record<string, unknown>);
   } catch (e) {
     console.error("[change-plan] failed:", e);
+    const cbE = e as { type?: string; api_error_code?: string };
+    if (cbE?.type === "payment" || cbE?.api_error_code === "payment_processing_failed") {
+      return NextResponse.json({ error: locale === "en"
+        ? "Your bank declined the charge. Check the card (limit, online payments) or use a different card."
+        : "Deine Bank hat die Zahlung abgelehnt. Pruefe die Karte (Limit, Online-Zahlungen) oder nutze eine andere." }, { status: 402 });
+    }
     const cbMsg = String((e as { message?: string })?.message || "").toLowerCase();
     if (cbMsg.includes("scheduled")) {
       return NextResponse.json({ error: locale === "en"

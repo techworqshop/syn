@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { subscriptions, purchasedExtras } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireUser } from "@/lib/current-user";
+import { getLocaleFromCookies } from "@/lib/i18n";
 import { chargebee, PLANS, isPlanId, isBillingConfigured } from "@/lib/chargebee";
 
 export const dynamic = "force-dynamic";
@@ -54,6 +55,13 @@ export async function POST(req: Request) {
     chargeId = inv?.line_items?.[0]?.id;
   } catch (e) {
     console.error("[buy-extras] charge failed:", e);
+    const cbE = e as { type?: string; api_error_code?: string };
+    if (cbE?.type === "payment" || cbE?.api_error_code === "payment_processing_failed") {
+      const locale = await getLocaleFromCookies();
+      return NextResponse.json({ error: locale === "en"
+        ? "Your bank declined the charge. Check the card or use a different one."
+        : "Deine Bank hat die Zahlung abgelehnt. Pruefe die Karte oder nutze eine andere." }, { status: 402 });
+    }
     return NextResponse.json({ error: "charge failed" }, { status: 502 });
   }
 

@@ -25,6 +25,7 @@ type PlanSwitchPreview = {
   amountDueCents: number;
   subTotalCents: number;
   taxCents: number;
+  creditsAppliedCents?: number;
   currency: string;
   effectiveAt: string | null;
   endOfTerm: boolean;
@@ -251,7 +252,10 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
           confirmedDirection: planSwitchPreview.direction
         })
       });
-      if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({})) as { error?: string };
+        throw new Error(j?.error || `HTTP ${r.status}`);
+      }
       setPlanSwitchPreview(null);
       const msg = planSwitchPreview.endOfTerm
         ? (locale === "en" ? "Downgrade scheduled. Reloading..." : "Downgrade geplant. Lade...")
@@ -1017,13 +1021,19 @@ function ConfirmPlanSwitchModal({ locale, preview, currentPlanId, busy, error, o
             <>
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs" style={{ color: "#7A7268" }}>
-                  <span>{locale === "en" ? "Subtotal (net)" : "Netto"}</span>
+                  <span>{locale === "en" ? "New plan prorated (net)" : "Neuer Plan anteilig (netto)"}</span>
                   <span>€{fmtMoney(preview.subTotalCents)}</span>
                 </div>
                 <div className="flex justify-between text-xs" style={{ color: "#7A7268" }}>
                   <span>{locale === "en" ? "VAT" : "MwSt."}</span>
                   <span>€{fmtMoney(preview.taxCents)}</span>
                 </div>
+                {(preview.creditsAppliedCents ?? 0) > 0 && (
+                  <div className="flex justify-between text-xs" style={{ color: "#3A7E58" }}>
+                    <span>{locale === "en" ? "Credit for unused old plan" : "Gutschrift alter Plan (anteilig)"}</span>
+                    <span>−€{fmtMoney(preview.creditsAppliedCents ?? 0)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-base font-semibold pt-1.5 border-t border-stone-300/70" style={{ color: "#1F2420" }}>
                   <span>{locale === "en" ? "Charged today" : "Heute belastet"}</span>
                   <span>€{fmtMoney(preview.amountDueCents)}</span>

@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
   try {
     const endOfTerm = direction === "downgrade";
-    type EstInvoice = { amount_due?: number; amount_paid?: number; total?: number; sub_total?: number; tax?: number; currency_code?: string };
+    type EstInvoice = { amount_due?: number; amount_paid?: number; total?: number; sub_total?: number; tax?: number; credits_applied?: number; currency_code?: string };
     const estimate = await chargebee.estimate.updateSubscriptionForItems({
       subscription: { id: sub.chargebeeSubscriptionId },
       subscription_items: [{ item_price_id: newPriceId, quantity: 1 }],
@@ -63,8 +63,11 @@ export async function POST(req: Request) {
     const est = estimate?.estimate ?? {};
     const inv = est.invoice_estimate ?? est.next_invoice_estimate ?? {};
     const amountDueCents = inv.amount_due ?? inv.total ?? 0;
-    const subTotalCents = inv.sub_total ?? Math.round((inv.amount_due ?? inv.total ?? 0) / 1.19);
-    const taxCents = inv.tax ?? ((inv.amount_due ?? inv.total ?? 0) - subTotalCents);
+    const totalCents = inv.total ?? amountDueCents;
+    const subTotalCents = inv.sub_total ?? Math.round(totalCents / 1.19);
+    // MwSt. gehoert zum Charge-Teil (total = netto + tax); Gutschrift separat
+    const taxCents = inv.tax ?? (totalCents - subTotalCents);
+    const creditsAppliedCents = inv.credits_applied ?? Math.max(0, totalCents - amountDueCents);
     const currency = inv.currency_code ?? "EUR";
     const effectiveAt = endOfTerm
       ? (sub.currentTermEnd ? sub.currentTermEnd.toISOString() : null)
@@ -80,6 +83,7 @@ export async function POST(req: Request) {
       amountDueCents,
       subTotalCents,
       taxCents,
+      creditsAppliedCents,
       currency,
       effectiveAt,
       endOfTerm,
