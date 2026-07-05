@@ -35,13 +35,16 @@ export default function PaymentMethodModal({ locale, onClose, onSuccess }: Props
     if (!cardRef.current) { setError("Card form not ready"); return; }
     setError(null); setSubmitting(true);
     try {
-      const tok = await cardRef.current.tokenize({});
-      const token = (tok as { token?: string })?.token;
-      if (!token) throw new Error("No token returned");
+      const ir = await fetch("/api/billing/payment-intent", { method: "POST" });
+      const ij = await ir.json().catch(() => ({})) as { intent?: unknown; error?: string };
+      if (!ir.ok || !ij.intent) throw new Error(ij?.error || "intent failed");
+      const authorized = await cardRef.current.authorizeWith3ds(ij.intent, {}, {});
+      const intentId = (authorized as { id?: string })?.id;
+      if (!intentId) throw new Error("3DS authorization failed");
       const r = await fetch("/api/billing/payment-source", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, firstName: firstName.trim(), lastName: lastName.trim() })
+        body: JSON.stringify({ paymentIntentId: intentId, firstName: firstName.trim(), lastName: lastName.trim() })
       });
       if (!r.ok) throw new Error(await r.text() || `HTTP ${r.status}`);
       onSuccess();

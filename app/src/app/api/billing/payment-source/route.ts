@@ -17,10 +17,10 @@ export async function POST(req: Request) {
   catch { return NextResponse.json({ error: "unauthorized" }, { status: 401 }); }
 
   const body = await req.json().catch(() => ({}));
-  const token = typeof body?.token === "string" ? body.token : null;
+  const paymentIntentId = typeof body?.paymentIntentId === "string" ? body.paymentIntentId : null;
   const firstName = typeof body?.firstName === "string" ? body.firstName.trim() : "";
   const lastName = typeof body?.lastName === "string" ? body.lastName.trim() : "";
-  if (!token) return NextResponse.json({ error: "token required" }, { status: 400 });
+  if (!paymentIntentId) return NextResponse.json({ error: "paymentIntentId required" }, { status: 400 });
 
   const [sub] = await db.select().from(subscriptions)
     .where(eq(subscriptions.userId, user.id)).limit(1);
@@ -28,10 +28,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "no customer" }, { status: 404 });
   }
   try {
-    await chargebee.paymentSource.createUsingTempToken({
+    // Intent wurde client-seitig via 3DS autorisiert (authorizeWith3ds)
+    await chargebee.paymentSource.createUsingPaymentIntent({
       customer_id: sub.chargebeeCustomerId,
-      type: "card" as const,
-      tmp_token: token
+      payment_intent: { id: paymentIntentId }
     });
 
     // Update customer first/last name when provided (cardholder identity)

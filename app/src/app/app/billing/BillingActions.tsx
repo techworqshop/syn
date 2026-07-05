@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, type ReactNode } from "react";
 import type { Locale } from "@/lib/i18n";
+import PaymentMethodModal from "./PaymentMethodModal";
 import BillingInfoModal from "./BillingInfoModal";
 import type { PlanId } from "@/lib/chargebee";
 
@@ -75,6 +76,7 @@ const PLAN_CARDS: PlanCardData[] = [
 export default function BillingActions({ locale, hasActiveSub, justActivated, configured, quota, extrasHistory = [] }: Props) {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [cycle, setCycle] = useState<"monthly" | "yearly">("yearly");
   const [confirmExtras, setConfirmExtras] = useState<number | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(justActivated ? (locale === "en" ? "Thanks for subscribing — your plan is active!" : "Vielen Dank — dein Abo ist aktiv!") : null);
@@ -262,19 +264,9 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
     }
   }
 
-  async function doPaymentUpdate() {
-    // Hosted Page statt Custom-Modal: Chargebee handelt 3DS/SCA komplett
-    // (Live-Stripe lehnt tokenize-only ohne 3DS-Challenge ab).
-    setError(null); setLoading("payment-update");
-    try {
-      const r = await fetch("/api/billing/payment-update", { method: "POST" });
-      const j = await r.json().catch(() => ({})) as { url?: string; error?: string };
-      if (!r.ok || !j.url) throw new Error(j?.error || "failed");
-      window.location.href = j.url;
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "unknown");
-      setLoading(null);
-    }
+  function doPaymentUpdate() {
+    setError(null);
+    setShowPaymentModal(true);
   }
 
   async function openPortal() {
@@ -381,6 +373,16 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
             onSuccess={() => {
               setShowBillingInfoModal(false);
               setSuccessMsg(locale === "en" ? "Billing details updated." : "Rechnungsdaten aktualisiert.");
+            }}
+          />
+        )}
+        {showPaymentModal && (
+          <PaymentMethodModal
+            locale={locale}
+            onClose={() => setShowPaymentModal(false)}
+            onSuccess={() => {
+              setShowPaymentModal(false);
+              setSuccessMsg(locale === "en" ? "Card updated successfully." : "Karte erfolgreich aktualisiert.");
             }}
           />
         )}
