@@ -24,7 +24,7 @@ export async function POST() {
   const PUBLIC_BASE = process.env.PUBLIC_BASE_URL || "https://syn.worqshop.io";
 
   try {
-    const result = await chargebee.hostedPage.managePaymentSources({
+    const result = await chargebee.hostedPage.updatePaymentMethod({
       customer: { id: sub.chargebeeCustomerId },
       redirect_url: `${PUBLIC_BASE}/app/billing?status=card_updated`
     } as unknown as Record<string, unknown>);
