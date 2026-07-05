@@ -34,6 +34,7 @@ type ChargebeeSubscription = {
   pause_date?: number;
   resume_date?: number;
   subscription_items?: Array<{ item_price_id: string; item_type?: string; quantity?: number }>;
+  has_scheduled_changes?: boolean;
 };
 
 type ChargebeeCustomer = {
@@ -117,7 +118,7 @@ async function applySubscriptionEvent(ev: ChargebeeEvent): Promise<void> {
     cancelledAt: unix(sub.cancelled_at),
     pauseDate: unix(sub.pause_date),
     resumeDate: unix(sub.resume_date),
-    ...(scheduledMatches ? { scheduledPlanItemPriceId: null, scheduledChangeAt: null } : {}),
+    ...(scheduledMatches || sub.has_scheduled_changes === false ? { scheduledPlanItemPriceId: null, scheduledChangeAt: null } : {}),
     updatedAt: new Date()
   };
   if (existing.length === 0) {

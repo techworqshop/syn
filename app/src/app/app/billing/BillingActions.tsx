@@ -195,6 +195,19 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
     }
   }
 
+  async function revertScheduled() {
+    setError(null); setLoading("revert-scheduled");
+    try {
+      const r = await fetch("/api/billing/revert-scheduled", { method: "POST" });
+      const j = await r.json().catch(() => ({})) as { error?: string };
+      if (!r.ok) throw new Error(j?.error || "revert failed");
+      window.location.reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "unknown");
+      setLoading(null);
+    }
+  }
+
   async function doResumePause() {
     setError(null); setLoading("resume-pause");
     try {
@@ -305,7 +318,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
           </div>
           <PlanSwitcher locale={locale} quota={quota} loading={loading}
             onPlanSwitch={requestPlanSwitch} onPaymentUpdate={doPaymentUpdate}
-            onCancel={() => setConfirmCancel(true)} onResumeCancel={doResumeCancel} onPauseRequest={() => setShowPauseModal(true)} onResumePause={doResumePause} onEditBilling={() => setShowBillingInfoModal(true)} />
+            onCancel={() => setConfirmCancel(true)} onResumeCancel={doResumeCancel} onPauseRequest={() => setShowPauseModal(true)} onResumePause={doResumePause} onRevertScheduled={revertScheduled} onEditBilling={() => setShowBillingInfoModal(true)} />
         </div>
         <InvoicesList locale={locale} invoices={invoices} onCollect={doCollectInvoice} loading={loading} />
         <p className="text-xs" style={{ color: "#7A7268" }}>
@@ -600,11 +613,11 @@ type ControlsProps = {
   onCancel: () => void;
   onResumeCancel: () => void;
   onPauseRequest: () => void;
-  onResumePause: () => void;
+  onResumePause: () => void; onRevertScheduled: () => void;
   onEditBilling: () => void;
 };
 
-function PlanSwitcher({ locale, quota, loading, onPlanSwitch, onPaymentUpdate, onCancel, onResumeCancel, onPauseRequest, onResumePause, onEditBilling }: ControlsProps) {
+function PlanSwitcher({ locale, quota, loading, onPlanSwitch, onPaymentUpdate, onCancel, onResumeCancel, onPauseRequest, onResumePause, onRevertScheduled, onEditBilling }: ControlsProps) {
   const cur = quota.planId;
   const curCycle = (quota.cycle ?? "monthly") as "monthly" | "yearly";
   const [selectedCycle, setSelectedCycle] = useState<"monthly" | "yearly">(curCycle);
@@ -702,6 +715,10 @@ function PlanSwitcher({ locale, quota, loading, onPlanSwitch, onPaymentUpdate, o
               ? <>Your subscription will switch to <b>Syn {quota.scheduledPlanId.charAt(0).toUpperCase()}{quota.scheduledPlanId.slice(1)}</b> on <b>{new Date(quota.scheduledChangeAt).toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })}</b>. Until then, your current plan stays active.</>
               : <>Dein Abo wechselt am <b>{new Date(quota.scheduledChangeAt).toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" })}</b> auf <b>Syn {quota.scheduledPlanId.charAt(0).toUpperCase()}{quota.scheduledPlanId.slice(1)}</b>. Bis dahin bleibt dein aktueller Plan aktiv.</>}
           </div>
+          <button disabled={loading !== null} onClick={onRevertScheduled}
+            className="mt-2 px-3 py-1.5 rounded-md border border-amber-700/50 bg-white text-xs font-semibold hover:bg-amber-100 transition-colors" style={{ color: "#7A4E13" }}>
+            {loading === "revert-scheduled" ? "..." : (locale === "en" ? "Revert scheduled change" : "Geplanten Wechsel zuruecknehmen")}
+          </button>
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 px-4 pt-3 pb-1">

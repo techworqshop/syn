@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     if (!row.chargebeeSubscriptionId) { skipped++; continue; }
     try {
       const r = await chargebee.subscription.retrieve(row.chargebeeSubscriptionId);
-      const s = (r as { subscription?: { status?: string; current_term_start?: number; current_term_end?: number; cancelled_at?: number } }).subscription;
+      const s = (r as { subscription?: { status?: string; current_term_start?: number; current_term_end?: number; cancelled_at?: number; has_scheduled_changes?: boolean } }).subscription;
       if (!s) { skipped++; continue; }
       const u = (t?: number) => t ? new Date(t * 1000) : null;
       await db.update(subscriptions).set({
@@ -34,6 +34,7 @@ export async function POST(req: Request) {
         currentTermStart: u(s.current_term_start) ?? row.currentTermStart,
         currentTermEnd: u(s.current_term_end) ?? row.currentTermEnd,
         cancelledAt: u(s.cancelled_at) ?? row.cancelledAt,
+        ...(s.has_scheduled_changes === false ? { scheduledPlanItemPriceId: null, scheduledChangeAt: null } : {}),
         updatedAt: new Date()
       }).where(eq(subscriptions.id, row.id));
       updated++;

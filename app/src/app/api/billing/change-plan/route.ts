@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { subscriptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireUser } from "@/lib/current-user";
+import { getLocaleFromCookies } from "@/lib/i18n";
 import { chargebee, PLANS, isPlanId, isBillingConfigured } from "@/lib/chargebee";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +36,11 @@ export async function POST(req: Request) {
   if (sub.planItemPriceId === newPriceId) {
     return NextResponse.json({ error: "same plan" }, { status: 400 });
   }
-  if (sub.status === "paused" || sub.status === "unpaid") {
+  const locale = await getLocaleFromCookies();
+  if (sub.status === "paused") {
+    return NextResponse.json({ error: locale === "en" ? "Your subscription is paused. Resume it first to switch plans." : "Dein Abo ist pausiert. Setze es zuerst fort, um den Plan zu wechseln." }, { status: 409 });
+  }
+  if (sub.status === "unpaid") {
     return NextResponse.json({ error: "subscription not in switchable state — please update payment method first" }, { status: 409 });
   }
 
@@ -72,6 +77,12 @@ export async function POST(req: Request) {
     } as unknown as Record<string, unknown>);
   } catch (e) {
     console.error("[change-plan] failed:", e);
+    const cbMsg = String((e as { message?: string })?.message || "").toLowerCase();
+    if (cbMsg.includes("scheduled")) {
+      return NextResponse.json({ error: locale === "en"
+        ? "A scheduled change (pause or plan switch) is blocking this. Revert it first."
+        : "Eine geplante Aenderung (Pause oder Plan-Wechsel) blockiert das. Nimm sie zuerst zurueck." }, { status: 409 });
+    }
     return NextResponse.json({ error: "switch failed" }, { status: 502 });
   }
 

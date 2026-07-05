@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { subscriptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireUser } from "@/lib/current-user";
+import { getLocaleFromCookies } from "@/lib/i18n";
 import { chargebee, isBillingConfigured } from "@/lib/chargebee";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +46,12 @@ export async function POST(req: Request) {
     const err = e as { error_code?: string; message?: string };
     if (err?.error_code === "pause_feature_not_enabled") {
       return NextResponse.json({ error: "Pause-Feature ist im Chargebee-Backend noch nicht freigeschaltet." }, { status: 503 });
+    }
+    if (String(err?.message || "").toLowerCase().includes("changes is scheduled")) {
+      const locale = await getLocaleFromCookies();
+      return NextResponse.json({ error: locale === "en"
+        ? "You have a scheduled plan change. Revert it first, then pause."
+        : "Du hast einen geplanten Plan-Wechsel. Nimm ihn zuerst zurueck, dann kannst du pausieren." }, { status: 409 });
     }
     return NextResponse.json({ error: err?.message ?? "pause failed" }, { status: 502 });
   }
