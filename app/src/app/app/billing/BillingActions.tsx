@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, type ReactNode } from "react";
 import type { Locale } from "@/lib/i18n";
-import PaymentMethodModal from "./PaymentMethodModal";
 import BillingInfoModal from "./BillingInfoModal";
 import type { PlanId } from "@/lib/chargebee";
 
@@ -83,7 +82,6 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
   const [showPauseModal, setShowPauseModal] = useState(false);
   const [planSwitchPreview, setPlanSwitchPreview] = useState<PlanSwitchPreview | null>(null);
   const [planSwitchError, setPlanSwitchError] = useState<string | null>(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showBillingInfoModal, setShowBillingInfoModal] = useState(false);
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   useEffect(() => {
@@ -264,9 +262,19 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
     }
   }
 
-  function doPaymentUpdate() {
-    setError(null);
-    setShowPaymentModal(true);
+  async function doPaymentUpdate() {
+    // Hosted Page statt Custom-Modal: Chargebee handelt 3DS/SCA komplett
+    // (Live-Stripe lehnt tokenize-only ohne 3DS-Challenge ab).
+    setError(null); setLoading("payment-update");
+    try {
+      const r = await fetch("/api/billing/payment-update", { method: "POST" });
+      const j = await r.json().catch(() => ({})) as { url?: string; error?: string };
+      if (!r.ok || !j.url) throw new Error(j?.error || "failed");
+      window.location.href = j.url;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "unknown");
+      setLoading(null);
+    }
   }
 
   async function openPortal() {
@@ -373,16 +381,6 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
             onSuccess={() => {
               setShowBillingInfoModal(false);
               setSuccessMsg(locale === "en" ? "Billing details updated." : "Rechnungsdaten aktualisiert.");
-            }}
-          />
-        )}
-        {showPaymentModal && (
-          <PaymentMethodModal
-            locale={locale}
-            onClose={() => setShowPaymentModal(false)}
-            onSuccess={() => {
-              setShowPaymentModal(false);
-              setSuccessMsg(locale === "en" ? "Card updated successfully." : "Karte erfolgreich aktualisiert.");
             }}
           />
         )}
