@@ -295,7 +295,7 @@ export default function BillingActions({ locale, hasActiveSub, justActivated, co
           {successMsg && (
             <div className="rounded-md border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm" style={{ color: "#0F5132" }}>{successMsg}</div>
           )}
-        {(quota.status === "unpaid" || invoices.some(i => i.status !== "paid" && i.status !== "voided")) && (
+        {(quota.status === "unpaid" || invoices.some(i => i.type !== "credit_note" && i.status !== "paid" && i.status !== "voided")) && (
           <div className="rounded-md border border-rose-300 bg-rose-50 px-4 py-3 text-sm" style={{ color: "#9F1239" }}>
             <div className="font-semibold mb-0.5">
               {locale === "en" ? "Payment failed" : "Zahlung fehlgeschlagen"}
