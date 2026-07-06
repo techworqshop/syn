@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-06-04T19:04:31.428Z",
+    "updatedAt": "2026-06-28T13:24:28.023Z",
     "createdAt": "2026-04-16T22:10:06.588Z",
     "id": "xgBgCZeVWBVB7jLN",
     "name": "SynWeb_Synthesize",
@@ -424,23 +424,26 @@
       }
     },
     "settings": {
+      "callerPolicy": "workflowsFromSameOwner",
+      "errorWorkflow": "k_1wGROZ77CNjRE1INOwj",
+      "availableInMCP": false,
       "executionOrder": "v1",
-      "saveDataSuccessExecution": "all",
-      "saveDataErrorExecution": "all",
       "saveManualExecutions": true,
       "saveExecutionProgress": true,
-      "callerPolicy": "workflowsFromSameOwner",
-      "availableInMCP": false
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all"
     },
     "staticData": null,
     "meta": {
       "templateCredsSetupCompleted": true
     },
+    "nodeGroups": [],
     "pinData": {},
     "versionId": "5705b0f4-9a7a-4d20-b884-3e00f4925267",
     "activeVersionId": "5705b0f4-9a7a-4d20-b884-3e00f4925267",
-    "versionCounter": 58,
+    "versionCounter": 60,
     "triggerCount": 0,
+    "sourceWorkflowId": null,
     "tags": [],
     "shared": [
       {
@@ -457,6 +460,7 @@
           "type": "personal",
           "icon": null,
           "description": null,
+          "customTelemetryTags": [],
           "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
         }
       }

@@ -490,11 +490,13 @@
     "meta": {
       "templateCredsSetupCompleted": true
     },
+    "nodeGroups": [],
     "pinData": null,
     "versionId": "c888ac18-f2fd-47f0-9000-55b3a3acb0bd",
     "activeVersionId": "c888ac18-f2fd-47f0-9000-55b3a3acb0bd",
-    "versionCounter": 111,
+    "versionCounter": 112,
     "triggerCount": 0,
+    "sourceWorkflowId": null,
     "tags": [],
     "shared": [
       {
@@ -511,6 +513,7 @@
           "type": "personal",
           "icon": null,
           "description": null,
+          "customTelemetryTags": [],
           "creatorId": "ddd3fc4f-8d8a-40c8-ab19-e75defdac099"
         }
       }
