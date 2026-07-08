@@ -290,4 +290,75 @@ PROD to a dedicated server + fresh n8n.
 6. Keep signup closed until all of the above is green; opening signup is the very last
    flip.
 
+---
+
+## J. Code-level migration traps (hardcoded refs & type-safety)
+
+These are pure code/definition issues (not config) that specifically bit us during the
+server migration and the payment build-out. They're the ones most likely to *silently*
+survive a migration or block a build.
+
+### J1. Hardcoded old-environment fallbacks in the code
+- **Symptom / risk:** After migration, some flows can silently talk to the **old** host
+  even when everything looks correct.
+- **Root cause:** Base-URL lookups written as
+  `const base = process.env.PUBLIC_BASE_URL || "https://old-host.example"`. We had **12**
+  such fallbacks across billing (`checkout`, `payment-update`, `portal`), the n8n
+  `callback` route, `message`, `verify-email`, `forgot-password`, etc. If the env var is
+  ever unset/misnamed on the new box, the code cheerfully uses the hardcoded old host —
+  no error, wrong target.
+- **Fix / rule for Ratio:** (a) Grep the whole repo for the old hostname before AND after
+  migration — it must return **zero** hits in shipped code paths. (b) Prefer failing loud
+  over a hardcoded fallback: `const base = requireEnv("PUBLIC_BASE_URL")` that throws at
+  boot if missing, instead of `|| "https://old-host"`. A missing env should crash the
+  container, not silently downgrade to the previous environment.
+
+### J2. Hardcoded absolute hosts inside workflow (n8n) definitions
+- **Symptom:** After migrating n8n, round execution hung / callbacks went to the old box
+  even though the app was fully on the new host.
+- **Root cause:** Workflow JSON embeds **absolute URLs**: the Gateway node had a callback
+  fallback `... || 'https://old-host/api/n8n/callback'`, and RunRound's internal
+  fan-out called sub-workflow webhooks at `https://old-n8n-host/webhook/...`. These live
+  inside the node parameters, not in env, so an env swap doesn't touch them.
+- **Fix:** After importing workflows to the new instance, scan every workflow's node JSON
+  for the old host and rewrite (host + webhook paths), then **deactivate+activate** so the
+  worker reloads the definition. Verify with a DB query:
+  `SELECT name FROM workflow_entity WHERE nodes::text LIKE '%old-host%'` → must be empty.
+- **Rule for Ratio:** Treat workflow definitions as code that contains environment
+  coupling. A cross-environment promote MUST transform embedded hosts/paths, not just IDs.
+
+### J3. Type-safety casts that mask required SDK fields → build breaks
+- **Symptom:** `next build` failed (twice) during the 3DS work with e.g.
+  `Argument of type 'Record<string, unknown>' is not assignable to parameter of type
+  'CreateInputParam' … missing amount, currency_code` and later `… missing customer_id`.
+- **Root cause:** We wrapped Chargebee SDK calls as
+  `chargebee.paymentIntent.create({...} as unknown as Record<string, unknown>)`. The
+  `as unknown as Record<string,unknown>` cast **erases the SDK's typed signature**, and on
+  a strict build TypeScript then complains the object doesn't satisfy the real param type.
+- **Fix:** Drop the cast and pass the object directly so the SDK's own types apply. Only
+  cast individual fields when genuinely necessary — never blanket-cast a whole SDK payload
+  through `unknown`.
+- **Lesson:** Blanket `as unknown as X` casts are a smell; they defer errors to build or
+  (worse) runtime. Let the library types do their job.
+
+### J4. Handlers not threaded through nested component props
+- **Symptom:** Build failed: `Cannot find name 'revertScheduled'`.
+- **Root cause:** A new action handler was defined in the parent billing component, but the
+  button lived in a nested sub-component (`PlanSwitcher`). The handler wasn't passed down as
+  a prop, so the child couldn't see it.
+- **Fix:** Thread the callback through the component's prop type + call site
+  (`onRevertScheduled={revertScheduled}` → destructure in the child).
+- **Lesson:** When adding an action to a nested presentational component, wire the prop
+  chain (type → parent call site → child destructure) in the same change, or the build
+  catches you.
+
+### J5. Worker caches workflow definitions (n8n queue mode)
+- **Symptom:** A fixed/edited workflow kept running its **old** behavior after the change
+  was saved to the DB.
+- **Root cause:** In n8n **queue mode**, the worker process caches the workflow definition;
+  a DB write (or `patchNodeField`) doesn't reload it.
+- **Fix:** After any workflow edit, **deactivate + activate** the workflow (re-publish) so
+  the worker reloads. After an n8n **restart**, also re-cycle workflows and **sweep-test
+  every webhook path** — the runtime router can report 404 while the DB says "registered".
+
 _Last updated: 2026-07-06. Source: Syn (asksyn.com) go-live + server migration._
