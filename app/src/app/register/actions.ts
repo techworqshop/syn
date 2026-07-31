@@ -97,5 +97,7 @@ export async function registerAction(_prev: unknown, formData: FormData) {
   // KEIN Auto-Login. User soll erst die Mail bestaetigen, dann selbst einloggen.
   // Redirect zur Verify-Email-Page mit der Adresse als Hint, damit die Pending-Page
   // dem User zeigt wo der Link hingeschickt wurde.
-  redirect(`/verify-email?email=${encodeURIComponent(email)}`);
+  // signup=<userId> markiert den frischen Signup -> etracker Lead-Conversion
+  // (userId statt E-Mail: stabil + eindeutig, aber ohne Personenbezug im Tracking)
+  redirect(`/verify-email?email=${encodeURIComponent(email)}&signup=${userId}`);
 }

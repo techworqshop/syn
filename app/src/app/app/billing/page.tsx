@@ -6,6 +6,8 @@ import { desc, eq } from "drizzle-orm";
 import { isBillingConfigured, PLANS, fetchLatestSubscriptionForCustomer, type PlanId } from "@/lib/chargebee";
 import { loadQuotaState } from "@/lib/quota";
 import BillingActions from "./BillingActions";
+import EtrackerConversion from "@/components/EtrackerConversion";
+import { conversionValueEur } from "@/lib/etracker";
 
 export const dynamic = "force-dynamic";
 
@@ -78,8 +80,14 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
     .where(eq(purchasedExtras.userId, u.id))
     .orderBy(desc(purchasedExtras.createdAt));
 
+  // etracker Sale-Conversion: nur direkt nach erfolgreichem Checkout
+  const etSale = justActivated && sub?.chargebeeSubscriptionId && planKey && planCycle
+    ? { tonr: sub.chargebeeSubscriptionId, tval: conversionValueEur(planKey, planCycle) }
+    : null;
+
   return (
     <div className="flex-1 w-full max-w-[760px] mx-auto px-6 py-10">
+      {etSale && <EtrackerConversion tonr={etSale.tonr} tval={etSale.tval} tsale={1} />}
       <div className="mb-8">
         <h1 className="text-[28px] font-semibold tracking-tight" style={{ color: "#1F2420" }}>
           {locale === "en" ? "Billing & Subscription" : "Abo & Rechnungen"}
