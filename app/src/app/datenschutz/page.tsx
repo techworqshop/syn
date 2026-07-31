@@ -54,8 +54,8 @@ function DeDatenschutz() {
       </LP>
 
       <LH2>4. Cookies &amp; Web-Analyse</LH2>
-      <LP>Technisch notwendige Cookies setzen wir zur Aufrechterhaltung der Login-Session. Optionale Cookies (Analyse, Marketing) werden nur nach deiner Einwilligung gesetzt. Du kannst deine Einwilligung jederzeit über den Link &bdquo;Cookie-Einstellungen&ldquo; im Footer widerrufen.</LP>
-      <LP><ConsentLink label="Cookie-Einstellungen öffnen" className="underline hover:text-rose-700 transition-colors" /></LP>
+      <LP>Technisch notwendige Cookies setzen wir zur Aufrechterhaltung der Login-Session. Optionale Cookies (Analyse, Marketing) werden nur nach deiner Einwilligung gesetzt. Du kannst deine Einwilligung jederzeit über den Link &bdquo;Datenschutz-Einstellungen&ldquo; im Footer widerrufen.</LP>
+      <LP><ConsentLink label="Datenschutz-Einstellungen öffnen" className="underline hover:text-rose-700 transition-colors" /></LP>
 
       <LH3>etracker</LH3>
       <LP>Wir nutzen den Dienst JustRelate etracker (<LA href="https://www.etracker.com">www.etracker.com</LA>) zur Analyse von Nutzungsdaten. Das Modul etracker consent manager dient dem Einwilligungs-Management. Über das Modul etracker tag manager können Scriptcodes anderer Tools eingebunden werden. In Kombination ermöglichen der etracker tag manager und consent manager bei entsprechender Einwilligung das Aussteuern bestimmter Cookies und Dienste. Auch bei Ablehnung von statistischen Cookies werden in Übereinstimmung mit den rechtlichen Anforderungen der EU-Datenschutzgrundverordnung (EU-DSGVO) und dem Telekommunikation-Digitale-Dienste-Datenschutzgesetz (TDDDG) Nutzungsdaten erfasst.</LP>
@@ -185,8 +185,8 @@ function EnPrivacy() {
       </LP>
 
       <LH2>4. Cookies &amp; web analytics</LH2>
-      <LP>We use technically necessary cookies to maintain the login session. Optional cookies (analytics, marketing) are only set after your consent. You can withdraw your consent at any time via the &bdquo;Cookie settings&ldquo; link in the footer.</LP>
-      <LP><ConsentLink label="Open cookie settings" className="underline hover:text-rose-700 transition-colors" /></LP>
+      <LP>We use technically necessary cookies to maintain the login session. Optional cookies (analytics, marketing) are only set after your consent. You can withdraw your consent at any time via the &bdquo;Privacy settings&ldquo; link in the footer.</LP>
+      <LP><ConsentLink label="Open privacy settings" className="underline hover:text-rose-700 transition-colors" /></LP>
 
       <LH3>etracker</LH3>
       <LP>We use the service JustRelate etracker (<LA href="https://www.etracker.com">www.etracker.com</LA>) to analyse usage data. The etracker consent manager module handles consent management. The etracker tag manager module allows script codes of other tools to be embedded. Combined, the etracker tag manager and consent manager allow certain cookies and services to be controlled based on the corresponding consent. Even if statistical cookies are declined, usage data is collected in accordance with the legal requirements of the EU General Data Protection Regulation (GDPR) and the German Telecommunications Digital Services Data Protection Act (TDDDG).</LP>

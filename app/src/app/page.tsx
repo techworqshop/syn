@@ -174,11 +174,11 @@ const COPY = {
               en: { title: "Try it on your next concept.", cta: "Get started" } },
   footer: { de: { tagline: "Synthetische Fokusgruppen — für jede Frage, jede Idee, jede Entscheidung.",
                   product: "Produkt", legal: "Recht", contact: "Kontakt",
-                  about: "Über Worqshop", privacy: "Datenschutz", imprint: "Impressum", terms: "AGB", consent: "Cookie-Einstellungen",
+                  about: "Über Worqshop", privacy: "Datenschutz", imprint: "Impressum", terms: "AGB", consent: "Datenschutz-Einstellungen",
                   status: "Status", builtBy: "© 2026 Syn · Ein Produkt von Worqshop" },
             en: { tagline: "Synthetic focus groups — for every question, every idea, every decision.",
                   product: "Product", legal: "Legal", contact: "Contact",
-                  about: "About Worqshop", privacy: "Privacy", imprint: "Imprint", terms: "Terms", consent: "Cookie settings",
+                  about: "About Worqshop", privacy: "Privacy", imprint: "Imprint", terms: "Terms", consent: "Privacy settings",
                   status: "Status", builtBy: "© 2026 Syn · A Worqshop product" } }
 };
 
