@@ -52,8 +52,16 @@ function DeDatenschutz() {
         <LStrong>Empfänger / Drittland:</LStrong> Google Ireland Ltd. / Google LLC (USA), abgesichert über EU-Standardvertragsklauseln (SCCs).
       </LP>
 
-      <LH2>4. Cookies</LH2>
-      <LP>Wir verwenden ausschließlich technisch notwendige Cookies, insbesondere zur Aufrechterhaltung der Login-Session. Optionale Analyse- oder Marketing-Cookies werden derzeit nicht gesetzt.</LP>
+      <LH2>4. Cookies &amp; Web-Analyse</LH2>
+      <LP>Technisch notwendige Cookies setzen wir zur Aufrechterhaltung der Login-Session. Optionale Cookies (Analyse, Marketing) werden nur nach deiner Einwilligung gesetzt. Du kannst deine Einwilligung jederzeit über den Link &bdquo;Cookie-Einstellungen&ldquo; im Footer widerrufen.</LP>
+
+      <LH3>etracker</LH3>
+      <LP>Wir nutzen den Dienst JustRelate etracker (<LA href="https://www.etracker.com">www.etracker.com</LA>) zur Analyse von Nutzungsdaten. Das Modul etracker consent manager dient dem Einwilligungs-Management. Über das Modul etracker tag manager können Scriptcodes anderer Tools eingebunden werden. In Kombination ermöglichen der etracker tag manager und consent manager bei entsprechender Einwilligung das Aussteuern bestimmter Cookies und Dienste. Auch bei Ablehnung von statistischen Cookies werden in Übereinstimmung mit den rechtlichen Anforderungen der EU-Datenschutzgrundverordnung (EU-DSGVO) und dem Telekommunikation-Digitale-Dienste-Datenschutzgesetz (TDDDG) Nutzungsdaten erfasst.</LP>
+      <LP>Die Datenverarbeitung erfolgt auf Basis der gesetzlichen Bestimmungen des Art. 6 Abs. 1 lit. f (berechtigtes Interesse) der EU-DSGVO. Unser Anliegen im Sinne der EU-DSGVO (berechtigtes Interesse) ist die Optimierung unseres Online-Angebotes sowie einer rechtskonformen Einbindung und Verwaltung weiterer Dienste auf unserer Website. Sofern eine entsprechende Einwilligung gegeben wurde, erfolgt die Ausspielung anderer Technologien auf Grundlage von Art. 6 Abs. 1 lit. a der EU-DSGVO. Die Einwilligung ist jederzeit widerrufbar.</LP>
+      <LP>Die mit etracker erzeugten Web-Analyse-Daten werden im Auftrag des Anbieters dieser Website von JustRelate ausschließlich in Deutschland verarbeitet und gespeichert und unterliegen damit den strengen deutschen und europäischen Datenschutzgesetzen und -standards. etracker wurde diesbezüglich unabhängig geprüft, zertifiziert und mit dem Datenschutz-Gütesiegel <LA href="https://etracker.com/eprivacy">ePrivacyseal</LA> ausgezeichnet. Da uns die Privatsphäre unserer Besucher wichtig ist, werden die Daten, die möglicherweise einen Bezug zu einer einzelnen Person zulassen, wie die IP-Adresse, Anmelde- oder Gerätekennungen, frühestmöglich anonymisiert oder pseudonymisiert. Eine andere Verwendung, Zusammenführung mit anderen Daten oder eine Weitergabe an Dritte erfolgt nicht.</LP>
+      <LP>Du kannst der vorbeschriebenen Datenverarbeitung jederzeit durch Klick auf den Schieberegler widersprechen. Der Widerspruch hat keine nachteiligen Folgen. Wird kein Schieberegler angezeigt, ist die Datenerfassung bereits durch andere Blockier-Maßnahmen unterbunden.</LP>
+      <LP><a href="#" data-tld="asksyn.com" id="et-opt-out"></a></LP>
+      <LP>Weitere Informationen zum Datenschutz bei JustRelate etracker findest du <LA href="https://www.etracker.com/datenschutz/">hier</LA>.</LP>
 
       <LH2>5. Account-Daten</LH2>
       <LP>Bei Registrierung verarbeiten wir deine E-Mail-Adresse und ein von dir vergebenes Passwort (in verschlüsselter Form, niemals im Klartext).</LP>
@@ -106,6 +114,7 @@ function DeDatenschutz() {
         <LLi>Anthropic PBC — AI-Reasoning (USA, SCCs)</LLi>
         <LLi>Google LLC — AI-Vision, E-Mail-Versand (USA, SCCs)</LLi>
         <LLi>Chargebee Inc. — Zahlungsabwicklung (USA / EU, SCCs)</LLi>
+        <LLi>JustRelate Group GmbH (etracker) — Web-Analyse und Consent-Management (Deutschland)</LLi>
       </LUl>
       <LP>Mit allen Anbietern werden Auftragsverarbeitungsverträge (Art. 28 DSGVO) abgeschlossen; der Abschluss ist teilweise noch in Bearbeitung.</LP>
 
@@ -173,8 +182,16 @@ function EnPrivacy() {
         <LStrong>Recipient / third country:</LStrong> Google Ireland Ltd. / Google LLC (USA), safeguarded via EU Standard Contractual Clauses (SCCs).
       </LP>
 
-      <LH2>4. Cookies</LH2>
-      <LP>We use only technically necessary cookies, in particular to maintain the login session. Optional analytics or marketing cookies are not currently set.</LP>
+      <LH2>4. Cookies &amp; web analytics</LH2>
+      <LP>We use technically necessary cookies to maintain the login session. Optional cookies (analytics, marketing) are only set after your consent. You can withdraw your consent at any time via the &bdquo;Cookie settings&ldquo; link in the footer.</LP>
+
+      <LH3>etracker</LH3>
+      <LP>We use the service JustRelate etracker (<LA href="https://www.etracker.com">www.etracker.com</LA>) to analyse usage data. The etracker consent manager module handles consent management. The etracker tag manager module allows script codes of other tools to be embedded. Combined, the etracker tag manager and consent manager allow certain cookies and services to be controlled based on the corresponding consent. Even if statistical cookies are declined, usage data is collected in accordance with the legal requirements of the EU General Data Protection Regulation (GDPR) and the German Telecommunications Digital Services Data Protection Act (TDDDG).</LP>
+      <LP>Data processing is based on Art. 6 (1) (f) GDPR (legitimate interest). Our legitimate interest is the optimisation of our online offering as well as the legally compliant integration and management of further services on our website. Where corresponding consent has been given, other technologies are delivered on the basis of Art. 6 (1) (a) GDPR. Consent can be withdrawn at any time.</LP>
+      <LP>The web analytics data generated with etracker is processed and stored on behalf of the provider of this website by JustRelate exclusively in Germany and is therefore subject to strict German and European data protection laws and standards. etracker has been independently audited and certified in this respect and awarded the <LA href="https://etracker.com/eprivacy">ePrivacyseal</LA> data protection seal of approval. Because the privacy of our visitors matters to us, data that could potentially allow a reference to an individual person — such as the IP address, login or device identifiers — is anonymised or pseudonymised at the earliest possible stage. No other use, combination with other data or transfer to third parties takes place.</LP>
+      <LP>You can object to the data processing described above at any time by clicking the slider. There are no adverse consequences to objecting. If no slider is displayed, data collection is already prevented by other blocking measures.</LP>
+      <LP><a href="#" data-tld="asksyn.com" id="et-opt-out"></a></LP>
+      <LP>You can find further information on data protection at JustRelate etracker <LA href="https://www.etracker.com/datenschutz/">here</LA>.</LP>
 
       <LH2>5. Account data</LH2>
       <LP>Upon registration we process your e-mail address and a password you choose (in hashed form, never in plain text).</LP>
@@ -227,6 +244,7 @@ function EnPrivacy() {
         <LLi>Anthropic PBC — AI reasoning (USA, SCCs)</LLi>
         <LLi>Google LLC — AI vision, e-mail delivery (USA, SCCs)</LLi>
         <LLi>Chargebee Inc. — payment processing (USA / EU, SCCs)</LLi>
+        <LLi>JustRelate Group GmbH (etracker) — web analytics and consent management (Germany)</LLi>
       </LUl>
       <LP>Data Processing Agreements (Art. 28 GDPR) are being concluded with all providers; the process is in some cases still in progress.</LP>
 

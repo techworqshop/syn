@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import AuthShell from "@/components/auth/AuthShell";
+import EtrackerConversion from "@/components/EtrackerConversion";
 import VerifyPending from "./VerifyPending";
 import { db } from "@/lib/db";
 import { users, emailVerificationTokens } from "@/db/schema";
@@ -10,11 +11,11 @@ import { getLocaleFromCookies, t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ token?: string; verified?: string; email?: string }>;
+type SearchParams = Promise<{ token?: string; verified?: string; email?: string; signup?: string }>;
 
 export default async function VerifyEmailPage({ searchParams }: { searchParams: SearchParams }) {
   const locale = await getLocaleFromCookies();
-  const { token = "", verified, email: emailParam } = await searchParams;
+  const { token = "", verified, email: emailParam, signup } = await searchParams;
 
   // ───── 1) Token-Klick aus Mail: Validieren + User markieren
   if (token) {
@@ -69,6 +70,8 @@ export default async function VerifyEmailPage({ searchParams }: { searchParams: 
   const showLogout = !!session?.user;
 
   return (
+    <>
+      {signup && <EtrackerConversion tonr={`lead_${signup}`} tsale={0} />}
     <AuthShell
       locale={locale}
       navRight={
@@ -87,6 +90,7 @@ export default async function VerifyEmailPage({ searchParams }: { searchParams: 
     >
       <VerifyPending locale={locale} email={email} hasSession={showLogout} />
     </AuthShell>
+    </>
   );
 }
 
