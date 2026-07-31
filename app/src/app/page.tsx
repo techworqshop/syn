@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ConsentLink from "@/components/ConsentLink";
 import { redirect } from "next/navigation";
 import { getLocaleFromCookies, type Locale } from "@/lib/i18n";
 import { auth } from "@/lib/auth";
@@ -173,11 +174,11 @@ const COPY = {
               en: { title: "Try it on your next concept.", cta: "Get started" } },
   footer: { de: { tagline: "Synthetische Fokusgruppen — für jede Frage, jede Idee, jede Entscheidung.",
                   product: "Produkt", legal: "Recht", contact: "Kontakt",
-                  about: "Über Worqshop", privacy: "Datenschutz", imprint: "Impressum", terms: "AGB",
+                  about: "Über Worqshop", privacy: "Datenschutz", imprint: "Impressum", terms: "AGB", consent: "Cookie-Einstellungen",
                   status: "Status", builtBy: "© 2026 Syn · Ein Produkt von Worqshop" },
             en: { tagline: "Synthetic focus groups — for every question, every idea, every decision.",
                   product: "Product", legal: "Legal", contact: "Contact",
-                  about: "About Worqshop", privacy: "Privacy", imprint: "Imprint", terms: "Terms",
+                  about: "About Worqshop", privacy: "Privacy", imprint: "Imprint", terms: "Terms", consent: "Cookie settings",
                   status: "Status", builtBy: "© 2026 Syn · A Worqshop product" } }
 };
 
@@ -506,6 +507,7 @@ export default async function Home() {
                 <li><Link href="/impressum" className="hover:text-rose-700 transition-colors">{t.footer[locale].imprint}</Link></li>
                 <li><Link href="/datenschutz" className="hover:text-rose-700 transition-colors">{t.footer[locale].privacy}</Link></li>
                 <li><Link href="/agb" className="hover:text-rose-700 transition-colors">{t.footer[locale].terms}</Link></li>
+                <li><ConsentLink label={t.footer[locale].consent} /></li>
               </ul>
             </div>
             <div>
