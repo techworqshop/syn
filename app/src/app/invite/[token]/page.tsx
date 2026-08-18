@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
+
 export default function InvitePage() {
   const params = useParams();
   const router = useRouter();
