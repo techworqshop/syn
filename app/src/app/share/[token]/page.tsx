@@ -8,6 +8,7 @@ import LanguageSwitch from "@/components/LanguageSwitch";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
+export const metadata = { robots: { index: false, follow: false } };
 
 type P = { params: Promise<{ token: string }> };
 
