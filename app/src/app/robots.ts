@@ -18,7 +18,9 @@ const PROD_HOST = "asksyn.com";
  * /share/* und /invite/* setzen zusaetzlich `noindex`.
  */
 export default function robots(): MetadataRoute.Robots {
-  const base = process.env.PUBLIC_BASE_URL || `https://${PROD_HOST}`;
+  // PUBLIC_BASE_URL ist die APP-Domain (app.asksyn.com). Marketing-Inhalte gehoeren
+  // auf die Apex-Domain -> fuehrendes "app." entfernen.
+  const base = (process.env.PUBLIC_BASE_URL || `https://${PROD_HOST}`).replace("://app.", "://");
   const isProd = base.includes(PROD_HOST);
 
   if (!isProd) {

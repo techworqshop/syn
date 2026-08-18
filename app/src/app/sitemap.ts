@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic";
  * (Alt-Seite; die AGB liegen zweisprachig unter /agb).
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.PUBLIC_BASE_URL || "https://asksyn.com";
+  // Apex-Domain fuer Marketing-URLs (PUBLIC_BASE_URL ist die App-Domain).
+  const base = (process.env.PUBLIC_BASE_URL || "https://asksyn.com").replace("://app.", "://");
   const now = new Date();
   return [
     { url: `${base}/`,            lastModified: now, changeFrequency: "weekly",  priority: 1.0 },
